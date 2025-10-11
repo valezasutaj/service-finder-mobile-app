@@ -3,7 +3,7 @@ import { Colors } from '../constants/Colors';
 import { useTheme } from '../context/ThemedModes';
 
 const ThemedView = ({ style, children, safe = true }) => {
-const { theme } = useTheme();
+    const { theme } = useTheme();
     const Container = safe ? SafeAreaView : View;
 
     return (

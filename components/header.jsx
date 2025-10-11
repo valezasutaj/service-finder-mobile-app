@@ -1,110 +1,106 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import ThemedText from './ThemedText';
-import ThemedButton from './ThemedButton';
 import { useTheme } from '../context/ThemedModes';
-import { useRouter } from 'expo-router'; 
+import { useRouter } from 'expo-router';
 
-
-const Header = () => {
-    const { theme } = useTheme();
+const Header = ({ user }) => {
+    const { theme, isDarkMode } = useTheme();
     const router = useRouter();
 
-    const ProfileIcon = () => (
-        <Image
-            source={{ uri: 'https://img.icons8.com/ios-filled/50/user-male-circle.png' }}
-            style={[styles.profileIconImage, { tintColor: theme.iconColor }]}
-        />
-    );
+    const defaultAvatar = isDarkMode
+        ? 'https://img.icons8.com/ios-filled/50/ffffff/user-male-circle.png'
+        : 'https://img.icons8.com/ios-filled/50/000000/user-male-circle.png';
+
 
     return (
-        <View style={[styles.header, { backgroundColor: theme.uiBackground, borderBottomColor: theme.border }]}>
+        <View style={[styles.headerContainer, { backgroundColor: theme.uiBackground }]}>
             <View style={styles.leftSection}>
-                <ThemedText title style={[styles.headerTitle, { color: theme.title }]}>
-                    ServiceFinder
-                </ThemedText>
-                <ThemedText style={[styles.headerSubtitle, { color: theme.text }]}>
-                    Find the best services near you
-                </ThemedText>
+                <TouchableOpacity onPress={() => router.push('/profile')}>
+                    <Image
+                        source={{ uri: user?.avatar || defaultAvatar }}
+                        style={[styles.avatar, { borderColor: theme.primary }]}
+                    />
+                </TouchableOpacity>
+
+                <View style={styles.userInfo}>
+                    <ThemedText style={[styles.userName, { color: theme.text }]}>
+                        {user?.name || 'Name Surname'}
+                    </ThemedText>
+                    <ThemedText style={[styles.userLocation, { color: theme.mutedText || theme.text }]}>
+                        {user?.location || 'Kosovë, Prishtinë'}
+                    </ThemedText>
+                </View>
             </View>
 
             <View style={styles.rightSection}>
-                <ThemedButton
-                    style={styles.signInButton}
-                >
-                    <ThemedText style={[styles.buttonText, { color: '#FFFFFF' }]}>Sign In</ThemedText>
-                </ThemedButton>
+                <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.primary }]}>
+                    <Image
+                        source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/bell.png' }}
+                        style={styles.iconImage}
+                    />
+                </TouchableOpacity>
 
-                <ThemedButton
-                    style={styles.signUpButton}
-                >
-                    <ThemedText style={[styles.buttonText, { color: '#FFFFFF' }]}>Sign Up</ThemedText>
-                </ThemedButton>
-
-                <TouchableOpacity style={[styles.profileButton, { backgroundColor: 'white', borderColor: theme.border }]}
-                    onPress={() => router.push('/profile')}>
-                    <ProfileIcon />
+                <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.primary }]}>
+                    <Image
+                        source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/search.png' }}
+                        style={styles.iconImage}
+                    />
                 </TouchableOpacity>
             </View>
-        </View >
+        </View>
     );
 };
 
 export default Header;
 
 const styles = StyleSheet.create({
-    header: {
+    headerContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingVertical: 12,
         borderBottomWidth: 1,
+        borderBottomColor: '#E0E0E0',
+        borderRadius: 16,
     },
     leftSection: {
-        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    avatar: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        borderWidth: 1.5,
+    },
+    userInfo: {
+        flexDirection: 'column',
+    },
+    userName: {
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    userLocation: {
+        fontSize: 11,
+        opacity: 0.7,
     },
     rightSection: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
     },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 2,
-    },
-    headerSubtitle: {
-        fontSize: 12,
-        opacity: 0.7,
-    },
-    signInButton: {
-        paddingHorizontal: 14,
-        paddingVertical: 6,
-        borderRadius: 20,
-        minHeight: 36,
-    },
-    signUpButton: {
-        paddingHorizontal: 14,
-        paddingVertical: 6,
-        borderRadius: 20,
-        minHeight: 36,
-    },
-    buttonText: {
-        fontWeight: '600',
-        fontSize: 12,
-    },
-    profileButton: {
+    iconButton: {
         width: 36,
         height: 36,
         borderRadius: 18,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
     },
-    profileIconImage: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
+    iconImage: {
+        width: 18,
+        height: 18,
     },
 });

@@ -11,7 +11,7 @@ export const ThemeProvider = ({ children }) => {
 
     useEffect(() => {
         const listener = Appearance.addChangeListener(({ colorScheme }) => {
-        setSystemTheme(colorScheme);
+            setSystemTheme(colorScheme);
         });
         return () => listener.remove();
     }, []);
@@ -24,7 +24,7 @@ export const ThemeProvider = ({ children }) => {
     const setSystemMode = () => setUserPreference(null);
 
     return (
-        <ThemedMode.Provider value={{theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode}}>{children}</ThemedMode.Provider>
+        <ThemedMode.Provider value={{ theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode }}>{children}</ThemedMode.Provider>
     );
 };
 
