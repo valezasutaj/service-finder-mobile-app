@@ -1,10 +1,10 @@
 import React from 'react';
 import { Pressable, StyleSheet, useColorScheme } from 'react-native';
 import { Colors } from '../constants/Colors';
+import { useTheme } from '../context/ThemedModes';
 
 const ThemedButton = ({ style, children, ...props }) => {
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] ?? Colors.light;
+    const { theme } = useTheme();
 
     return (
         <Pressable

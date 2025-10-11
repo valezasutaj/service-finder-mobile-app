@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { ScrollView, Image, StyleSheet, View, TouchableOpacity } from 'react-native';
-import { useColorScheme } from 'react-native';
 import ThemedView from '../components/ThemedView';
 import ThemedText from '../components/ThemedText';
 import ThemedServiceCard from '../components/ThemedServiceCard';
 import Spacer from '../components/Spacer';
 import ThemedButton from '../components/ThemedButton';
-import { Colors } from '../constants/Colors';
 import Header from '../components/header';
+import NavBar from '../components/NavBar';
+import { useTheme } from '../context/ThemedModes';
 
 const HomeScreen = () => {
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] ?? Colors.light;
-
+    const { theme } = useTheme();
     const [filters] = useState({ rating: 0, proximity: 0, price: 0 });
 
     const services = [
@@ -134,41 +132,12 @@ const HomeScreen = () => {
 
                 <Spacer height={40} />
             </ScrollView>
-
-            <View style={[themeStyles.nav, { backgroundColor: theme.uiBackground, borderTopColor: theme.border }]}>
-                <NavButton
-                    icon="https://img.icons8.com/ios-filled/50/home.png"
-                    label="Home"
-                    theme={theme}
-                />
-                <NavButton
-                    icon="https://img.icons8.com/ios-filled/50/search.png"
-                    label="Browse"
-                    theme={theme}
-                />
-                <NavButton
-                    icon="https://img.icons8.com/ios-filled/50/plus-math.png"
-                    label="Post"
-                    theme={theme}
-                />
-                <NavButton
-                    icon="https://img.icons8.com/ios-filled/50/chat.png"
-                    label="Messages"
-                    theme={theme}
-                />
-            </View>
+            <NavBar />
         </ThemedView>
     );
 };
 
 export default HomeScreen;
-
-const NavButton = ({ icon, label, onPress, theme }) => (
-    <TouchableOpacity style={styles(theme).navItem} onPress={onPress}>
-        <Image source={{ uri: icon }} style={[styles(theme).navIcon, { tintColor: theme.iconColor }]} />
-        <ThemedText style={styles(theme).navText}>{label}</ThemedText>
-    </TouchableOpacity>
-);
 
 const styles = (theme) =>
     StyleSheet.create({
@@ -267,21 +236,4 @@ const styles = (theme) =>
             marginBottom: 10,
             paddingHorizontal: 15,
         },
-        nav: {
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-            paddingVertical: 10,
-            borderTopWidth: 1,
-            paddingBottom: 30,
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: theme.uiBackground,
-            borderTopColor: theme.border,
-            zIndex: 10,
-        },
-        navItem: { alignItems: 'center', paddingVertical: 0, paddingHorizontal: 10 },
-        navIcon: { width: 24, height: 24 },
-        navText: { fontSize: 12, paddingTop: 2 },
     });

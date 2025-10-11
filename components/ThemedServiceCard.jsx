@@ -4,10 +4,10 @@ import ThemedCard from './ThemedCard';
 import ThemedText from './ThemedText';
 import { Colors } from '../constants/Colors';
 import { Bookmark } from 'lucide-react-native';
+import { useTheme } from '../context/ThemedModes';
 
 const ThemedServiceCard = ({ id, name, discount, price, image, onPress }) => {
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] ?? Colors.light;
+   const { theme } = useTheme();
 
     return (
         <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
