@@ -1,25 +1,10 @@
-import { useColorScheme, StyleSheet } from 'react-native';
-import { Stack } from 'expo-router';
-import { Colors } from '../constants/Colors';
-import { StatusBar } from 'expo-status-bar';
+import { Stack } from "expo-router";
+import { ThemeProvider } from "../context/ThemedModes";
 
-const RootLayout = () => {
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] ?? Colors.light;
-
-    return (
-        <>
-            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-            <Stack
-                screenOptions={{
-                    headerShown: false
-                }}
-            >
-            </Stack>
-        </>
-    );
-};
-
-export default RootLayout;
-
-const styles = StyleSheet.create({});
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <Stack screenOptions={{ headerShown: false }} />
+    </ThemeProvider>
+  );
+}

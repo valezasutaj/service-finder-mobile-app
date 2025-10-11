@@ -2,12 +2,13 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import ThemedText from './ThemedText';
 import ThemedButton from './ThemedButton';
-import { useColorScheme } from 'react-native';
-import { Colors } from '../constants/Colors';
+import { useTheme } from '../context/ThemedModes';
+import { useRouter } from 'expo-router'; 
+
 
 const Header = () => {
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] ?? Colors.light;
+    const { theme } = useTheme();
+    const router = useRouter();
 
     const ProfileIcon = () => (
         <Image
@@ -40,9 +41,8 @@ const Header = () => {
                     <ThemedText style={[styles.buttonText, { color: '#FFFFFF' }]}>Sign Up</ThemedText>
                 </ThemedButton>
 
-                <TouchableOpacity
-                    style={[styles.profileButton, { backgroundColor: 'white', borderColor: theme.border }]}
-                >
+                <TouchableOpacity style={[styles.profileButton, { backgroundColor: 'white', borderColor: theme.border }]}
+                    onPress={() => router.push('/profile')}>
                     <ProfileIcon />
                 </TouchableOpacity>
             </View>

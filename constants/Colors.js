@@ -15,6 +15,11 @@ export const Colors = {
         shadow: "#000000",
         border: "#333333",
         buttonBackground: "#7C4DFF",
+        accent: "#9B7BFF", 
+        profileBackground: "#0e0e12ff",
+        profileIcon: "#ccccccff", 
+        surface: "#000", 
+        mutedText: "#A0A0A0", 
     },
 
     light: {
@@ -33,5 +38,10 @@ export const Colors = {
         shadow: "#BDBDBD",
         border: "#E0E0E0",
         buttonBackground: "#7C4DFF",
+        accent: "#7B61FF",
+        profileBackground:"#FAFAFA",
+        profileIcon: "#343434ff", 
+        surface: "#FFFFFF", 
+        mutedText: "#5F5F5F", 
     },
 };

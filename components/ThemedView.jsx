@@ -1,10 +1,9 @@
 import { StyleSheet, View, SafeAreaView, useColorScheme } from 'react-native';
 import { Colors } from '../constants/Colors';
+import { useTheme } from '../context/ThemedModes';
 
 const ThemedView = ({ style, children, safe = true }) => {
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] ?? Colors.light;
-
+const { theme } = useTheme();
     const Container = safe ? SafeAreaView : View;
 
     return (
