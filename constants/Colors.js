@@ -20,6 +20,7 @@ export const Colors = {
         profileIcon: "#CCCCCC",
         surface: "#000000",
         mutedText: "#A0A0A0",
+        postText: "#E3F2FD"
     },
 
     light: {
@@ -43,5 +44,6 @@ export const Colors = {
         profileIcon: "#343434",
         surface: "#FFFFFF",
         mutedText: "#5F5F5F",
+        postText: "#E3F2FD"
     },
 };

@@ -1,23 +1,54 @@
 import React from 'react';
-import { StyleSheet, Image, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { StyleSheet, Image, TouchableOpacity, View } from 'react-native';
 import ThemedCard from './ThemedCard';
 import ThemedText from './ThemedText';
-import { Bookmark } from 'lucide-react-native';
+import { Bookmark, Star } from 'lucide-react-native';
 import { useTheme } from '../context/ThemedModes';
 
-const ThemedServiceCard = ({ id, name, discount, price, image, onPress }) => {
+const ThemedServiceCard = ({ name, discount, price, image, rating = null, onPress }) => {
     const { theme } = useTheme();
+
+    const renderStars = () => {
+        if (rating === null) {
+            return <ThemedText style={{ color: theme.text + '88', fontSize: 13 }}>No rating</ThemedText>;
+        }
+
+        const roundedStars = Math.round(rating);
+        const stars = [];
+        for (let i = 0; i < roundedStars; i++) {
+            stars.push(
+                <Star
+                    key={`full-${i}`}
+                    size={14}
+                    color="#FFD700"
+                    fill="#FFD700"
+                    style={{ marginRight: 2 }}
+                />
+            );
+        }
+        return stars;
+    };
 
     return (
         <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
             <ThemedCard style={[styles.card, { shadowColor: theme.shadow }]}>
                 <Image source={{ uri: image }} style={styles.image} resizeMode="cover" />
 
-                <View safe={false} style={styles.content}>
-                    <ThemedText style={[styles.id, { color: theme.iconColor }]}>#{id}</ThemedText>
-                    <ThemedText title style={[styles.title, { color: theme.title }]}>{name}</ThemedText>
-                    <ThemedText style={[styles.discount, { color: theme.text }]}>Save {discount}</ThemedText>
-                    <ThemedText style={[styles.price, { color: theme.text }]}>${price}</ThemedText>
+                <View style={styles.content}>
+                    <ThemedText title style={[styles.title, { color: theme.title }]} numberOfLines={1}>
+                        {name}
+                    </ThemedText>
+
+                    <View style={styles.ratingRow}>
+                        <View style={styles.starsContainer}>{renderStars()}</View>
+                    </View>
+
+                    <ThemedText style={[styles.discount, { color: theme.text }]}>
+                        Save {discount}
+                    </ThemedText>
+                    <ThemedText style={[styles.price, { color: theme.text }]}>
+                        ${price}
+                    </ThemedText>
                 </View>
 
                 <View style={[styles.bookmark, { backgroundColor: theme.primary + '22' }]}>
@@ -37,6 +68,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginHorizontal: 10,
+        borderRadius: 10,
     },
     image: {
         width: 95,
@@ -49,16 +81,20 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingVertical: 5,
     },
-    id: {
-        fontSize: 12,
-        fontWeight: '500',
-        opacity: 0.8,
-        marginBottom: 3,
-    },
     title: {
         fontSize: 16,
         fontWeight: '700',
         marginBottom: 4,
+    },
+    ratingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    starsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 6,
     },
     discount: {
         fontSize: 13,
