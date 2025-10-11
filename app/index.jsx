@@ -8,10 +8,11 @@ import ThemedButton from '../components/ThemedButton';
 import Header from '../components/header';
 import NavBar from '../components/NavBar';
 import { useTheme } from '../context/ThemedModes';
+import { FlatList } from 'react-native';
+
 
 const HomeScreen = () => {
     const { theme } = useTheme();
-    const [filters] = useState({ rating: 0, proximity: 0, price: 0 });
 
     const services = [
         {
@@ -53,19 +54,28 @@ const HomeScreen = () => {
     ];
 
     const categories = [
-        { label: 'Cleaning', icon: 'https://img.icons8.com/ios/452/clean.png' },
-        { label: 'Plumber', icon: 'https://img.icons8.com/ios/452/plumber.png' },
-        { label: 'Electrician', icon: 'https://img.icons8.com/ios/452/electricity.png' },
-        { label: 'More', icon: 'https://img.icons8.com/ios/452/more.png' },
+        {
+            label: 'Plumber',
+            icon: 'https://johnsservice.net/wp-content/uploads/2019/08/Emergency-Plumbing-Repair-Services-300x209.jpg',
+        },
+        {
+            label: 'Electrician',
+            icon: 'https://images.stockcake.com/public/f/8/8/f88a99d2-13a4-4c4a-a179-14369ef361e8_large/electrician-at-work-stockcake.jpg',
+        },
+        {
+            label: 'Painting',
+            icon: 'https://superpaintingco.com/wp-content/uploads/2025/02/Super-Painting.jpg',
+        },
+        {
+            label: 'Car Tow',
+            icon: 'https://d2hucwwplm5rxi.cloudfront.net/wp-content/uploads/2023/10/12112729/How-to-Tow-a-Car-with-a-Dolly-_-Cover-12-10-23.jpg',
+        },
+        {
+            label: 'Cleaning',
+            icon: 'https://blog.urbancare.co.nz/wp-content/uploads/Domestic-Cleaning-Services-1170x730.png',
+        }
     ];
 
-    const filteredServices = services.filter(service => {
-        return (
-            (filters.rating === 0 || service.rating >= filters.rating) &&
-            (filters.proximity === 0 || service.distance <= filters.proximity) &&
-            (filters.price === 0 || service.price <= filters.price)
-        );
-    });
 
     const themeStyles = styles(theme);
 
@@ -76,7 +86,7 @@ const HomeScreen = () => {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={themeStyles.scrollContent}>
                 <View style={themeStyles.bannerContainer}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 10 }}>
-                        {services.slice(0, 2).map(item => (
+                        {services.slice(0, 3).map(item => (
                             <View key={item.id} style={themeStyles.bannerCard}>
                                 <Image source={{ uri: item.image }} style={themeStyles.bannerImage} />
                                 <View style={themeStyles.bannerOverlay}>
@@ -102,38 +112,52 @@ const HomeScreen = () => {
                     </TouchableOpacity>
                 </View>
 
-                <View style={themeStyles.categoriesGrid}>
-                    {categories.map((cat, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            style={[themeStyles.categoryCard, { backgroundColor: theme.primary + '10' }]}
-                        >
-                            <Image source={{ uri: cat.icon }} style={themeStyles.categoryIcon} />
-                            <ThemedText style={themeStyles.categoryLabel}>{cat.label}</ThemedText>
-                        </TouchableOpacity>
-                    ))}
+                <View style={themeStyles.categorySection}>
+
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={themeStyles.categoriesRow}
+                    >
+                        {categories.map((item) => (
+                            <View
+                                key={item.label}
+                                style={themeStyles.categoryCard}
+                            >
+                                <Image
+                                    source={{ uri: item.icon }}
+                                    style={themeStyles.categoryImg}
+                                    resizeMode="cover"
+                                />
+                                <ThemedText style={themeStyles.categoryLabel}>{item.label}</ThemedText>
+                            </View>
+                        ))}
+                    </ScrollView>
                 </View>
 
-
-                <ThemedText title style={[themeStyles.sectionTitle, themeStyles.topSectionTitle]}>
+                <ThemedText title style={[themeStyles.sectionTitle, { paddingHorizontal: 15 }]}>
                     Top Services
                 </ThemedText>
 
-                {filteredServices.slice(1).map(service => (
-                    <ThemedServiceCard
-                        key={service.id}
-                        id={service.id}
-                        name={service.name}
-                        discount={service.discount}
-                        price={service.price}
-                        image={service.image}
-                    />
-                ))}
+                <FlatList
+                    data={services.slice(0, 3)}
+                    renderItem={({ item }) => (
+                        <ThemedServiceCard
+                            key={item.id}
+                            id={item.id}
+                            name={item.name}
+                            discount={item.discount}
+                            price={item.price}
+                            image={item.image}
+                        />
+                    )}
+                    scrollEnabled={false}
+                />
 
                 <Spacer height={40} />
             </ScrollView>
             <NavBar />
-        </ThemedView>
+        </ThemedView >
     );
 };
 
@@ -182,58 +206,51 @@ const styles = (theme) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginTop: 20,
-            paddingHorizontal: 10,
+            paddingHorizontal: 15,
+
         },
         sectionTitle: {
             fontSize: 18,
             fontWeight: 'bold',
             color: theme.text,
-            paddingHorizontal: 5,
+            marginVertical: 18,
         },
-        viewMore: { color: theme.link, fontSize: 13, paddingHorizontal: 5 },
-        categoriesGrid: {
+        viewMore: {
+            color: theme.link,
+            fontSize: 13,
+            margin: 5
+        },
+        categorySection: {
+            paddingHorizontal: 15
+        },
+        categoriesRow: {
             flexDirection: 'row',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            paddingHorizontal: 15,
-            marginTop: 10,
+            alignItems: 'center',
+            gap: 5,
+            paddingRight: 10,
         },
 
         categoryCard: {
-            width: '22%',
+            width: 80,
             alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 16,
-            paddingVertical: 14,
-            marginBottom: 15,
-            backgroundColor: theme.cardBackground,
-            shadowColor: theme.shadow,
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.15,
-            shadowRadius: 3,
-            elevation: 3,
-            borderWidth: 1,
-            borderColor: theme.border,
         },
 
-        categoryIcon: {
-            width: 32,
-            height: 32,
-            tintColor: theme.iconColor,
+        categoryImg: {
+            width: 75,
+            height: 75,
+            borderRadius: 18,
             marginBottom: 6,
+            backgroundColor: theme.cardBackground || '#f8f8f8',
+            shadowColor: '#000',
+            shadowOpacity: 0.1,
+            shadowOffset: { width: 0, height: 2 },
+            shadowRadius: 3,
         },
 
         categoryLabel: {
             fontSize: 13,
             fontWeight: '500',
-            color: theme.text,
+            color: theme.mutedText,
             textAlign: 'center',
-        },
-
-        topSectionTitle: {
-            marginTop: 10,
-            marginBottom: 10,
-            paddingHorizontal: 15,
-        },
+        }
     });
