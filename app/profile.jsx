@@ -4,15 +4,12 @@ import ThemedView from "../components/ThemedView";
 import ThemedText from "../components/ThemedText";
 import ThemedCard from "../components/ThemedCard";
 import NavBar from "../components/NavBar";
-import { Colors } from "../constants/Colors";
-import { useColorScheme } from 'react-native';
 import { ChevronRight, UserRound, Settings, LifeBuoy, LogOut } from "lucide-react-native";
 import { useTheme } from '../context/ThemedModes';
 
 
 const Profile = () => {
     const { theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode } = useTheme();
-
     const themeStyle = styles(theme);
 
     return (

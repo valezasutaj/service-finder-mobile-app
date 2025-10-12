@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Image, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet, ScrollView } from 'react-native';
+import { View, TextInput, Image, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet, ScrollView, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../context/ThemedModes';
@@ -8,9 +8,12 @@ import ThemedText from '../components/ThemedText';
 import ThemedButton from '../components/ThemedButton';
 import Spacer from '../components/Spacer';
 import { categories, addService } from '../constants/data';
+import Slider from '@react-native-community/slider';
+import { Check } from "lucide-react-native";
 
 export default function Post() {
     const { theme } = useTheme();
+    const styles = s(theme);
     const router = useRouter();
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
@@ -20,6 +23,7 @@ export default function Post() {
     const [category, setCategory] = useState('');
     const [image, setImage] = useState('');
     const [error, setError] = useState('');
+    const [isSubmitted, setisSubmitted] = useState(false);
 
     const handlePost = () => {
         setError('');
@@ -40,7 +44,7 @@ export default function Post() {
                 image:
                     image || 'https://placehold.co/600x400/4A90E2/FFFFFF?text=New+Service',
             });
-            router.back();
+            setisSubmitted(true);
         } catch (err) {
             console.error('Error posting job:', err);
             setError('Something went wrong while posting. Please try again.');
@@ -49,7 +53,7 @@ export default function Post() {
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaType.IMAGE,
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             quality: 0.8,
         });
@@ -102,14 +106,17 @@ export default function Post() {
 
                             <Spacer height={15} />
 
-                            <ThemedText type="subtitle" style={styles.label}>Rating</ThemedText>
-                            <TextInput
-                                keyboardType="numeric"
-                                placeholder="Enter Rating"
-                                placeholderTextColor={theme.mutedText}
-                                value={rating}
-                                onChangeText={setRating}
-                                style={[styles.input, { backgroundColor: theme.uiBackground, color: theme.text, borderColor: theme.border }]}
+                            <ThemedText type="subtitle" style={styles.label}>Rating: {rating || 3}</ThemedText>
+                            <Slider
+                                style={{ width: '100%', height: 40 }}
+                                minimumValue={1}
+                                maximumValue={5}
+                                step={1}
+                                value={rating ? parseFloat(rating) : 3}
+                                onValueChange={(value) => setRating(value.toString())}
+                                minimumTrackTintColor={theme.primary}
+                                maximumTrackTintColor={theme.border}
+                                thumbTintColor={theme.primary}
                             />
 
                             <Spacer height={15} />
@@ -180,12 +187,24 @@ export default function Post() {
                         </View>
                     </View>
                 </View>
+                <Modal visible={isSubmitted} transparent animationType="fade">
+                <View style={styles.overlay}>
+                    <View style={styles.popup}>
+                        <View style={styles.checkmark}><Check color={theme.postText} size={36} strokeWidth={3}/></View>
+                        <ThemedText style={{color: theme.backHome, fontSize: 18}}>Posted Successfully</ThemedText>
+                        <ThemedText style={{color: theme.backHome}}>You have successfully posted your service</ThemedText>
+                        <TouchableOpacity onPress={() => router.back()} style={styles.homeButton}>
+                            <ThemedText style={{color: theme.postText, fontSize: 15}}>Back To Home</ThemedText>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                </Modal>
             </KeyboardAvoidingView>
         </ThemedView>
     );
 }
 
-const styles = StyleSheet.create({
+const s = (theme) => StyleSheet.create({
     container: {
         flex: 1,
     },
@@ -235,5 +254,33 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         paddingVertical: 14,
         alignItems: 'center',
+    },
+    overlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(18, 18, 18, 0.66)',
+    },
+    popup: {
+        width: '85%',
+        height: 300,
+        backgroundColor: theme.background,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 30,
+        paddingHorizontal: 20,
+    },
+    checkmark: {
+        backgroundColor: theme.primary,
+        borderRadius: 50,
+        paddingHorizontal: 25,
+        paddingVertical: 25,
+    },
+    homeButton: {
+        backgroundColor: theme.primary,
+        borderRadius: 25,
+        paddingVertical: 12,
+        paddingHorizontal: 55,
     },
 });

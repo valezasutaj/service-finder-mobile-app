@@ -20,6 +20,7 @@ export const Colors = {
         profileIcon: "#CCCCCC",
         surface: "#000000",
         mutedText: "#A0A0A0",
+        backHome: "#ffffffff",
         postText: "#E3F2FD"
     },
 
@@ -44,6 +45,7 @@ export const Colors = {
         profileIcon: "#343434",
         surface: "#FFFFFF",
         mutedText: "#5F5F5F",
+        backHome: "#464646ff",
         postText: "#E3F2FD"
     },
 };
