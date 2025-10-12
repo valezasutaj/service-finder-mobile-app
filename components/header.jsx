@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 
 const Header = ({ user }) => {
     const { theme, isDarkMode } = useTheme();
+    const styles = s(theme);
     const router = useRouter();
 
     const defaultAvatar = isDarkMode
@@ -19,7 +20,7 @@ const Header = ({ user }) => {
                 <TouchableOpacity onPress={() => router.push('/profile')}>
                     <Image
                         source={{ uri: user?.avatar || defaultAvatar }}
-                        style={[styles.avatar, { borderColor: theme.primary }]}
+                        style={[styles.avatar]}
                     />
                 </TouchableOpacity>
 
@@ -41,7 +42,7 @@ const Header = ({ user }) => {
                     />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.primary }]}>
+                <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.primary }]} onPress={() => router.push('/browse')}>
                     <Image
                         source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/search.png' }}
                         style={styles.iconImage}
@@ -54,7 +55,7 @@ const Header = ({ user }) => {
 
 export default Header;
 
-const styles = StyleSheet.create({
+const s = (theme) => StyleSheet.create({
     headerContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
+        borderBottomColor: theme.border,
         borderRadius: 16,
     },
     leftSection: {
@@ -73,8 +74,6 @@ const styles = StyleSheet.create({
     avatar: {
         width: 42,
         height: 42,
-        borderRadius: 21,
-        borderWidth: 1.5,
     },
     userInfo: {
         flexDirection: 'column',
