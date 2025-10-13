@@ -42,11 +42,13 @@ const Header = ({ user }) => {
                     />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.primary }]} onPress={() => router.push('/browse')}>
+                <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.primary }]} onPress={() => router.push('/booking')}
+                >
                     <Image
-                        source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/search.png' }}
+                        source={{ uri: 'https://static.vecteezy.com/system/resources/previews/004/853/586/large_2x/booking-ticket-order-line-icon-illustration-logo-template-suitable-for-many-purposes-free-vector.jpg' }}
                         style={styles.iconImage}
                     />
+
                 </TouchableOpacity>
             </View>
         </View>
