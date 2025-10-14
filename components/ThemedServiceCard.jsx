@@ -32,7 +32,7 @@ const ThemedServiceCard = ({ name, discount, price, image, rating = null, onPres
     return (
         <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
             <ThemedCard style={[styles.card, { shadowColor: theme.shadow }]}>
-                <Image source={{ uri: image }} style={styles.image} resizeMode="cover" />
+                <Image source={image} style={styles.image} resizeMode="cover" />
 
                 <View style={styles.content}>
                     <ThemedText title style={[styles.title, { color: theme.title }]} numberOfLines={1}>

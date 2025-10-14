@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { View, StyleSheet, Image, Switch, TouchableOpacity, ScrollView } from "react-native";
 import ThemedView from "../components/ThemedView";
 import ThemedText from "../components/ThemedText";
@@ -6,7 +5,7 @@ import ThemedCard from "../components/ThemedCard";
 import NavBar from "../components/NavBar";
 import { ChevronRight, UserRound, Settings, LifeBuoy, LogOut } from "lucide-react-native";
 import { useTheme } from '../context/ThemedModes';
-
+import { Ionicons } from '@expo/vector-icons';
 
 const Profile = () => {
     const { theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode } = useTheme();
@@ -16,10 +15,13 @@ const Profile = () => {
         <ThemedView safe style={[themeStyle.container, { backgroundColor: theme.profileBackground }]}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 10 }}>
                 <View style={themeStyle.profileSection}>
-                    <Image
-                        source={{ uri: "https://cdn-icons-png.flaticon.com/512/847/847969.png", }}
+                    <Ionicons
+                        name="person-circle-sharp"
+                        size={themeStyle.profileImage.width}
+                        color={isDarkMode ? '#fff' : '#000'}
                         style={[themeStyle.profileImage, { borderColor: theme.border }]}
                     />
+
                     <View>
                         <ThemedText title style={[themeStyle.name, { color: theme.title }]}>Name Surname</ThemedText>
                         <ThemedText style={[themeStyle.email, { color: theme.mutedText ?? theme.text }]}>namesurname@gmail.com</ThemedText>
@@ -58,7 +60,7 @@ const Profile = () => {
                                 onPress={() => value === null ? setSystemMode() : value === 'light' ? setLightMode() : setDarkMode()}
                                 style={[themeStyle.modeButton, userPreference === value || (value === null && userPreference === null) ? themeStyle.modeButtonActive : {}]}
                             >
-                                <ThemedText style={[themeStyle.modeButtonText, { color: userPreference === value || (value === null && userPreference === null) ? theme.onPrimary : theme.text }]}>
+                                <ThemedText style={[themeStyle.modeButtonText, { color: userPreference === value || (value === null && userPreference === null) ? "#fff" : theme.text }]}>
                                     {label}
                                 </ThemedText>
                             </TouchableOpacity>
@@ -118,8 +120,6 @@ const styles = (theme) =>
         profileImage: {
             width: 60,
             height: 60,
-            borderRadius: 30,
-            borderWidth: 1.5,
         },
         name: {
             fontSize: 18,

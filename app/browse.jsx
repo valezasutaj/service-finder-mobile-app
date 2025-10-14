@@ -7,6 +7,7 @@ import NavBar from '../components/NavBar';
 import { useTheme } from '../context/ThemedModes';
 import Spacer from '../components/Spacer';
 import { services, categories } from '../constants/data';
+import { Ionicons } from '@expo/vector-icons';
 
 const Browse = () => {
     const { theme } = useTheme();
@@ -31,13 +32,12 @@ const Browse = () => {
 
     return (
         <ThemedView safe style={themeStyles.container}>
-            <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
 
                 <View style={themeStyles.searchContainer}>
-                    <Image
-                        source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/search.png' }}
-                        style={themeStyles.searchIcon}
-                    />
+
+                    <Ionicons name="search" size={24} color="#000" style={themeStyles.searchIcon} />
+
                     <TextInput
                         style={themeStyles.searchInput}
                         placeholder="Search services..."
@@ -54,7 +54,7 @@ const Browse = () => {
                             style={[themeStyles.categoryChip]}
                             onPress={() => setSelectedCategory(item.label)}
                         >
-                            {item.icon && <Image source={{ uri: item.icon }} style={themeStyles.categoryIcon} />}
+                            {item.icon && <Image source={item.icon} style={themeStyles.categoryIcon} />}
                             <ThemedText style={[themeStyles.filterText, selectedCategory === item.label && { color: theme.primary }]}>
                                 {item.label}
                             </ThemedText>

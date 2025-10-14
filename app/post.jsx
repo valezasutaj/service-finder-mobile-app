@@ -144,7 +144,7 @@ export default function Post() {
                                 renderItem={({ item }) => (
                                     <TouchableOpacity onPress={() => setCategory(item.label)} style={styles.categoryItem}>
                                         <View style={[styles.categoryBox, { borderColor: category === item.label ? theme.primary : theme.border, backgroundColor: category === item.label ? theme.primary + '15' : theme.uiBackground }]}>
-                                            <Image source={{ uri: item.icon }} style={styles.categoryImage} resizeMode="cover" />
+                                            <Image source={item.icon} style={styles.categoryImage} resizeMode="cover" />
                                         </View>
                                         <ThemedText style={{ fontSize: 12, marginTop: 6, color: category === item.label ? theme.primary : theme.text }}>{item.label}</ThemedText>
                                     </TouchableOpacity>
@@ -188,16 +188,16 @@ export default function Post() {
                     </View>
                 </View>
                 <Modal visible={isSubmitted} transparent animationType="fade">
-                <View style={styles.overlay}>
-                    <View style={styles.popup}>
-                        <View style={styles.checkmark}><Check color={theme.postText} size={36} strokeWidth={3}/></View>
-                        <ThemedText style={{color: theme.backHome, fontSize: 18}}>Posted Successfully</ThemedText>
-                        <ThemedText style={{color: theme.backHome}}>You have successfully posted your service</ThemedText>
-                        <TouchableOpacity onPress={() => router.back()} style={styles.homeButton}>
-                            <ThemedText style={{color: theme.postText, fontSize: 15}}>Back To Home</ThemedText>
-                        </TouchableOpacity>
+                    <View style={styles.overlay}>
+                        <View style={styles.popup}>
+                            <View style={styles.checkmark}><Check color={theme.postText} size={36} strokeWidth={3} /></View>
+                            <ThemedText style={{ color: theme.backHome, fontSize: 18 }}>Posted Successfully</ThemedText>
+                            <ThemedText style={{ color: theme.backHome }}>You have successfully posted your service</ThemedText>
+                            <TouchableOpacity onPress={() => router.back()} style={styles.homeButton}>
+                                <ThemedText style={{ color: theme.postText, fontSize: 15 }}>Back To Home</ThemedText>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </View>
                 </Modal>
             </KeyboardAvoidingView>
         </ThemedView>

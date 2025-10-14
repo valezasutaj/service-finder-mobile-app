@@ -5,41 +5,8 @@ import NavBar from '../components/NavBar';
 import Spacer from '../components/Spacer';
 import { useTheme } from '../context/ThemedModes';
 import { useRouter } from 'expo-router';
+import { mockMessages } from '../constants/data';
 
-const mockMessages = [
-    {
-        id: '1',
-        name: 'Jane Cooper',
-        message: 'Hey! Are you available tomorrow?',
-        time: '10:24 AM',
-        avatar: 'https://randomuser.me/api/portraits/women/68.jpg',
-        unread: true,
-    },
-    {
-        id: '2',
-        name: 'Robert Fox',
-        message: 'Thanks for the service!',
-        time: 'Yesterday',
-        avatar: 'https://randomuser.me/api/portraits/men/44.jpg',
-        unread: false,
-    },
-    {
-        id: '3',
-        name: 'Esther Howard',
-        message: 'Can we schedule for next week?',
-        time: 'Mon',
-        avatar: 'https://randomuser.me/api/portraits/women/12.jpg',
-        unread: false,
-    },
-    {
-        id: '4',
-        name: 'Devon Lane',
-        message: 'Great experience, thank you!',
-        time: 'Sun',
-        avatar: 'https://randomuser.me/api/portraits/men/19.jpg',
-        unread: false,
-    },
-];
 
 export default function Messages() {
     const { theme } = useTheme();
@@ -60,7 +27,7 @@ export default function Messages() {
                 },
             ]}
         >
-            <Image source={{ uri: item.avatar }} style={themeStyles.avatar} />
+            <Image source={item.avatar} style={themeStyles.avatar} />
             <View style={{ flex: 1 }}>
                 <ThemedText style={themeStyles.name}>{item.name}</ThemedText>
                 <ThemedText numberOfLines={1} style={themeStyles.message}>
