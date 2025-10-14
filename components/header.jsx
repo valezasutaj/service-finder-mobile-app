@@ -1,26 +1,23 @@
 import React from 'react';
-import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import ThemedText from './ThemedText';
 import { useTheme } from '../context/ThemedModes';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 const Header = ({ user }) => {
     const { theme, isDarkMode } = useTheme();
     const styles = s(theme);
     const router = useRouter();
 
-    const defaultAvatar = isDarkMode
-        ? 'https://img.icons8.com/ios-filled/50/ffffff/user-male-circle.png'
-        : 'https://img.icons8.com/ios-filled/50/000000/user-male-circle.png';
-
-
     return (
         <View style={[styles.headerContainer, { backgroundColor: theme.uiBackground }]}>
             <View style={styles.leftSection}>
                 <TouchableOpacity onPress={() => router.push('/profile')}>
-                    <Image
-                        source={{ uri: user?.avatar || defaultAvatar }}
-                        style={[styles.avatar]}
+                    <Ionicons
+                        name="person-circle"
+                        size={42}
+                        color={isDarkMode ? '#fff' : '#000'}
                     />
                 </TouchableOpacity>
 
@@ -36,19 +33,22 @@ const Header = ({ user }) => {
 
             <View style={styles.rightSection}>
                 <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.primary }]}>
-                    <Image
-                        source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/bell.png' }}
-                        style={styles.iconImage}
+                    <Ionicons
+                        name="notifications"
+                        size={20}
+                        color="#fff"
                     />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.primary }]} onPress={() => router.push('/booking')}
+                <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: theme.primary }]}
+                    onPress={() => router.push('/booking')}
                 >
-                    <Image
-                        source={{ uri: 'https://static.vecteezy.com/system/resources/previews/004/853/586/large_2x/booking-ticket-order-line-icon-illustration-logo-template-suitable-for-many-purposes-free-vector.jpg' }}
-                        style={styles.iconImage}
+                    <Ionicons
+                        name="calendar"
+                        size={20}
+                        color="#fff"
                     />
-
                 </TouchableOpacity>
             </View>
         </View>
@@ -73,10 +73,6 @@ const s = (theme) => StyleSheet.create({
         alignItems: 'center',
         gap: 10,
     },
-    avatar: {
-        width: 42,
-        height: 42,
-    },
     userInfo: {
         flexDirection: 'column',
     },
@@ -99,9 +95,5 @@ const s = (theme) => StyleSheet.create({
         borderRadius: 18,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    iconImage: {
-        width: 18,
-        height: 18,
     },
 });

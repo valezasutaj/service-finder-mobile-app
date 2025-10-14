@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import ThemedText from './ThemedText';
 import { useTheme } from '../context/ThemedModes';
 import { useRouter, usePathname } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 const NavBar = () => {
     const { theme } = useTheme();
@@ -13,35 +14,35 @@ const NavBar = () => {
     return (
         <View style={[themeStyles.nav, { backgroundColor: theme.uiBackground, borderTopColor: theme.border }]}>
             <NavButton
-                icon="https://img.icons8.com/ios-filled/50/home.png"
+                icon="home"
                 label="Home"
                 active={pathname === '/' || pathname.includes('/home')}
                 onPress={() => router.push('/')}
                 theme={theme}
             />
             <NavButton
-                icon="https://img.icons8.com/ios-filled/50/search.png"
+                icon="search"
                 label="Browse"
                 active={pathname.includes('/browse')}
                 onPress={() => router.push('/browse')}
                 theme={theme}
             />
             <NavButton
-                icon="https://img.icons8.com/ios-filled/50/plus-math.png"
+                icon="add"
                 label="Post"
                 active={pathname.includes('/post')}
                 onPress={() => router.push('/post')}
                 theme={theme}
             />
             <NavButton
-                icon="https://img.icons8.com/ios-filled/50/chat.png"
+                icon="chatbubbles-outline"
                 label="Messages"
                 active={pathname.includes('/messages')}
                 onPress={() => router.push('/messages')}
                 theme={theme}
             />
             <NavButton
-                icon="https://img.icons8.com/ios-filled/50/user.png"
+                icon="person"
                 label="Profile"
                 active={pathname.includes('/profile')}
                 onPress={() => router.push('/profile')}
@@ -62,12 +63,10 @@ const NavButton = ({ icon, label, onPress, active, theme }) => (
         onPress={onPress}
         activeOpacity={0.8}
     >
-        <Image
-            source={{ uri: icon }}
-            style={[
-                styles(theme).navIcon,
-                { tintColor: active ? '#fff' : theme.iconColor },
-            ]}
+        <Ionicons
+            name={icon}
+            size={22}
+            color={active ? '#fff' : theme.iconColor}
         />
         <ThemedText
             style={[
@@ -111,6 +110,5 @@ const styles = (theme) =>
             paddingHorizontal: 18,
             paddingVertical: 8,
         }),
-        navIcon: { width: 22, height: 22 },
         navText: { fontSize: 12, paddingTop: 1 },
     });

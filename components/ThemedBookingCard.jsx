@@ -13,7 +13,6 @@ const statusColors = {
 const ThemedBookingCard = ({ id, title, bookingId, price, date, provider, status, image }) => {
   const { theme } = useTheme();
   const styles = getStyles(theme);
-  const router = useRouter();
 
   const { background, text } =
     statusColors[status] || { background: theme.border, text: theme.text };
@@ -76,7 +75,7 @@ const getStyles = (theme) =>
       marginRight: 14,
     },
     title: {
-      fontSize: 16,
+      fontSize: 14.5,
       fontWeight: '700',
       color: theme.text,
       marginBottom: 3,
@@ -87,14 +86,14 @@ const getStyles = (theme) =>
       marginBottom: 3,
     },
     price: {
-      fontSize: 14.5,
+      fontSize: 14,
       fontWeight: 'bold',
       color: theme.text,
     },
     statusBadge: {
-        position: 'absolute',
-        top: 5,
-        right: 5,
+      position: 'absolute',
+      top: 5,
+      right: 5,
       paddingHorizontal: 16,
       paddingVertical: 10,
       borderRadius: 16,

@@ -14,7 +14,7 @@ const HomeScreen = () => {
     const themeStyles = styles(theme);
 
     return (
-        <ThemedView safe style={themeStyles.container}>
+        <ThemedView safe style={[themeStyles.container, { paddingBottom: 40 }]}>
             <Header />
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={themeStyles.scrollContent}>
@@ -22,7 +22,7 @@ const HomeScreen = () => {
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 10 }}>
                         {services.slice(0, 3).map(item => (
                             <View key={item.id} style={themeStyles.bannerCard}>
-                                <Image source={{ uri: item.image }} style={themeStyles.bannerImage} />
+                                <Image source={item.image} style={themeStyles.bannerImage} />
                                 <View style={themeStyles.bannerOverlay}>
                                     <ThemedText style={themeStyles.bannerText}>
                                         {item.name} with {item.discount} Discount
@@ -39,12 +39,13 @@ const HomeScreen = () => {
 
                 <View style={themeStyles.sectionHeader}>
                     <ThemedText title style={themeStyles.sectionTitle}>Categories</ThemedText>
+                    <ThemedText title style={themeStyles.link}>View More</ThemedText>
                 </View>
 
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={themeStyles.categoriesRow}>
                     {categories.map(cat => (
                         <View key={cat.label} style={themeStyles.categoryCard}>
-                            <Image source={{ uri: cat.icon }} style={themeStyles.categoryImg} />
+                            <Image source={cat.icon} style={themeStyles.categoryImg} />
                             <ThemedText style={themeStyles.categoryLabel}>{cat.label}</ThemedText>
                         </View>
                     ))}
@@ -147,6 +148,13 @@ const styles = (theme) => StyleSheet.create({
         fontWeight: 'bold',
         color: theme.text,
         marginVertical: 18,
+    },
+
+    link: {
+        fontSize: 14,
+        color: theme.text,
+        marginVertical: 18,
+        color: theme.mutedText,
     },
 
     categoriesRow: {
