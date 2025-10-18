@@ -184,16 +184,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 12,
   },
+  
   input: {
     fontSize: 16,
     color: "#fff",
     fontWeight: "700",
     letterSpacing: 0.3,
   },
+
   eye: { position: "absolute", right: 18, height: "100%", justifyContent: "center" },
 
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginVertical: 8 },
+
   remember: { flexDirection: "row", alignItems: "center" },
+
   circle: {
     width: 18, 
     height: 18, 
@@ -201,9 +205,13 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: "#fff",
     marginRight: 8, alignItems: "center", justifyContent: "center",
   },
+
   circleOn: { borderColor: "#fff" },
+
   circleDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: "#fff" },
+
   rememberTxt: { color: "#fff", fontSize: 13 },
+
   forgot: { color: "#fff", fontSize: 13 },
 
   loginBtn: {
@@ -214,21 +222,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 16,
   },
+
   loginTxt: { color: "#3595FF", fontSize: 16, fontWeight: "700" },
 
   signupRow: { flexDirection: "row", justifyContent: "center", marginTop: 12 },
+
   signupTxt: { color: "#fff" },
+
   signupLink: { color: "#fff", fontWeight: "700" },
+
   backBtn: {
   position: "absolute",
   left: 12,
   width: 44,
   height: 44,
   borderRadius: 12,
-  backgroundColor: "#fff",      // kutia e bardhë si në vizatim
+  backgroundColor: "#fff",     
   zIndex: 5,
-  // vizato “shigjetën” me border (minimal, pa ikonë)
-  // opsioni A: stil i thjeshtë me “kënd” të prerë
   overflow: "hidden",
 },
 
