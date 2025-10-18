@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {View,Text,StyleSheet,Image,TouchableOpacity,TextInput,Dimensions,Platform,} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
@@ -22,11 +23,26 @@ export default function LoginScreen({ navigation }) {
     console.log({ username, pwd, remember });
   };
 
+  const insets = useSafeAreaInsets();
+   const router = useRouter();
+
   return (
     <SafeAreaView style={styles.screen}>
     
       <View style={styles.blueBg} />
  
+ <TouchableOpacity
+  onPress={() => router.replace('/')}
+  activeOpacity={0.8}
+  style={[
+    styles.backBtn,
+    { top: insets.top + 8, alignItems: "center", justifyContent: "center" }
+  ]}
+>
+  <Ionicons name="chevron-back" size={26} color="#3595FF" />
+</TouchableOpacity>
+
+
       <View style={styles.topTitleWrap}>
         <Text style={styles.topTitle}>Service Finder</Text>
       </View>
@@ -58,7 +74,6 @@ export default function LoginScreen({ navigation }) {
           />
         </View>
 
-     
         <View style={[styles.field, { position: "relative" }]}>
           <TextInput
             style={styles.input}
@@ -98,7 +113,7 @@ export default function LoginScreen({ navigation }) {
 
         <View style={styles.signupRow}>
           <Text style={styles.signupTxt}>New user?</Text>
-          <TouchableOpacity onPress={() => navigation?.navigate?.("Register")}>
+          <TouchableOpacity onPress={() => router.replace("/signup")}>
             <Text style={styles.signupLink}> Sign Up</Text>
           </TouchableOpacity>
         </View>
@@ -204,4 +219,17 @@ const styles = StyleSheet.create({
   signupRow: { flexDirection: "row", justifyContent: "center", marginTop: 12 },
   signupTxt: { color: "#fff" },
   signupLink: { color: "#fff", fontWeight: "700" },
+  backBtn: {
+  position: "absolute",
+  left: 12,
+  width: 44,
+  height: 44,
+  borderRadius: 12,
+  backgroundColor: "#fff",      // kutia e bardhë si në vizatim
+  zIndex: 5,
+  // vizato “shigjetën” me border (minimal, pa ikonë)
+  // opsioni A: stil i thjeshtë me “kënd” të prerë
+  overflow: "hidden",
+},
+
 });
