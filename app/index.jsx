@@ -1,188 +1,130 @@
-import { ScrollView, Image, StyleSheet, View, TouchableOpacity, FlatList } from 'react-native';
-import ThemedView from '../components/ThemedView';
-import ThemedText from '../components/ThemedText';
-import ThemedServiceCard from '../components/ThemedServiceCard';
-import Spacer from '../components/Spacer';
-import ThemedButton from '../components/ThemedButton';
-import Header from '../components/header';
-import NavBar from '../components/NavBar';
-import { useTheme } from '../context/ThemedModes';
-import { services, categories } from '../constants/data';
+import React from 'react';
+import { View, Image, StyleSheet, Dimensions, Text,TouchableOpacity  } from 'react-native';
+import { useRouter } from "expo-router";
 
-const HomeScreen = () => {
-    const { theme } = useTheme();
-    const themeStyles = styles(theme);
 
-    return (
-        <ThemedView safe style={[themeStyles.container, { paddingBottom: 40 }]}>
-            <Header />
+export default function Welcome() {
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={themeStyles.scrollContent}>
-                <View style={themeStyles.bannerContainer}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 10 }}>
-                        {services.slice(0, 3).map(item => (
-                            <View key={item.id} style={themeStyles.bannerCard}>
-                                <Image source={item.image} style={themeStyles.bannerImage} />
-                                <View style={themeStyles.bannerOverlay}>
-                                    <ThemedText style={themeStyles.bannerText}>
-                                        {item.name} with {item.discount} Discount
-                                    </ThemedText>
+  const router = useRouter();
 
-                                    <ThemedButton style={themeStyles.bannerButton}>
-                                        <ThemedText style={themeStyles.bannerButtonText}>Book Now</ThemedText>
-                                    </ThemedButton>
-                                </View>
-                            </View>
-                        ))}
-                    </ScrollView>
-                </View>
+  return (
 
-                <View style={themeStyles.sectionHeader}>
-                    <ThemedText title style={themeStyles.sectionTitle}>Categories</ThemedText>
-                    <ThemedText title style={themeStyles.link}>View More</ThemedText>
-                </View>
 
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={themeStyles.categoriesRow}>
-                    {categories.map(cat => (
-                        <View key={cat.label} style={themeStyles.categoryCard}>
-                            <Image source={cat.icon} style={themeStyles.categoryImg} />
-                            <ThemedText style={themeStyles.categoryLabel}>{cat.label}</ThemedText>
-                        </View>
-                    ))}
-                </ScrollView>
+    <View style={styles.container}>
 
-                <ThemedText title style={[themeStyles.sectionTitle, { paddingHorizontal: 15 }]}>Top Services</ThemedText>
+      
+      <View style={styles.textContainer}>
+        <Text style={styles.title}>Welcome to ServiceFinder!</Text>
+        <Text style={styles.subtitle}>Your platform for service management!</Text>
+      </View>
 
-                <FlatList
-                    data={services.slice(0, 3)}
-                    keyExtractor={item => item.id}
-                    renderItem={({ item }) => (
-                        <ThemedServiceCard
-                            id={item.id}
-                            name={item.name}
-                            discount={item.discount}
-                            rating={item.rating}
-                            price={item.price}
-                            image={item.image}
-                        />
-                    )}
-                    scrollEnabled={false}
-                />
+      <View style={styles.buttonSection}>
+      <View style={styles.boxContainer}>
+        <TouchableOpacity style={styles.btnPrimary} onPress={() => router.push('/signup')}>
+            <Text style={styles.btnPrimaryText}>Create Account</Text>
+          </TouchableOpacity>
+         <TouchableOpacity style={styles.btnSecondary} onPress={() => router.push('/login')}>
+            <Text style={styles.btnSecondaryText}>Log In</Text>
+          </TouchableOpacity>
 
-                <Spacer height={40} />
-            </ScrollView>
-            <NavBar />
-        </ThemedView>
-    );
-};
+          <Text 
+         style={styles.linkText}
+          onPress={() => router.replace('/home')}>
+          Continue to Home
+          </Text>
+      </View>
+      </View>
+      <Image 
+        source={require('../assets/hero.png')} 
+        style={styles.image}
+        resizeMode="cover"
+      />
 
-export default HomeScreen;
+    </View>
+  );
+}
 
-const styles = (theme) => StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.background,
-        paddingHorizontal: 16,
-        paddingTop: 10,
-    },
+const { height, width } = Dimensions.get('window');
 
-    scrollContent: {
-        paddingBottom: 20,
-    },
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#3595ff',
+    alignItems: 'center',
+    justifyContent: 'space-between', 
+    paddingVertical: height * 0.04, 
+      position: 'relative',  
+  },
+  textContainer: {
+    alignItems: 'center',
+    marginTop: height * 0.1,
+    marginBottom: height*0.05, 
+  },
+  title: {
+    color: 'white',
+    fontSize: width * 0.07, 
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: height *0.1,
+  },
+  subtitle: {
+    color: 'white',
+    fontSize: width * 0.045, 
+    marginTop: height * 0.01,
+    textAlign: 'center',
+  },
+  image: {
+   width: width,
+  height: height * 0.4,
+  marginTop: -height * 0.03,
+  },
+  buttonSection: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: height * 0.08, 
+  },
+  boxContainer: {
+    width: '80%',
+    backgroundColor: 'rgba(255,255,255,0.25)', 
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 5, 
+  },
+   btnPrimary: {
+    backgroundColor: '#fff',
+    borderRadius: 25,
+    width: '100%',
+    paddingVertical: 12,
+    marginBottom: 10,
+  },
+  btnPrimaryText: {
+    color: '#545050e4',
+    fontSize: width * 0.045,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  btnSecondary: {
+    borderWidth: 1,
+    borderColor: '#fff',
+    borderRadius: 25,
+    width: '100%',
+    paddingVertical: 12,
+  },
+  btnSecondaryText: {
+    color: 'white',
+    fontSize: width * 0.045,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  linkText: {
+  color: '#fff',
+  fontSize: width * 0.04,
+  marginTop: 12,
+  textDecorationLine: 'underline',
+},
 
-    bannerContainer: {
-        marginTop: 10,
-    },
-
-    bannerCard: {
-        width: 280,
-        height: 140,
-        borderRadius: 15,
-        marginRight: 15,
-        overflow: 'hidden',
-    },
-
-    bannerImage: {
-        width: '100%',
-        height: '100%',
-    },
-
-    bannerOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.35)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        paddingVertical: 10,
-    },
-
-    bannerText: {
-        color: '#FFFFFF',
-        fontSize: 14,
-        fontWeight: '600',
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-
-    bannerButton: {
-        paddingHorizontal: 15,
-        paddingVertical: 8,
-        borderRadius: 20,
-    },
-
-    bannerButtonText: {
-        color: '#fff',
-        fontWeight: '600',
-        fontSize: 12,
-    },
-
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-    },
-
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: theme.text,
-        marginVertical: 18,
-    },
-
-    link: {
-        fontSize: 14,
-        color: theme.text,
-        marginVertical: 18,
-        color: theme.mutedText,
-    },
-
-    categoriesRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 5,
-        paddingHorizontal: 15
-    },
-
-    categoryCard: {
-        width: 80,
-        alignItems: 'center',
-        marginRight: 10,
-    },
-
-    categoryImg: {
-        width: 75,
-        height: 75,
-        borderRadius: 18,
-        marginBottom: 6,
-        backgroundColor: theme.cardBackground || '#f8f8f8',
-    },
-
-    categoryLabel: {
-        fontSize: 13,
-        fontWeight: '500',
-        color: theme.mutedText,
-        textAlign: 'center',
-    },
-});
-
+});  
