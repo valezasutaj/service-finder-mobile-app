@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View,Text,StyleSheet,Image,TouchableOpacity,TextInput,Platform,ScrollView,} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState("");
@@ -15,6 +16,8 @@ export default function RegisterScreen({ navigation }) {
   const onRegister = () => {
     console.log({ name, username, email, phone, address, pwd });
   };
+ 
+ const router = useRouter();
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -74,27 +77,6 @@ export default function RegisterScreen({ navigation }) {
             />
           </View>
 
-          <View style={styles.field}>
-            <TextInput
-              style={styles.input}
-              placeholder="Phone number"
-              placeholderTextColor="#e1e5ea"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-            />
-          </View>
-
-          <View style={styles.field}>
-            <TextInput
-              style={styles.input}
-              placeholder="Address"
-              placeholderTextColor="#e1e5ea"
-              value={address}
-              onChangeText={setAddress}
-            />
-          </View>
-
           <View style={[styles.field, { position: "relative" }]}>
             <TextInput
               style={styles.input}
@@ -120,10 +102,10 @@ export default function RegisterScreen({ navigation }) {
           </TouchableOpacity>
 
           <View style={styles.bottomRow}>
-            <Text style={styles.bottomTxt}>Already have an account?</Text>
-            <TouchableOpacity onPress={() => navigation?.replace?.("Login")}>
-              <Text style={styles.bottomLink}> Sign In</Text>
-            </TouchableOpacity>
+      <Text style={styles.bottomTxt}>Already have an account?</Text>
+      <TouchableOpacity onPress={() => router.replace("/login")}>
+        <Text style={styles.bottomLink}> Sign In</Text>
+      </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -138,7 +120,7 @@ const styles = StyleSheet.create({
 
   topTitleWrap: {
     position: "absolute",
-    top: 10,
+    top: 60,
     left: 0,
     right: 0,
     alignItems: "center",
@@ -156,7 +138,7 @@ const styles = StyleSheet.create({
   card: {
     alignSelf: "center",
     width: "88%",
-    marginTop: 160,
+    marginTop: 200,
     backgroundColor: "rgba(255,255,255,0.35)",
     borderRadius: 26,
     paddingHorizontal: 20,
