@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Image, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useTheme } from '../context/ThemedModes';
 import ThemedText from './ThemedText';
 
@@ -10,7 +9,17 @@ const statusColors = {
   Cancelled: { background: '#FDE2E2', text: '#FF4D4F' },
 };
 
-const ThemedBookingCard = ({ id, title, bookingId, price, date, provider, status, image }) => {
+const ThemedBookingCard = ({
+  id,
+  title,
+  bookingId,
+  price,
+  date,
+  provider,
+  status,
+  image,
+  onCancel,
+}) => {
   const { theme } = useTheme();
   const styles = getStyles(theme);
 
@@ -18,21 +27,29 @@ const ThemedBookingCard = ({ id, title, bookingId, price, date, provider, status
     statusColors[status] || { background: theme.border, text: theme.text };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      style={{ marginHorizontal: 12 }}
-    >
+    <TouchableOpacity activeOpacity={0.9} style={{ marginHorizontal: 12 }}>
       <View style={styles.card}>
         <View style={styles.row}>
           <Image source={image} style={styles.image} />
+
           <View style={{ flex: 1 }}>
             <ThemedText style={styles.title}>{title}</ThemedText>
             <ThemedText style={styles.bookingId}>Booking ID: {bookingId}</ThemedText>
             <ThemedText style={styles.price}>{price}</ThemedText>
           </View>
+          <View style={styles.statusColumn}>
+            <View style={[styles.statusBadge, { backgroundColor: background }]}>
+              <Text style={[styles.statusText, { color: text }]}>{status}</Text>
+            </View>
 
-          <View style={[styles.statusBadge, { backgroundColor: background }]}>
-            <Text style={[styles.statusText, { color: text }]}>{status}</Text>
+            {status === 'Pending' && (
+              <TouchableOpacity
+                onPress={() => onCancel && onCancel(id)}
+                style={styles.cancelButton}
+              >
+                <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -90,18 +107,22 @@ const getStyles = (theme) =>
       fontWeight: 'bold',
       color: theme.text,
     },
+
+    statusColumn: {
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+    },
     statusBadge: {
-      position: 'absolute',
-      top: 5,
-      right: 5,
       paddingHorizontal: 16,
-      paddingVertical: 10,
+      paddingVertical: 8,
       borderRadius: 16,
+      marginBottom: 6,
     },
     statusText: {
       fontSize: 12.5,
       fontWeight: '600',
     },
+
     details: {
       borderTopWidth: 1,
       borderTopColor: theme.border,
@@ -121,6 +142,18 @@ const getStyles = (theme) =>
       fontSize: 13.5,
       color: theme.text,
       fontWeight: '500',
+    },
+    cancelButton: {
+      backgroundColor: '#FF4D4F',
+      paddingVertical: 6,
+      paddingHorizontal: 14,
+      borderRadius: 10,
+      alignSelf: 'flex-end',
+    },
+    cancelButtonText: {
+      color: '#fff',
+      fontWeight: 'bold',
+      fontSize: 13,
     },
   });
 
