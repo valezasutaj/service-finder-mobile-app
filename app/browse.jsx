@@ -7,7 +7,7 @@ import NavBar from '../components/NavBar';
 import { useTheme } from '../context/ThemedModes';
 import Spacer from '../components/Spacer';
 import { services, categories } from '../constants/data';
-import { Ionicons } from '@expo/vector-icons';
+import { Search } from 'lucide-react-native';;
 
 const Browse = () => {
     const { theme } = useTheme();
@@ -22,21 +22,26 @@ const Browse = () => {
         (selectedCategory === 'All' || service.category === selectedCategory)
     );
 
-    if (selectedSort === 'Price Low → High') filteredServices.sort((a, b) => a.price - b.price);
-    else if (selectedSort === 'Price High → Low') filteredServices.sort((a, b) => b.price - a.price);
-    else if (selectedSort === 'Rating High → Low') filteredServices.sort((a, b) => b.rating - a.rating);
-    else if (selectedSort === 'Distance Near → Far') filteredServices.sort((a, b) => a.distance - b.distance);
+    if (selectedSort === 'Price Low → High') {
+        filteredServices.sort((a, b) => a.price - b.price);
+    } else if (selectedSort === 'Price High → Low') {
+        filteredServices.sort((a, b) => b.price - a.price);
+    } else if (selectedSort === 'Rating High → Low') {
+        filteredServices.sort((a, b) => b.rating - a.rating);
+    } else if (selectedSort === 'Distance Near → Far') {
+        filteredServices.sort((a, b) => a.distance - b.distance);
+    }
 
     const sortOptions = ['None', 'Price Low → High', 'Price High → Low', 'Rating High → Low', 'Distance Near → Far'];
     const themeStyles = styles(theme);
 
     return (
         <ThemedView safe style={themeStyles.container}>
-            <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 40 }} keyboardDismissMode='on-drag' showsVerticalScrollIndicator={false}>
 
                 <View style={themeStyles.searchContainer}>
 
-                    <Ionicons name="search" size={24} color="#000" style={themeStyles.searchIcon} />
+                    <Search size={20} color={theme.mutedText} style={themeStyles.searchIcon} />
 
                     <TextInput
                         style={themeStyles.searchInput}
@@ -91,6 +96,11 @@ const Browse = () => {
                         />
                     )}
                     scrollEnabled={false}
+                    ListEmptyComponent={
+                        <ThemedText style={{ textAlign: 'center', marginVertical: 20, color: theme.mutedText }}>
+                            No services found.
+                        </ThemedText>
+                    }
                 />
 
                 <Spacer height={40} />

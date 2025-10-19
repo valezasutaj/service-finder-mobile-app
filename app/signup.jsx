@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Platform, ScrollView, } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
 import { safeRouter } from "../utils/SafeRouter";
 
 export default function RegisterScreen({ navigation }) {
@@ -31,7 +31,7 @@ export default function RegisterScreen({ navigation }) {
           { top: insets.top + 8, alignItems: "center", justifyContent: "center" }
         ]}
       >
-        <Ionicons name="chevron-back" size={26} color="#3595FF" />
+        <ChevronLeft size={26} color="#3595FF" />
       </TouchableOpacity>
 
 
@@ -100,11 +100,11 @@ export default function RegisterScreen({ navigation }) {
               autoCapitalize="none"
             />
             <TouchableOpacity style={styles.eye} onPress={() => setShowPwd(!showPwd)}>
-              <Ionicons
-                name={showPwd ? "eye-outline" : "eye-off-outline"}
-                size={20}
-                color="#6B8ECC"
-              />
+              {showPwd ? (
+                <Eye size={20} color="#6B8ECC" />
+              ) : (
+                <EyeOff size={20} color="#6B8ECC" />
+              )}
             </TouchableOpacity>
           </View>
 

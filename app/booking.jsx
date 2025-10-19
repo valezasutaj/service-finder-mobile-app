@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View, Alert } from 'react-native';
 import NavBar from '../components/NavBar';
@@ -8,23 +7,23 @@ import { useTheme } from '../context/ThemedModes';
 import ThemedBookingCard from '../components/ThemedBookingCard';
 import { BOOKINGS } from '../constants/data';
 import { useNavigation } from '@react-navigation/native';
+import { ArrowLeft, Bell } from 'lucide-react-native';
 
 export default function BookingScreen() {
   const { theme } = useTheme();
   const [selectedTab, setSelectedTab] = useState('All');
-  const [bookings, setBookings] = useState(BOOKINGS); // ✅ tani mbajmë një kopje lokale që mund ta ndryshojmë
+  const [bookings, setBookings] = useState(BOOKINGS);
   const styles = getStyles(theme);
   const navigation = useNavigation();
 
-  // ✅ Funksioni që ndryshon statusin në "Cancelled"
   const handleCancel = (id) => {
     Alert.alert(
       'Cancel Booking',
-      'A je i sigurt që dëshiron të anulosh këtë booking?',
+      'Are you sure that you want to canel this booking?',
       [
-        { text: 'Jo', style: 'cancel' },
+        { text: 'No', style: 'cancel' },
         {
-          text: 'Po',
+          text: 'Yes',
           onPress: () => {
             setBookings((prev) =>
               prev.map((b) => (b.id === id ? { ...b, status: 'Cancelled' } : b))
@@ -35,7 +34,6 @@ export default function BookingScreen() {
     );
   };
 
-  // ✅ Përdor bookings të përditësuara për filtrimin
   const filteredBookings =
     selectedTab === 'All'
       ? bookings
@@ -45,19 +43,18 @@ export default function BookingScreen() {
     <ThemedView safe style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons
+          <ArrowLeft
             style={{ marginLeft: 20 }}
-            name="arrow-back"
             size={22}
             color={theme.text}
           />
         </TouchableOpacity>
 
         <ThemedText style={styles.headerTitle}>My Booking</ThemedText>
+
         <TouchableOpacity>
-          <Ionicons
+          <Bell
             style={{ marginRight: 20 }}
-            name="notifications-outline"
             size={22}
             color={theme.text}
           />
@@ -83,7 +80,6 @@ export default function BookingScreen() {
         ))}
       </View>
 
-      {/* ✅ Këtu ia dërgojmë funksionin onCancel çdo karte */}
       <FlatList
         data={filteredBookings}
         keyExtractor={(item) => item.id}
@@ -97,7 +93,7 @@ export default function BookingScreen() {
             provider={item.provider}
             status={item.status}
             image={item.image}
-            onCancel={handleCancel} // ✅ shtohet këtu
+            onCancel={handleCancel}
           />
         )}
         scrollEnabled={false}
@@ -132,15 +128,15 @@ const getStyles = (theme) =>
       flexDirection: 'row',
       justifyContent: 'space-around',
       backgroundColor: theme.cardBackground,
-      borderRadius: 12,
+      borderRadius: 23,
       marginVertical: 8,
       marginHorizontal: 12,
-      paddingVertical: 6,
+      paddingVertical: 8,
     },
     tab: {
-      paddingVertical: 6,
+      paddingVertical: 7,
       paddingHorizontal: 12,
-      borderRadius: 8,
+      borderRadius: 23,
     },
     tabActive: {
       backgroundColor: theme.primary,

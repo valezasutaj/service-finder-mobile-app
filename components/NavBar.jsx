@@ -3,8 +3,8 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import ThemedText from './ThemedText';
 import { useTheme } from '../context/ThemedModes';
 import { usePathname } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { safeRouter } from '../utils/SafeRouter';
+import { Home, Search, Plus, MessageCircle, User } from 'lucide-react-native';
 
 const NavBar = () => {
     const { theme } = useTheme();
@@ -14,35 +14,35 @@ const NavBar = () => {
     return (
         <View style={[themeStyles.nav, { backgroundColor: theme.uiBackground, borderTopColor: theme.border }]}>
             <NavButton
-                icon="home"
+                icon={Home}
                 label="Home"
                 active={pathname === '/' || pathname.includes('/home')}
                 onPress={() => safeRouter.push('/home')}
                 theme={theme}
             />
             <NavButton
-                icon="search"
+                icon={Search}
                 label="Browse"
                 active={pathname.includes('/browse')}
                 onPress={() => safeRouter.push('/browse')}
                 theme={theme}
             />
             <NavButton
-                icon="add"
+                icon={Plus}
                 label="Post"
                 active={pathname.includes('/post')}
                 onPress={() => safeRouter.push('/post')}
                 theme={theme}
             />
             <NavButton
-                icon="chatbubbles-outline"
+                icon={MessageCircle}
                 label="Messages"
                 active={pathname.includes('/messages')}
                 onPress={() => safeRouter.push('/messages')}
                 theme={theme}
             />
             <NavButton
-                icon="person"
+                icon={User}
                 label="Profile"
                 active={pathname.includes('/profile')}
                 onPress={() => safeRouter.push('/profile')}
@@ -54,7 +54,7 @@ const NavBar = () => {
 
 export default NavBar;
 
-const NavButton = ({ icon, label, onPress, active, theme }) => (
+const NavButton = ({ icon: Icon, label, onPress, active, theme }) => (
     <TouchableOpacity
         style={[
             styles(theme).navItem,
@@ -63,17 +63,14 @@ const NavButton = ({ icon, label, onPress, active, theme }) => (
         onPress={onPress}
         activeOpacity={0.8}
     >
-        <Ionicons
-            name={icon}
+        <Icon
             size={22}
             color={active ? '#fff' : theme.iconColor}
+            strokeWidth={2.2}  
+            fill="none"
         />
-        <ThemedText
-            style={[
-                styles(theme).navText,
-                { color: active ? '#fff' : theme.text, fontWeight: active ? '600' : '400' },
-            ]}
-        >
+
+        <ThemedText style={[styles(theme).navText, {color: active ? '#fff' : theme.text, fontWeight: active ? '600' : '400'}]}>
             {label}
         </ThemedText>
     </TouchableOpacity>

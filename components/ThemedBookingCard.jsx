@@ -72,7 +72,7 @@ const getStyles = (theme) =>
   StyleSheet.create({
     card: {
       backgroundColor: theme.cardBackground,
-      borderRadius: 14,
+      borderRadius: 16,
       padding: 14,
       marginBottom: 16,
       shadowColor: '#000',
@@ -147,7 +147,7 @@ const getStyles = (theme) =>
       backgroundColor: '#FF4D4F',
       paddingVertical: 6,
       paddingHorizontal: 14,
-      borderRadius: 10,
+      borderRadius: 20,
       alignSelf: 'flex-end',
     },
     cancelButtonText: {

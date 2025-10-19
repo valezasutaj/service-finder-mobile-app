@@ -41,13 +41,12 @@ export default function Post() {
                 rating: parseFloat(rating) || 0,
                 distance: parseFloat(distance) || 0,
                 category,
-                image:
-                    image || 'https://placehold.co/600x400/4A90E2/FFFFFF?text=New+Service',
+                image: image || 'https://placehold.co/600x400/4A90E2/FFFFFF?text=New+Service',
             });
             setisSubmitted(true);
         } catch (err) {
             console.error('Error posting job:', err);
-            setError('Something went wrong while posting. Please try again.');
+            setError('Something went wrong while posting.');
         }
     };
 
@@ -67,7 +66,10 @@ export default function Post() {
         <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
             <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 5 : 5}>
                 <View style={{ flex: 1 }}>
-                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
+                    <ScrollView showsVerticalScrollIndicator={false} keyboardDismissMode='on-drag' contentContainerStyle={{ paddingBottom: 10 }}>
+                        <View style={styles.header}>
+                            <ThemedText title style={styles.headerText}>Post job</ThemedText>
+                        </View>
                         <View style={styles.content}>
                             <ThemedText type="subtitle" style={styles.label}>Name</ThemedText>
                             <TextInput
@@ -207,10 +209,19 @@ export default function Post() {
 const s = (theme) => StyleSheet.create({
     container: {
         flex: 1,
+        paddingTop: 10
+    },
+    header: {
+        alignItems: 'center',
+    },
+    headerText: {
+        fontSize: 22,
+        fontWeight: '700',
+        color: theme.text,
     },
     content: {
         paddingHorizontal: 20,
-        paddingTop: 20,
+        paddingTop: 10,
     },
     label: {
         marginBottom: 8,

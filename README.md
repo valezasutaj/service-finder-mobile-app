@@ -1,6 +1,6 @@
 # ServiceFinder
 
-**ServiceFinder** is a mobile application built with **React Native**, designed to help users find and book various home and professional services such as **cleaning**, **plumbing**, **electrical work**, **painting**, and **car towing**.  
+**ServiceFinder** is a mobile application built with **React Native**, designed to help users find and book various home and professional services such as **cleaning**, **plumbing**, **electrical work**, **painting**, **car towing** and more.  
 The goal of this project is to make it easier for people to quickly find and book trusted service providers anytime they need — at different price ranges and categories.
 
 ---
@@ -22,11 +22,11 @@ The upcoming phase will implement backend integration and database functionaliti
 
 ## Key Features
 
-- **Home Screen** – shows top services, categories, and promotional offers
-- **Browse Screen** – search and filter services by type and price
-- **Post Screen** – form to post a new service (name, price, discount, rating, category, image)
-- **Messages Screen** – chat interface between customers and providers
-- **Profile Screen** – manage user details and account information
+- **Home Screen** - shows top services, categories, and promotional offers
+- **Browse Screen** - search and filter services
+- **Post Screen** - form to post a new service
+- **Messages Screen** - chat interface between customers and providers
+- **Profile Screen** - user details and account information
 
 ---
 
@@ -43,41 +43,41 @@ The upcoming phase will implement backend integration and database functionaliti
 
 ---
 
-## 📲 UI Preview
+## UI Preview
 
-### 🔹 Welcome Screen
+### Welcome Screen
 
-<img src="./assets/WelcomePage.png" width="350"/>
+<img src="./assets/readme/WelcomePage.png" width="350"/>
 
-### 🔹 Home Screen
+### Home Screen
 
 <p float="left">
-  <img src="./assets/home(dark).png" width="350"/>
-  <img src="./assets/home(light).png" width="350"/>
+  <img src="./assets/readme/home(dark).png" width="350"/>
+  <img src="./assets/readme/home(light).png" width="350"/>
 </p>
 
-### 🔹 Post Service Screen
+### Post Service Screen
 
 <p float="left">
-  <img src="./assets/post(dark).png" width="350"/>
-  <img src="./assets/post(light).png" width="350"/>
+  <img src="./assets/readme/post(dark).png" width="350"/>
+  <img src="./assets/readme/post(light).png" width="350"/>
 </p>
 
-### 🔹 Messages Screen
+### Messages Screen
 
 <p float="left">
-  <img src="./assets/messages(dark).png" width="350"/>
-  <img src="./assets/messages(light).png" width="350"/>
+  <img src="./assets/readme/messages(dark).png" width="350"/>
+  <img src="./assets/readme/messages(light).png" width="350"/>
 </p>
 
-### 🔹 Browse Services Screen
+### Browse Services Screen
 
 <p float="left">
-  <img src="./assets/browse(dark).png" width="350"/>
-  <img src="./assets/browse(light).png" width="350"/>
+  <img src="./assets/readme/browse(dark).png" width="350"/>
+  <img src="./assets/readme/browse(light).png" width="350"/>
 </p>
 
 ## Project Team
 
 **Developed by:**  
-**Erik Behrami**, **Elisa Gjurkaj**, **Blertin Hamza**, **Valeza Sutaj**, **Uranit Vuciterna**
+**Erik Behrami**, **Elisa Gjurkaj**, **Blertin Hamza**, **Valëza Sutaj**, **Uranit Vuçitërna**
