@@ -8,7 +8,6 @@ import Header from '../components/header';
 import NavBar from '../components/NavBar';
 import { useTheme } from '../context/ThemedModes';
 import { services, categories } from '../constants/data';
-import login from './login';
 
 const HomeScreen = () => {
     const { theme } = useTheme();
@@ -77,7 +76,7 @@ const HomeScreen = () => {
     );
 };
 
- export default HomeScreen;
+export default HomeScreen;
 
 const styles = (theme) => StyleSheet.create({
     container: {

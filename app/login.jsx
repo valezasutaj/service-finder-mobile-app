@@ -1,16 +1,16 @@
 import React, { useState } from "react";
-import {View,Text,StyleSheet,Image,TouchableOpacity,TextInput,Dimensions,Platform,} from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Dimensions, Platform, } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { safeRouter } from "../utils/SafeRouter";
 
 const { width } = Dimensions.get("window");
 
 
-const ICON_W = width * 0.65;         
-const ICON_H = ICON_W * 0.9;         
-const ICON_TOP = 110;              
-const OVERLAP = 26;                 
+const ICON_W = width * 0.65;
+const ICON_H = ICON_W * 0.9;
+const ICON_TOP = 110;
+const OVERLAP = 26;
 const CONTENT_TOP_SPACER = ICON_TOP + ICON_H - OVERLAP;
 
 export default function LoginScreen({ navigation }) {
@@ -24,23 +24,21 @@ export default function LoginScreen({ navigation }) {
   };
 
   const insets = useSafeAreaInsets();
-   const router = useRouter();
-
   return (
     <SafeAreaView style={styles.screen}>
-    
+
       <View style={styles.blueBg} />
- 
- <TouchableOpacity
-  onPress={() => router.replace('/')}
-  activeOpacity={0.8}
-  style={[
-    styles.backBtn,
-    { top: insets.top + 8, alignItems: "center", justifyContent: "center" }
-  ]}
->
-  <Ionicons name="chevron-back" size={26} color="#3595FF" />
-</TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => safeRouter.replace('/')}
+        activeOpacity={0.8}
+        style={[
+          styles.backBtn,
+          { top: insets.top + 8, alignItems: "center", justifyContent: "center" }
+        ]}
+      >
+        <Ionicons name="chevron-back" size={26} color="#3595FF" />
+      </TouchableOpacity>
 
 
       <View style={styles.topTitleWrap}>
@@ -55,14 +53,14 @@ export default function LoginScreen({ navigation }) {
         />
       </View>
 
-    
+
       <View style={{ height: CONTENT_TOP_SPACER }} />
 
-     
+
       <View style={styles.content}>
         <Text style={styles.title}>Welcome back !</Text>
 
-   
+
         <View style={styles.field}>
           <TextInput
             style={styles.input}
@@ -106,14 +104,14 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-      
+
         <TouchableOpacity activeOpacity={0.8} onPress={onLogin} style={styles.loginBtn}>
           <Text style={styles.loginTxt}>Login</Text>
         </TouchableOpacity>
 
         <View style={styles.signupRow}>
           <Text style={styles.signupTxt}>New user?</Text>
-          <TouchableOpacity onPress={() => router.replace("/signup")}>
+          <TouchableOpacity onPress={() => safeRouter.replace("/signup")}>
             <Text style={styles.signupLink}> Sign Up</Text>
           </TouchableOpacity>
         </View>
@@ -133,13 +131,12 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: "center",
     zIndex: 3,
-    
+
   },
   topTitle: {
     color: "#fff",
     fontSize: 44,
     fontWeight: "800",
-    letterSpacing: 1,
     fontStyle: "italic",
   },
 
@@ -149,7 +146,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: "center",
-    zIndex: 2, 
+    zIndex: 2,
   },
 
   icon: { width: ICON_W, height: ICON_H },
@@ -184,7 +181,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 12,
   },
-  
+
   input: {
     fontSize: 16,
     color: "#fff",
@@ -199,8 +196,8 @@ const styles = StyleSheet.create({
   remember: { flexDirection: "row", alignItems: "center" },
 
   circle: {
-    width: 18, 
-    height: 18, 
+    width: 18,
+    height: 18,
     borderRadius: 9,
     borderWidth: 1.5, borderColor: "#fff",
     marginRight: 8, alignItems: "center", justifyContent: "center",
@@ -232,14 +229,14 @@ const styles = StyleSheet.create({
   signupLink: { color: "#fff", fontWeight: "700" },
 
   backBtn: {
-  position: "absolute",
-  left: 12,
-  width: 44,
-  height: 44,
-  borderRadius: 12,
-  backgroundColor: "#fff",     
-  zIndex: 5,
-  overflow: "hidden",
-},
+    position: "absolute",
+    left: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    zIndex: 5,
+    overflow: "hidden",
+  },
 
 });

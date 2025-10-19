@@ -4,19 +4,18 @@ import ThemedText from '../components/ThemedText';
 import NavBar from '../components/NavBar';
 import Spacer from '../components/Spacer';
 import { useTheme } from '../context/ThemedModes';
-import { useRouter } from 'expo-router';
+import { safeRouter } from "../utils/SafeRouter";
 import { mockMessages } from '../constants/data';
 
 
 export default function Messages() {
     const { theme } = useTheme();
-    const router = useRouter();
     const themeStyles = styles(theme);
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => router.push(`/chat/${item.id}`)}
+            onPress={() => safeRouter.push(`/chat/${item.id}`)}
             style={[
                 themeStyles.messageItem,
                 {

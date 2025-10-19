@@ -2,13 +2,13 @@ import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import ThemedText from './ThemedText';
 import { useTheme } from '../context/ThemedModes';
-import { useRouter, usePathname } from 'expo-router';
+import { usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { safeRouter } from '../utils/SafeRouter';
 
 const NavBar = () => {
     const { theme } = useTheme();
     const themeStyles = styles(theme);
-    const router = useRouter();
     const pathname = usePathname();
 
     return (
@@ -17,35 +17,35 @@ const NavBar = () => {
                 icon="home"
                 label="Home"
                 active={pathname === '/' || pathname.includes('/home')}
-                onPress={() => router.push('/')}
+                onPress={() => safeRouter.push('/home')}
                 theme={theme}
             />
             <NavButton
                 icon="search"
                 label="Browse"
                 active={pathname.includes('/browse')}
-                onPress={() => router.push('/browse')}
+                onPress={() => safeRouter.push('/browse')}
                 theme={theme}
             />
             <NavButton
                 icon="add"
                 label="Post"
                 active={pathname.includes('/post')}
-                onPress={() => router.push('/post')}
+                onPress={() => safeRouter.push('/post')}
                 theme={theme}
             />
             <NavButton
                 icon="chatbubbles-outline"
                 label="Messages"
                 active={pathname.includes('/messages')}
-                onPress={() => router.push('/messages')}
+                onPress={() => safeRouter.push('/messages')}
                 theme={theme}
             />
             <NavButton
                 icon="person"
                 label="Profile"
                 active={pathname.includes('/profile')}
-                onPress={() => router.push('/profile')}
+                onPress={() => safeRouter.push('/profile')}
                 theme={theme}
             />
         </View>

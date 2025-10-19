@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Image, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet, ScrollView, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { safeRouter } from "../utils/SafeRouter";
 import { useTheme } from '../context/ThemedModes';
 import ThemedView from '../components/ThemedView';
 import ThemedText from '../components/ThemedText';
@@ -14,7 +14,7 @@ import { Check } from "lucide-react-native";
 export default function Post() {
     const { theme } = useTheme();
     const styles = s(theme);
-    const router = useRouter();
+
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
     const [discount, setDiscount] = useState('');
@@ -176,7 +176,7 @@ export default function Post() {
 
                     <View style={[styles.footer, { backgroundColor: theme.background, borderTopColor: theme.border }]}>
                         <View style={{ flex: 1 }}>
-                            <TouchableOpacity onPress={() => router.back()} style={[styles.cancelButton, { borderColor: theme.primary }]}>
+                            <TouchableOpacity onPress={() => safeRouter.back()} style={[styles.cancelButton, { borderColor: theme.primary }]}>
                                 <ThemedText style={{ textAlign: 'center', color: theme.primary, fontWeight: '600' }}>Cancel</ThemedText>
                             </TouchableOpacity>
                         </View>
@@ -193,7 +193,7 @@ export default function Post() {
                             <View style={styles.checkmark}><Check color={theme.postText} size={36} strokeWidth={3} /></View>
                             <ThemedText style={{ color: theme.backHome, fontSize: 18 }}>Posted Successfully</ThemedText>
                             <ThemedText style={{ color: theme.backHome }}>You have successfully posted your service</ThemedText>
-                            <TouchableOpacity onPress={() => router.back()} style={styles.homeButton}>
+                            <TouchableOpacity onPress={() => safeRouter.back()} style={styles.homeButton}>
                                 <ThemedText style={{ color: theme.postText, fontSize: 15 }}>Back To Home</ThemedText>
                             </TouchableOpacity>
                         </View>

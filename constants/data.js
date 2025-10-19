@@ -2,7 +2,7 @@ export const services = [
     { id: '001', name: 'First Cleaning Service', discount: '25%', price: 200, image: require('../assets/images/services/cleaning.png'), rating: 4.5, distance: 2.5, category: 'Cleaning' },
     { id: '002', name: 'Professional Cleaning', discount: '20%', price: 240, image: require('../assets/images/services/working.png'), rating: 4.8, distance: 1.5, category: 'Cleaning' },
     { id: '003', name: 'Vulputate Services', discount: '10%', price: 150, image: require('../assets/images/services/brochure.png'), rating: 4.2, distance: 3.0, category: 'Painting' },
-    { id: '004', name: 'Electrician Services', discount: '15%', price: 180, image: require('../assets/images/services/electrician.png'), rating: 4.6, distance: 2.0, category: 'Electrician' }
+    { id: '004', name: 'Electrician Services', discount: '15%', price: 180, image: require('../assets/images/services/electrician.jpg'), rating: 4.6, distance: 2.0, category: 'Electrician' }
 ];
 
 export const categories = [
@@ -59,7 +59,7 @@ export const BOOKINGS = [
         date: '18 Oct 2025, 1:00 PM',
         provider: 'David Lee',
         status: 'Completed',
-        image: require('../assets/images/services/electrician.png'),
+        image: require('../assets/images/services/electrician.jpg'),
     },
 ];
 

@@ -4,7 +4,7 @@ import { ThemeProvider } from "../context/ThemedModes";
 export default function RootLayout() {
   const pathname = usePathname();
 
-  if (pathname === "/" || pathname === "/index") {
+  if (pathname === "/" || pathname === "/home") {
     return (
       <ThemeProvider>
         <Slot />
@@ -14,8 +14,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false, animation: 'none' }}>
 
+      </Stack>
     </ThemeProvider>
   );
 }

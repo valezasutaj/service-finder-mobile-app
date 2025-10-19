@@ -6,6 +6,7 @@ import NavBar from "../components/NavBar";
 import { ChevronRight, UserRound, Settings, LifeBuoy, LogOut } from "lucide-react-native";
 import { useTheme } from '../context/ThemedModes';
 import { Ionicons } from '@expo/vector-icons';
+import { safeRouter } from "../utils/SafeRouter";
 
 const Profile = () => {
     const { theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode } = useTheme();
@@ -87,13 +88,15 @@ const Profile = () => {
                 </ThemedCard>
 
                 {/*LOG OUTI qe s'vyn nihere*/}
+                <TouchableOpacity onPress={() => { safeRouter.push('/') }}>
 
-                {/* <ThemedCard style={[themeStyle.logoutButton, {borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground, shadowOpacity: 0, elevation: 0, shadowColor: 'transparent'}]}>
-                    <View style={themeStyle.logoutRow}>
-                        <LogOut color={"#da0000ff"} size={20} strokeWidth={2.5}/>
-                        <ThemedText style={[themeStyle.logoutText, { color: "#da0000ff" }]}>Logout</ThemedText>
-                    </View>
-                </ThemedCard> */}
+                    <ThemedCard style={[themeStyle.logoutButton, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground, shadowOpacity: 0, elevation: 0, shadowColor: 'transparent' }]}>
+                        <View style={themeStyle.logoutRow}>
+                            <LogOut color={"#da0000ff"} size={20} strokeWidth={2.5} />
+                            <ThemedText style={[themeStyle.logoutText, { color: "#da0000ff" }]}>Logout</ThemedText>
+                        </View>
+                    </ThemedCard>
+                </TouchableOpacity>
             </ScrollView>
             <NavBar />
         </ThemedView>
@@ -157,21 +160,21 @@ const styles = (theme) =>
         rowText: {
             fontSize: 15,
         },
-        // logoutButton: {
-        //     alignItems: "center",
-        //     backgroundColor: theme.surface,
-        //     borderWidth: 1,
-        //     borderColor: theme.border,
-        // },
-        // logoutRow: {
-        //     flexDirection: "row",
-        //     gap: 8,
-        //     justifyContent: "center",
-        // },
-        // logoutText: {
-        //     fontWeight: "600",
-        //     fontSize: 16,
-        // },
+        logoutButton: {
+            alignItems: "center",
+            backgroundColor: theme.surface,
+            borderWidth: 1,
+            borderColor: theme.border,
+        },
+        logoutRow: {
+            flexDirection: "row",
+            gap: 8,
+            justifyContent: "center",
+        },
+        logoutText: {
+            fontWeight: "600",
+            fontSize: 16,
+        },
         modeContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',

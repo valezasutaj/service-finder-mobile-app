@@ -2,18 +2,17 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import ThemedText from './ThemedText';
 import { useTheme } from '../context/ThemedModes';
-import { useRouter } from 'expo-router';
+import { safeRouter } from "../utils/SafeRouter";
 import { Ionicons } from '@expo/vector-icons';
 
 const Header = ({ user }) => {
     const { theme, isDarkMode } = useTheme();
     const styles = s(theme);
-    const router = useRouter();
 
     return (
         <View style={[styles.headerContainer, { backgroundColor: theme.uiBackground }]}>
             <View style={styles.leftSection}>
-                <TouchableOpacity onPress={() => router.push('/profile')}>
+                <TouchableOpacity onPress={() => safeRouter.push('/profile')}>
                     <Ionicons
                         name="person-circle"
                         size={42}
@@ -42,7 +41,7 @@ const Header = ({ user }) => {
 
                 <TouchableOpacity
                     style={[styles.iconButton, { backgroundColor: theme.primary }]}
-                    onPress={() => router.push('/booking')}
+                    onPress={() => safeRouter.push('/booking')}
                 >
                     <Ionicons
                         name="calendar"

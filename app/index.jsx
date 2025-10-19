@@ -1,41 +1,37 @@
 import React from 'react';
-import { View, Image, StyleSheet, Dimensions, Text,TouchableOpacity  } from 'react-native';
-import { useRouter } from "expo-router";
-
+import { View, Image, StyleSheet, Dimensions, Text, TouchableOpacity } from 'react-native';
+import { safeRouter } from "../utils/SafeRouter";
 
 export default function Welcome() {
 
-  const router = useRouter();
 
   return (
-
-
     <View style={styles.container}>
 
-      
+
       <View style={styles.textContainer}>
         <Text style={styles.title}>Welcome to ServiceFinder!</Text>
         <Text style={styles.subtitle}>Your platform for service management!</Text>
       </View>
 
       <View style={styles.buttonSection}>
-      <View style={styles.boxContainer}>
-        <TouchableOpacity style={styles.btnPrimary} onPress={() => router.push('/signup')}>
+        <View style={styles.boxContainer}>
+          <TouchableOpacity style={styles.btnPrimary} onPress={() => safeRouter.push('/signup')}>
             <Text style={styles.btnPrimaryText}>Create Account</Text>
           </TouchableOpacity>
-         <TouchableOpacity style={styles.btnSecondary} onPress={() => router.push('/login')}>
+          <TouchableOpacity style={styles.btnSecondary} onPress={() => safeRouter.push('/login')}>
             <Text style={styles.btnSecondaryText}>Log In</Text>
           </TouchableOpacity>
 
-          <Text 
-         style={styles.linkText}
-          onPress={() => router.replace('/home')}>
-          Continue to Home
+          <Text
+            style={styles.linkText}
+            onPress={() => safeRouter.replace('/home')}>
+            Continue to Home
           </Text>
+        </View>
       </View>
-      </View>
-      <Image 
-        source={require('../assets/hero.png')} 
+      <Image
+        source={require('../assets/hero.png')}
         style={styles.image}
         resizeMode="cover"
       />
@@ -51,50 +47,50 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#3595ff',
     alignItems: 'center',
-    justifyContent: 'space-between', 
-    paddingVertical: height * 0.04, 
-      position: 'relative',  
+    justifyContent: 'space-between',
+    paddingVertical: height * 0.04,
+    position: 'relative',
   },
   textContainer: {
     alignItems: 'center',
     marginTop: height * 0.1,
-    marginBottom: height*0.05, 
+    marginBottom: height * 0.05,
   },
   title: {
     color: 'white',
-    fontSize: width * 0.07, 
+    fontSize: width * 0.07,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: height *0.1,
+    marginTop: height * 0.1,
   },
   subtitle: {
     color: 'white',
-    fontSize: width * 0.045, 
+    fontSize: width * 0.045,
     marginTop: height * 0.01,
     textAlign: 'center',
   },
   image: {
-   width: width,
-  height: height * 0.4,
-  marginTop: -height * 0.03,
+    width: width,
+    height: height * 0.4,
+    marginTop: -height * 0.03,
   },
   buttonSection: {
     width: '100%',
     alignItems: 'center',
-    marginTop: height * 0.08, 
+    marginTop: height * 0.08,
   },
   boxContainer: {
     width: '80%',
-    backgroundColor: 'rgba(255,255,255,0.25)', 
+    backgroundColor: 'rgba(255,255,255,0.25)',
     borderRadius: 20,
     padding: 20,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.15,
     shadowRadius: 10,
-    elevation: 5, 
+    elevation: 5,
   },
-   btnPrimary: {
+  btnPrimary: {
     backgroundColor: '#fff',
     borderRadius: 25,
     width: '100%',
@@ -121,10 +117,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   linkText: {
-  color: '#fff',
-  fontSize: width * 0.04,
-  marginTop: 12,
-  textDecorationLine: 'underline',
-},
+    color: '#fff',
+    fontSize: width * 0.04,
+    marginTop: 12,
+    textDecorationLine: 'underline',
+  },
 
 });  

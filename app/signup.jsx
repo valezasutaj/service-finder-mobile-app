@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { View,Text,StyleSheet,Image,TouchableOpacity,TextInput,Platform,ScrollView,} from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Platform, ScrollView, } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { safeRouter } from "../utils/SafeRouter";
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState("");
@@ -16,14 +16,26 @@ export default function RegisterScreen({ navigation }) {
   const onRegister = () => {
     console.log({ name, username, email, phone, address, pwd });
   };
- 
- const router = useRouter();
+
+  const insets = useSafeAreaInsets();
 
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.blueBg} />
 
- 
+      <TouchableOpacity
+        onPress={() => safeRouter.replace('/')}
+        activeOpacity={0.8}
+        style={[
+          styles.backBtn,
+          { top: insets.top + 8, alignItems: "center", justifyContent: "center" }
+        ]}
+      >
+        <Ionicons name="chevron-back" size={26} color="#3595FF" />
+      </TouchableOpacity>
+
+
+
       <View style={styles.topTitleWrap}>
         <Text style={styles.topTitle}>Service Finder</Text>
 
@@ -32,17 +44,17 @@ export default function RegisterScreen({ navigation }) {
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
 
         <View style={styles.card}>
- 
+
           <View style={styles.header}>
             <Image
               source={require("../assets/hero.png")}
               style={styles.icon}
-            
+
             />
             <Text style={styles.title}>Create your account</Text>
           </View>
 
-      
+
           <View style={styles.field}>
             <TextInput
               style={styles.input}
@@ -96,16 +108,16 @@ export default function RegisterScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-     
+
           <TouchableOpacity activeOpacity={0.85} onPress={onRegister} style={styles.primaryBtn}>
             <Text style={styles.primaryTxt}>Register</Text>
           </TouchableOpacity>
 
           <View style={styles.bottomRow}>
-      <Text style={styles.bottomTxt}>Already have an account?</Text>
-      <TouchableOpacity onPress={() => router.replace("/login")}>
-        <Text style={styles.bottomLink}> Sign In</Text>
-      </TouchableOpacity>
+            <Text style={styles.bottomTxt}>Already have an account?</Text>
+            <TouchableOpacity onPress={() => safeRouter.replace("/login")}>
+              <Text style={styles.bottomLink}> Sign In</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -130,7 +142,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 44,
     fontWeight: "800",
-    letterSpacing: 1,
     fontStyle: "italic",
     marginTop: 50,
   },
@@ -159,18 +170,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   icon: {
-    width: 150,   
+    width: 150,
     height: 160,
     position: "absolute",
-    top: -60,      
-   
+    top: -60,
+
   },
   title: {
     textAlign: "center",
     color: "#fff",
     fontSize: 22,
     fontWeight: "800",
-    marginTop: 110,  
+    marginTop: 110,
   },
 
   field: {
@@ -188,9 +199,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   eye: {
-     position: "absolute",
-     right: 18, height: "100%",
-     justifyContent: "center" },
+    position: "absolute",
+    right: 18, height: "100%",
+    justifyContent: "center"
+  },
 
   primaryBtn: {
     backgroundColor: "#fff",
@@ -201,16 +213,28 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   primaryTxt: {
-     color: "#3595FF",
-      fontSize: 16,
-       fontWeight: "700"
-     },
+    color: "#3595FF",
+    fontSize: 16,
+    fontWeight: "700"
+  },
 
-  bottomRow: { 
+  bottomRow: {
     flexDirection: "row",
-     justifyContent: "center",
-      marginTop: 12 },
-      
+    justifyContent: "center",
+    marginTop: 12
+  },
+
   bottomTxt: { color: "#fff" },
   bottomLink: { color: "#fff", fontWeight: "700" },
+
+  backBtn: {
+    position: "absolute",
+    left: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    zIndex: 5,
+    overflow: "hidden",
+  },
 });
