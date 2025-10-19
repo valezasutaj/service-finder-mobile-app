@@ -47,27 +47,35 @@ The upcoming phase will implement backend integration and database functionaliti
 
 ### 🔹 Welcome Screen
 
-![Welcome Screen](./assets/WelcomePage.png)
+<img src="./assets/WelcomePage.png" width="350"/>
 
 ### 🔹 Home Screen
 
-![Dashboard](<./assets/home(dark).png>)
-![Dashboard](<./assets/home(light).png>)
+<p float="left">
+  <img src="./assets/home(dark).png" width="350"/>
+  <img src="./assets/home(light).png" width="350"/>
+</p>
 
 ### 🔹 Post Service Screen
 
-![Post Service](<./assets/post(dark).png>)
-![Post Service](<./assets/post(light).png>)
+<p float="left">
+  <img src="./assets/post(dark).png" width="350"/>
+  <img src="./assets/post(light).png" width="350"/>
+</p>
 
 ### 🔹 Messages Screen
 
-![Messages](<./assets/messages(dark).png>)
-![Messages](<./assets/messages(light).png>)
+<p float="left">
+  <img src="./assets/messages(dark).png" width="350"/>
+  <img src="./assets/messages(light).png" width="350"/>
+</p>
 
 ### 🔹 Browse Services Screen
 
-![Browse Services](<./assets/browse(dark).png>)
-![Browse Services](<./assets/browse(light).png>)
+<p float="left">
+  <img src="./assets/browse(dark).png" width="350"/>
+  <img src="./assets/browse(light).png" width="350"/>
+</p>
 
 ## Project Team
 
