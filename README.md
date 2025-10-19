@@ -47,47 +47,29 @@ The upcoming phase will implement backend integration and database functionaliti
 
 ### 🔹 Welcome Screen
 
-![Welcome Screen](./assets/index1.png)
+![Welcome Screen](./assets/WelcomePage.png)
 
 ### 🔹 Home Screen
 
-![Dashboard](./assets/home.png)
+![Dashboard](<./assets/home(dark).png>)
+![Dashboard](<./assets/home(light).png>)
 
 ### 🔹 Post Service Screen
 
-![Post Service](./assets/post.png)
+![Post Service](<./assets/post(dark).png>)
+![Post Service](<./assets/post(light).png>)
 
 ### 🔹 Messages Screen
 
-![Messages](./assets/messages.png)
+![Messages](<./assets/messages(dark).png>)
+![Messages](<./assets/messages(light).png>)
 
 ### 🔹 Browse Services Screen
 
-![Browse Services](./assets/browse.png)
-
-## Project Phases
-
-- **Phase 1:** UI Design and Frontend Development (Completed)
-
----
+![Browse Services](<./assets/browse(dark).png>)
+![Browse Services](<./assets/browse(light).png>)
 
 ## Project Team
 
 **Developed by:**  
 **Erik Behrami**, **Elisa Gjurkaj**, **Blertin Hamza**, **Valeza Sutaj**, **Uranit Vuciterna**
-
-📍 **University of Prishtina – Faculty of Electrical and Computer Engineering (FIEK)**  
-**Group 21 – Project “ServiceFinder”**
-
----
-
-## License
-
-This project is created for educational purposes as part of university coursework.  
-It may be freely used, modified, and expanded for learning and non-commercial use.
-
----
-
-## Credits
-
-Made with ❤️ by **Team ServiceFinder – FIEK Group 21**
