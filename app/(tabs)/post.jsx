@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, TextInput, Image, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet, ScrollView, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { safeRouter } from "../utils/SafeRouter";
-import { useTheme } from '../context/ThemedModes';
-import ThemedView from '../components/ThemedView';
-import ThemedText from '../components/ThemedText';
-import ThemedButton from '../components/ThemedButton';
-import Spacer from '../components/Spacer';
-import { categories, addService } from '../constants/data';
+import { safeRouter } from "../../utils/SafeRouter";
+import { useTheme } from '../../context/ThemedModes';
+import ThemedView from '../../components/ThemedView';
+import ThemedText from '../../components/ThemedText';
+import ThemedButton from '../../components/ThemedButton';
+import Spacer from '../../components/Spacer';
+import { categories, addService } from '../../constants/data';
 import Slider from '@react-native-community/slider';
 import { Check } from "lucide-react-native";
 

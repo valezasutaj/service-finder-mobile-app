@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View, Alert } from 'react-native';
-import NavBar from '../components/NavBar';
-import ThemedText from '../components/ThemedText';
-import ThemedView from '../components/ThemedView';
-import { useTheme } from '../context/ThemedModes';
-import ThemedBookingCard from '../components/ThemedBookingCard';
-import { BOOKINGS } from '../constants/data';
+import NavBar from '../../components/NavBar';
+import ThemedText from '../../components/ThemedText';
+import ThemedView from '../../components/ThemedView';
+import { useTheme } from '../../context/ThemedModes';
+import ThemedBookingCard from '../../components/ThemedBookingCard';
+import { BOOKINGS } from '../../constants/data';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Bell } from 'lucide-react-native';
 

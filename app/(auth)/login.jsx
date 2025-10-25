@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Dimensions, Platform, } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
-import { safeRouter } from "../utils/SafeRouter";
+import { safeRouter } from "../../utils/SafeRouter";
 
 const { width } = Dimensions.get("window");
 
@@ -47,7 +47,7 @@ export default function LoginScreen({ navigation }) {
 
       <View pointerEvents="none" style={styles.iconLayer}>
         <Image
-          source={require("../assets/hero.png")}
+          source={require("../../assets/hero.png")}
           style={styles.icon}
           resizeMode="contain"
         />

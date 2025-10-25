@@ -1,11 +1,11 @@
 import { View, Image, FlatList, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
-import ThemedView from '../components/ThemedView';
-import ThemedText from '../components/ThemedText';
-import NavBar from '../components/NavBar';
-import Spacer from '../components/Spacer';
-import { useTheme } from '../context/ThemedModes';
-import { safeRouter } from "../utils/SafeRouter";
-import { mockMessages } from '../constants/data';
+import ThemedView from '../../components/ThemedView';
+import ThemedText from '../../components/ThemedText';
+import NavBar from '../../components/NavBar';
+import Spacer from '../../components/Spacer';
+import { useTheme } from '../../context/ThemedModes';
+import { safeRouter } from "../../utils/SafeRouter";
+import { mockMessages } from '../../constants/data';
 
 
 export default function Messages() {

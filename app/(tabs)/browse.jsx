@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, TextInput, TouchableOpacity, FlatList, Image } from 'react-native';
-import ThemedView from '../components/ThemedView';
-import ThemedText from '../components/ThemedText';
-import ThemedServiceCard from '../components/ThemedServiceCard';
-import NavBar from '../components/NavBar';
-import { useTheme } from '../context/ThemedModes';
-import Spacer from '../components/Spacer';
-import { services, categories } from '../constants/data';
+import ThemedView from '../../components/ThemedView';
+import ThemedText from '../../components/ThemedText';
+import ThemedServiceCard from '../../components/ThemedServiceCard';
+import NavBar from '../../components/NavBar';
+import { useTheme } from '../../context/ThemedModes';
+import Spacer from '../../components/Spacer';
+import { services, categories } from '../../constants/data';
 import { Search } from 'lucide-react-native';;
 
 const Browse = () => {

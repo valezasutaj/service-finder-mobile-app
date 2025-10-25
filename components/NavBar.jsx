@@ -66,11 +66,11 @@ const NavButton = ({ icon: Icon, label, onPress, active, theme }) => (
         <Icon
             size={22}
             color={active ? '#fff' : theme.iconColor}
-            strokeWidth={2.2}  
+            strokeWidth={2.2}
             fill="none"
         />
 
-        <ThemedText style={[styles(theme).navText, {color: active ? '#fff' : theme.text, fontWeight: active ? '600' : '400'}]}>
+        <ThemedText style={[styles(theme).navText, { color: active ? '#fff' : theme.text, fontWeight: active ? '600' : '400' }]}>
             {label}
         </ThemedText>
     </TouchableOpacity>

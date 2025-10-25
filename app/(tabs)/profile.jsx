@@ -1,12 +1,12 @@
 import { View, StyleSheet, Image, Switch, TouchableOpacity, ScrollView } from "react-native";
-import ThemedView from "../components/ThemedView";
-import ThemedText from "../components/ThemedText";
-import ThemedCard from "../components/ThemedCard";
-import NavBar from "../components/NavBar";
+import ThemedView from "../../components/ThemedView";
+import ThemedText from "../../components/ThemedText";
+import ThemedCard from "../../components/ThemedCard";
+import NavBar from "../../components/NavBar";
 import { ChevronRight, UserRound, Settings, LifeBuoy, LogOut } from "lucide-react-native";
-import { useTheme } from '../context/ThemedModes';
+import { useTheme } from '../../context/ThemedModes';
 import { Ionicons } from '@expo/vector-icons';
-import { safeRouter } from "../utils/SafeRouter";
+import { safeRouter } from "../../utils/SafeRouter";
 
 const Profile = () => {
     const { theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode } = useTheme();

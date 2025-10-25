@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Platform, ScrollView, } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
-import { safeRouter } from "../utils/SafeRouter";
+import { safeRouter } from "../../utils/SafeRouter";
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState("");
@@ -47,7 +47,7 @@ export default function RegisterScreen({ navigation }) {
 
           <View style={styles.header}>
             <Image
-              source={require("../assets/hero.png")}
+              source={require("../../assets/hero.png")}
               style={styles.icon}
 
             />

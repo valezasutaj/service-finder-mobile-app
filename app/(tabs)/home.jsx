@@ -1,13 +1,13 @@
 import { ScrollView, Image, StyleSheet, View, TouchableOpacity, FlatList } from 'react-native';
-import ThemedView from '../components/ThemedView';
-import ThemedText from '../components/ThemedText';
-import ThemedServiceCard from '../components/ThemedServiceCard';
-import Spacer from '../components/Spacer';
-import ThemedButton from '../components/ThemedButton';
-import Header from '../components/header';
-import NavBar from '../components/NavBar';
-import { useTheme } from '../context/ThemedModes';
-import { services, categories } from '../constants/data';
+import ThemedView from '../../components/ThemedView';
+import ThemedText from '../../components/ThemedText';
+import ThemedServiceCard from '../../components/ThemedServiceCard';
+import Spacer from '../../components/Spacer';
+import ThemedButton from '../../components/ThemedButton';
+import Header from '../../components/header';
+import NavBar from '../../components/NavBar';
+import { useTheme } from '../../context/ThemedModes';
+import { services, categories } from '../../constants/data';
 
 const HomeScreen = () => {
     const { theme } = useTheme();
