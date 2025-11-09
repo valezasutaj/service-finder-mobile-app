@@ -1,20 +1,30 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Platform, ScrollView, } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, ScrollView } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
 import { safeRouter } from "../../utils/SafeRouter";
+import { registerUser } from '../../services/userService';
 
-export default function RegisterScreen({ navigation }) {
+export default function RegisterScreen() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
   const [pwd, setPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
+  const [customError, setCustomError] = useState("");
 
-  const onRegister = () => {
-    console.log({ name, username, email, phone, address, pwd });
+  const handleSignUp = async () => {
+    if (!name || !username || !email || !pwd) {
+      setCustomError("Please fill all fields");
+      return;
+    }
+
+    try {
+      const user = await registerUser(name, username, email, pwd);
+      console.log('Registered user:', user.uid);
+    } catch (error) {
+      setCustomError(error.customMessage);
+    }
   };
 
   const insets = useSafeAreaInsets();
@@ -26,34 +36,25 @@ export default function RegisterScreen({ navigation }) {
       <TouchableOpacity
         onPress={() => safeRouter.replace('/')}
         activeOpacity={0.8}
-        style={[
-          styles.backBtn,
-          { top: insets.top + 8, alignItems: "center", justifyContent: "center" }
-        ]}
+        style={[styles.backBtn, { top: insets.top + 8, alignItems: "center", justifyContent: "center" }]}
       >
         <ChevronLeft size={26} color="#3595FF" />
       </TouchableOpacity>
 
-
-
       <View style={styles.topTitleWrap}>
         <Text style={styles.topTitle}>Service Finder</Text>
-
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-
         <View style={styles.card}>
-
           <View style={styles.header}>
             <Image
               source={require("../../assets/hero.png")}
               style={styles.icon}
-
+              resizeMode="contain"
             />
             <Text style={styles.title}>Create your account</Text>
           </View>
-
 
           <View style={styles.field}>
             <TextInput
@@ -100,16 +101,13 @@ export default function RegisterScreen({ navigation }) {
               autoCapitalize="none"
             />
             <TouchableOpacity style={styles.eye} onPress={() => setShowPwd(!showPwd)}>
-              {showPwd ? (
-                <Eye size={20} color="#6B8ECC" />
-              ) : (
-                <EyeOff size={20} color="#6B8ECC" />
-              )}
+              {showPwd ? <Eye size={20} color="#6B8ECC" /> : <EyeOff size={20} color="#6B8ECC" />}
             </TouchableOpacity>
           </View>
 
+          {customError.length > 0 && <Text style={styles.errorTxt}>{customError}</Text>}
 
-          <TouchableOpacity activeOpacity={0.85} onPress={onRegister} style={styles.primaryBtn}>
+          <TouchableOpacity activeOpacity={0.85} onPress={handleSignUp} style={styles.primaryBtn}>
             <Text style={styles.primaryTxt}>Register</Text>
           </TouchableOpacity>
 
@@ -124,7 +122,6 @@ export default function RegisterScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#3595FF" },
@@ -174,7 +171,6 @@ const styles = StyleSheet.create({
     height: 160,
     position: "absolute",
     top: -60,
-
   },
   title: {
     textAlign: "center",
@@ -200,8 +196,9 @@ const styles = StyleSheet.create({
   },
   eye: {
     position: "absolute",
-    right: 18, height: "100%",
-    justifyContent: "center"
+    right: 18,
+    height: "100%",
+    justifyContent: "center",
   },
 
   primaryBtn: {
@@ -215,13 +212,13 @@ const styles = StyleSheet.create({
   primaryTxt: {
     color: "#3595FF",
     fontSize: 16,
-    fontWeight: "700"
+    fontWeight: "700",
   },
 
   bottomRow: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 12
+    marginTop: 12,
   },
 
   bottomTxt: { color: "#fff" },
@@ -236,5 +233,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     zIndex: 5,
     overflow: "hidden",
+  },
+
+  errorTxt: {
+    color: "#ff4d4f",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    marginVertical: -10,
   },
 });

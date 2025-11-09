@@ -1,73 +1,69 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Dimensions, Platform, } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Dimensions } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
 import { safeRouter } from "../../utils/SafeRouter";
+import { loginUser } from "../../services/userService";
 
 const { width } = Dimensions.get("window");
-
-
 const ICON_W = width * 0.65;
 const ICON_H = ICON_W * 0.9;
 const ICON_TOP = 110;
 const OVERLAP = 26;
 const CONTENT_TOP_SPACER = ICON_TOP + ICON_H - OVERLAP;
 
-export default function LoginScreen({ navigation }) {
-  const [username, setUsername] = useState("");
+export default function LoginScreen() {
+  const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [remember, setRemember] = useState(true);
+  const [customError, setCustomError] = useState("");
 
-  const onLogin = () => {
-    console.log({ username, pwd, remember });
+  const handleLogin = async () => {
+    setCustomError("");
+
+
+    try {
+      const user = await loginUser(email, pwd);
+      console.log("User logged in successfully:", user.uid);
+      safeRouter.replace("/home");
+    } catch (error) {
+      setCustomError(error.customMessage);
+    }
   };
 
   const insets = useSafeAreaInsets();
   return (
     <SafeAreaView style={styles.screen}>
-
       <View style={styles.blueBg} />
-
       <TouchableOpacity
         onPress={() => safeRouter.replace('/')}
         activeOpacity={0.8}
-        style={[
-          styles.backBtn,
-          { top: insets.top + 8, alignItems: "center", justifyContent: "center" }
-        ]}
+        style={[styles.backBtn, { top: insets.top + 8, alignItems: "center", justifyContent: "center" }]}
       >
         <ChevronLeft size={26} color="#3595FF" />
       </TouchableOpacity>
-
 
       <View style={styles.topTitleWrap}>
         <Text style={styles.topTitle}>Service Finder</Text>
       </View>
 
       <View pointerEvents="none" style={styles.iconLayer}>
-        <Image
-          source={require("../../assets/hero.png")}
-          style={styles.icon}
-          resizeMode="contain"
-        />
+        <Image source={require("../../assets/hero.png")} style={styles.icon} resizeMode="contain" />
       </View>
-
 
       <View style={{ height: CONTENT_TOP_SPACER }} />
 
-
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome back !</Text>
-
+        <Text style={styles.title}>Welcome back!</Text>
 
         <View style={styles.field}>
           <TextInput
             style={styles.input}
-            placeholder="Username"
+            placeholder="Email"
             placeholderTextColor="#e1e5ea"
-            value={username}
-            onChangeText={setUsername}
+            value={email}
+            onChangeText={setEmail}
             autoCapitalize="none"
           />
         </View>
@@ -83,11 +79,7 @@ export default function LoginScreen({ navigation }) {
             autoCapitalize="none"
           />
           <TouchableOpacity style={styles.eye} onPress={() => setShowPwd(!showPwd)}>
-            {showPwd ? (
-              <Eye size={20} color="#6B8ECC" />
-            ) : (
-              <EyeOff size={20} color="#6B8ECC" />
-            )}
+            {showPwd ? <Eye size={20} color="#6B8ECC" /> : <EyeOff size={20} color="#6B8ECC" />}
           </TouchableOpacity>
         </View>
 
@@ -98,14 +90,14 @@ export default function LoginScreen({ navigation }) {
             </View>
             <Text style={styles.rememberTxt}>Remember me</Text>
           </TouchableOpacity>
-
           <TouchableOpacity>
             <Text style={styles.forgot}>Forget password?</Text>
           </TouchableOpacity>
         </View>
 
+        {customError ? <Text style={styles.errorTxt}>{customError}</Text> : null}
 
-        <TouchableOpacity activeOpacity={0.8} onPress={onLogin} style={styles.loginBtn}>
+        <TouchableOpacity activeOpacity={0.8} onPress={handleLogin} style={styles.loginBtn}>
           <Text style={styles.loginTxt}>Login</Text>
         </TouchableOpacity>
 
@@ -119,7 +111,6 @@ export default function LoginScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#3595FF" },
   blueBg: { ...StyleSheet.absoluteFillObject, backgroundColor: "#3595FF" },
@@ -239,4 +230,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
 
+  errorTxt: {
+    color: "#ff4d4f",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    marginBottom: -10,
+  },
 });

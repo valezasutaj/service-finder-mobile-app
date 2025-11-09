@@ -7,10 +7,22 @@ import { ChevronRight, UserRound, Settings, LifeBuoy, LogOut } from "lucide-reac
 import { useTheme } from '../../context/ThemedModes';
 import { Ionicons } from '@expo/vector-icons';
 import { safeRouter } from "../../utils/SafeRouter";
+import { removeUser, getUser } from '../../services/storageService';
+import { useEffect, useState } from "react";
+
 
 const Profile = () => {
     const { theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode } = useTheme();
     const themeStyle = styles(theme);
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const storedUser = await getUser();
+            setUser(storedUser);
+        };
+        fetchUser();
+    }, []);
 
     return (
         <ThemedView safe style={[themeStyle.container, { backgroundColor: theme.profileBackground }]}>
@@ -24,8 +36,8 @@ const Profile = () => {
                     />
 
                     <View>
-                        <ThemedText title style={[themeStyle.name, { color: theme.title }]}>Name Surname</ThemedText>
-                        <ThemedText style={[themeStyle.email, { color: theme.mutedText ?? theme.text }]}>namesurname@gmail.com</ThemedText>
+                        <ThemedText title style={[themeStyle.name, { color: theme.title }]}> {user?.fullName || "Name Surname"}</ThemedText>
+                        <ThemedText style={[themeStyle.email, { color: theme.mutedText ?? theme.text }]}> {user?.email || "namesurname@gmail.com"}</ThemedText>
                     </View>
                 </View>
 
@@ -88,7 +100,7 @@ const Profile = () => {
                 </ThemedCard>
 
                 {/*LOG OUTI qe s'vyn nihere*/}
-                <TouchableOpacity onPress={() => { safeRouter.push('/') }}>
+                <TouchableOpacity onPress={() => { removeUser(); safeRouter.replace('/') }}>
 
                     <ThemedCard style={[themeStyle.logoutButton, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground, shadowOpacity: 0, elevation: 0, shadowColor: 'transparent' }]}>
                         <View style={themeStyle.logoutRow}>
