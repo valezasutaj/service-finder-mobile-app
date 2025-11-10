@@ -10,110 +10,262 @@ import { safeRouter } from "../../utils/SafeRouter";
 import { removeUser, getUser } from '../../services/storageService';
 import { useEffect, useState } from "react";
 
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "../../firebase"; 
 
 const Profile = () => {
-    const { theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode } = useTheme();
-    const themeStyle = styles(theme);
-    const [user, setUser] = useState(null);
+  const { theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode } = useTheme();
+  const themeStyle = styles(theme);
+  const [user, setUser] = useState(null);
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            const storedUser = await getUser();
-            setUser(storedUser);
-        };
-        fetchUser();
-    }, []);
+  useEffect(() => {
+    const fetchUserFromStorage = async () => {
+      const storedUser = await getUser();
+      if (storedUser) {
+        setUser(storedUser);
+      }
+    };
 
-    return (
-        <ThemedView safe style={[themeStyle.container, { backgroundColor: theme.profileBackground }]}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 10 }}>
-                <View style={themeStyle.profileSection}>
-                    <Ionicons
-                        name="person-circle-sharp"
-                        size={themeStyle.profileImage.width}
-                        color={isDarkMode ? '#fff' : '#000'}
-                        style={[themeStyle.profileImage, { borderColor: theme.border }]}
-                    />
+    fetchUserFromStorage();
 
-                    <View>
-                        <ThemedText title style={[themeStyle.name, { color: theme.title }]}> {user?.fullName || "Name Surname"}</ThemedText>
-                        <ThemedText style={[themeStyle.email, { color: theme.mutedText ?? theme.text }]}> {user?.email || "namesurname@gmail.com"}</ThemedText>
-                    </View>
-                </View>
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      console.log("User from Firebase in Profile:", firebaseUser);
 
-                <ThemedCard style={[themeStyle.section, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground, shadowOpacity: 0, elevation: 0, shadowColor: 'transparent' }]}>
-                    <View style={themeStyle.sectionHeader}>
-                        <UserRound color={theme.profileIcon} size={26} strokeWidth={1.2} />
-                        <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>Account</ThemedText>
-                    </View>
-                    {["Edit profile", "Change password", "Recent Activity"].map((item, index) => (
-                        <TouchableOpacity key={index} style={themeStyle.row}>
-                            <ThemedText style={[themeStyle.rowText, { color: theme.text }]}>{item}</ThemedText>
-                            <ChevronRight color={theme.profileIcon} size={22} />
-                        </TouchableOpacity>
-                    ))}
-                </ThemedCard>
+      if (firebaseUser) {
+        setUser((prev) =>
+          prev ?? {
+            fullName: firebaseUser.displayName || "Name Surname",
+            email: firebaseUser.email || "",
+            location: "Kosovë, Prishtinë",
+            photoURL: firebaseUser.photoURL || null,
+          }
+        );
+      }
+    });
 
-                <ThemedCard style={[themeStyle.section, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground, shadowOpacity: 0, elevation: 0, shadowColor: 'transparent' }]}>
-                    <View style={themeStyle.sectionHeader}>
-                        <Settings color={theme.profileIcon} size={26} strokeWidth={1.2} />
-                        <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>Settings</ThemedText>
-                    </View>
-                    <View style={themeStyle.row}>
-                        <ThemedText style={[themeStyle.rowText, { color: theme.text }]}>Appearance</ThemedText>
-                    </View>
+    return () => unsub();
+  }, []);
 
-                    <View style={themeStyle.modeContainer}>
-                        {[
-                            { label: 'System', value: null },
-                            { label: 'Light', value: 'light' },
-                            { label: 'Dark', value: 'dark' },
-                        ].map(({ label, value }) => (
-                            <TouchableOpacity key={label}
-                                onPress={() => value === null ? setSystemMode() : value === 'light' ? setLightMode() : setDarkMode()}
-                                style={[themeStyle.modeButton, userPreference === value || (value === null && userPreference === null) ? themeStyle.modeButtonActive : {}]}
-                            >
-                                <ThemedText style={[themeStyle.modeButtonText, { color: userPreference === value || (value === null && userPreference === null) ? "#fff" : theme.text }]}>
-                                    {label}
-                                </ThemedText>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+  const handleLogout = async () => {
+    try {
+      await removeUser();        
+      await signOut(auth).catch(() => {});
+    } finally {
+      safeRouter.replace("/");   
+    }
+  };
 
-                    {["Notifications", "Language and Region"].map((item, index) => (
-                        <TouchableOpacity key={index} style={themeStyle.row}>
-                            <ThemedText style={[themeStyle.rowText, { color: theme.text }]}>{item}</ThemedText>
-                            <ChevronRight color={theme.profileIcon} size={22} />
-                        </TouchableOpacity>
-                    ))}
-                </ThemedCard>
+  return (
+    <ThemedView
+      safe
+      style={[themeStyle.container, { backgroundColor: theme.profileBackground }]}
+    >
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 10 }}
+      >
+        <View style={themeStyle.profileSection}>
+          <Ionicons
+            name="person-circle-sharp"
+            size={themeStyle.profileImage.width}
+            color={isDarkMode ? "#fff" : "#000"}
+            style={[themeStyle.profileImage, { borderColor: theme.border }]}
+          />
 
-                <ThemedCard style={[themeStyle.section, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground, shadowOpacity: 0, elevation: 0, shadowColor: 'transparent' }]}>
-                    <View style={themeStyle.sectionHeader}>
-                        <LifeBuoy color={theme.profileIcon} size={26} strokeWidth={1.2} />
-                        <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>Support</ThemedText>
-                    </View>
-                    <TouchableOpacity style={themeStyle.row}>
-                        <ThemedText style={[themeStyle.rowText, { color: theme.text }]}>Contact us</ThemedText>
-                        <ChevronRight color={theme.profileIcon} size={22} />
-                    </TouchableOpacity>
-                </ThemedCard>
+          <View>
+            <ThemedText
+              title
+              style={[themeStyle.name, { color: theme.title }]}
+            >
+              {user?.fullName || "Name Surname"}
+            </ThemedText>
+            <ThemedText
+              style={[themeStyle.email, { color: theme.mutedText ?? theme.text }]}
+            >
+              {user?.email || "namesurname@gmail.com"}
+            </ThemedText>
+          </View>
+        </View>
 
-                {/*LOG OUTI qe s'vyn nihere*/}
-                <TouchableOpacity onPress={() => { removeUser(); safeRouter.replace('/') }}>
+        <ThemedCard
+          style={[
+            themeStyle.section,
+            {
+              borderColor: theme.border,
+              backgroundColor: theme.surface ?? theme.cardBackground,
+              shadowOpacity: 0,
+              elevation: 0,
+              shadowColor: "transparent",
+            },
+          ]}
+        >
+          <View style={themeStyle.sectionHeader}>
+            <UserRound color={theme.profileIcon} size={26} strokeWidth={1.2} />
+            <ThemedText
+              title
+              style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}
+            >
+              Account
+            </ThemedText>
+          </View>
+          {["Edit profile", "Change password", "Recent Activity"].map(
+            (item, index) => (
+              <TouchableOpacity key={index} style={themeStyle.row}>
+                <ThemedText
+                  style={[themeStyle.rowText, { color: theme.text }]}
+                >
+                  {item}
+                </ThemedText>
+                <ChevronRight color={theme.profileIcon} size={22} />
+              </TouchableOpacity>
+            )
+          )}
+        </ThemedCard>
 
-                    <ThemedCard style={[themeStyle.logoutButton, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground, shadowOpacity: 0, elevation: 0, shadowColor: 'transparent' }]}>
-                        <View style={themeStyle.logoutRow}>
-                            <LogOut color={"#da0000ff"} size={20} strokeWidth={2.5} />
-                            <ThemedText style={[themeStyle.logoutText, { color: "#da0000ff" }]}>Logout</ThemedText>
-                        </View>
-                    </ThemedCard>
-                </TouchableOpacity>
-            </ScrollView>
-            <NavBar />
-        </ThemedView>
-    );
+        <ThemedCard
+          style={[
+            themeStyle.section,
+            {
+              borderColor: theme.border,
+              backgroundColor: theme.surface ?? theme.cardBackground,
+              shadowOpacity: 0,
+              elevation: 0,
+              shadowColor: "transparent",
+            },
+          ]}
+        >
+          <View style={themeStyle.sectionHeader}>
+            <Settings color={theme.profileIcon} size={26} strokeWidth={1.2} />
+            <ThemedText
+              title
+              style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}
+            >
+              Settings
+            </ThemedText>
+          </View>
+          <View style={themeStyle.row}>
+            <ThemedText
+              style={[themeStyle.rowText, { color: theme.text }]}
+            >
+              Appearance
+            </ThemedText>
+          </View>
+
+          <View style={themeStyle.modeContainer}>
+            {[
+              { label: "System", value: null },
+              { label: "Light", value: "light" },
+              { label: "Dark", value: "dark" },
+            ].map(({ label, value }) => (
+              <TouchableOpacity
+                key={label}
+                onPress={() =>
+                  value === null
+                    ? setSystemMode()
+                    : value === "light"
+                    ? setLightMode()
+                    : setDarkMode()
+                }
+                style={[
+                  themeStyle.modeButton,
+                  userPreference === value ||
+                  (value === null && userPreference === null)
+                    ? themeStyle.modeButtonActive
+                    : {},
+                ]}
+              >
+                <ThemedText
+                  style={[
+                    themeStyle.modeButtonText,
+                    {
+                      color:
+                        userPreference === value ||
+                        (value === null && userPreference === null)
+                          ? "#fff"
+                          : theme.text,
+                    },
+                  ]}
+                >
+                  {label}
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {["Notifications", "Language and Region"].map((item, index) => (
+            <TouchableOpacity key={index} style={themeStyle.row}>
+              <ThemedText
+                style={[themeStyle.rowText, { color: theme.text }]}
+              >
+                {item}
+              </ThemedText>
+              <ChevronRight color={theme.profileIcon} size={22} />
+            </TouchableOpacity>
+          ))}
+        </ThemedCard>
+
+        <ThemedCard
+          style={[
+            themeStyle.section,
+            {
+              borderColor: theme.border,
+              backgroundColor: theme.surface ?? theme.cardBackground,
+              shadowOpacity: 0,
+              elevation: 0,
+              shadowColor: "transparent",
+            },
+          ]}
+        >
+          <View style={themeStyle.sectionHeader}>
+            <LifeBuoy color={theme.profileIcon} size={26} strokeWidth={1.2} />
+            <ThemedText
+              title
+              style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}
+            >
+              Support
+            </ThemedText>
+          </View>
+          <TouchableOpacity style={themeStyle.row}>
+            <ThemedText
+              style={[themeStyle.rowText, { color: theme.text }]}
+            >
+              Contact us
+            </ThemedText>
+            <ChevronRight color={theme.profileIcon} size={22} />
+          </TouchableOpacity>
+        </ThemedCard>
+
+        {/* LOGOUT */}
+        <TouchableOpacity onPress={handleLogout}>
+          <ThemedCard
+            style={[
+              themeStyle.logoutButton,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.surface ?? theme.cardBackground,
+                shadowOpacity: 0,
+                elevation: 0,
+                shadowColor: "transparent",
+              },
+            ]}
+          >
+            <View style={themeStyle.logoutRow}>
+              <LogOut color={"#da0000ff"} size={20} strokeWidth={2.5} />
+              <ThemedText
+                style={[themeStyle.logoutText, { color: "#da0000ff" }]}
+              >
+                Logout
+              </ThemedText>
+            </View>
+          </ThemedCard>
+        </TouchableOpacity>
+      </ScrollView>
+      <NavBar />
+    </ThemedView>
+  );
 };
+
+
 
 export default Profile;
 
