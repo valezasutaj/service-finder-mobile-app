@@ -6,7 +6,8 @@
     "scheme": "servicefinder",
     "plugins": [
       "expo-asset",
-      "expo-router"
+      "expo-router",
+      "expo-web-browser"
     ]
   }
 }

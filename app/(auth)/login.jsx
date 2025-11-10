@@ -1,9 +1,13 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Dimensions } from "react-native";
+import React, { useState, useEffect } from "react";
+import {View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Dimensions, Alert} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
 import { safeRouter } from "../../utils/SafeRouter";
 import { loginUser } from "../../services/userService";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import { auth } from "../../firebase"; 
 
 const { width } = Dimensions.get("window");
 const ICON_W = width * 0.65;
@@ -12,6 +16,8 @@ const ICON_TOP = 110;
 const OVERLAP = 26;
 const CONTENT_TOP_SPACER = ICON_TOP + ICON_H - OVERLAP;
 
+WebBrowser.maybeCompleteAuthSession();
+
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
@@ -19,25 +25,56 @@ export default function LoginScreen() {
   const [remember, setRemember] = useState(true);
   const [customError, setCustomError] = useState("");
 
+ 
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: "1083853747405-f8se0d55te3k2781ts2ukpdigalod65c.apps.googleusercontent.com",
+  });
+
+  useEffect(() => {
+    if (response) {
+      console.log("🔍 Google response:", response);
+    }
+
+    if (!response) return;
+
+    if (response.type === "success") {
+      const { id_token } = response.params;
+      const credential = GoogleAuthProvider.credential(id_token);
+
+      signInWithCredential(auth, credential)
+        .then((userCredential) => {
+          console.log("✅ Logged in with Google:", userCredential.user.email);
+          Alert.alert("Sukses", "U logove si: " + userCredential.user.email);
+          safeRouter.replace("/home");
+        })
+        .catch((err) => {
+          console.log("Error Google login:", err);
+          Alert.alert("Gabim Firebase", String(err));
+        });
+    } else {
+      console.log(" Google login jo sukses ose u cancel:", response.type);
+    }
+  }, [response]);
+
   const handleLogin = async () => {
     setCustomError("");
-
-
     try {
       const user = await loginUser(email, pwd);
       console.log("User logged in successfully:", user.uid);
       safeRouter.replace("/home");
     } catch (error) {
-      setCustomError(error.customMessage);
+      console.log("Error login email/pwd:", error);
+      setCustomError(error.customMessage || "Gabim gjatë login.");
     }
   };
 
   const insets = useSafeAreaInsets();
+
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.blueBg} />
       <TouchableOpacity
-        onPress={() => safeRouter.replace('/')}
+        onPress={() => safeRouter.replace("/")}
         activeOpacity={0.8}
         style={[styles.backBtn, { top: insets.top + 8, alignItems: "center", justifyContent: "center" }]}
       >
@@ -57,6 +94,7 @@ export default function LoginScreen() {
       <View style={styles.content}>
         <Text style={styles.title}>Welcome back!</Text>
 
+        
         <View style={styles.field}>
           <TextInput
             style={styles.input}
@@ -68,6 +106,7 @@ export default function LoginScreen() {
           />
         </View>
 
+ 
         <View style={[styles.field, { position: "relative" }]}>
           <TextInput
             style={styles.input}
@@ -97,8 +136,25 @@ export default function LoginScreen() {
 
         {customError ? <Text style={styles.errorTxt}>{customError}</Text> : null}
 
+ 
         <TouchableOpacity activeOpacity={0.8} onPress={handleLogin} style={styles.loginBtn}>
           <Text style={styles.loginTxt}>Login</Text>
+        </TouchableOpacity>
+
+     
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => promptAsync()}
+          style={styles.googleBtn}
+          disabled={!request}
+        >
+          <Image
+            source={{
+              uri: "https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg",
+            }}
+            style={styles.googleIcon}
+          />
+          <Text style={styles.googleTxt}>Continue with Google</Text>
         </TouchableOpacity>
 
         <View style={styles.signupRow}>
@@ -111,37 +167,14 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#3595FF" },
   blueBg: { ...StyleSheet.absoluteFillObject, backgroundColor: "#3595FF" },
-
-  topTitleWrap: {
-    position: "absolute",
-    top: 100,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    zIndex: 3,
-
-  },
-  topTitle: {
-    color: "#fff",
-    fontSize: 44,
-    fontWeight: "800",
-    fontStyle: "italic",
-  },
-
-  iconLayer: {
-    position: "absolute",
-    top: 110,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    zIndex: 2,
-  },
-
+  topTitleWrap: { position: "absolute", top: 100, left: 0, right: 0, alignItems: "center", zIndex: 3 },
+  topTitle: { color: "#fff", fontSize: 44, fontWeight: "800", fontStyle: "italic" },
+  iconLayer: { position: "absolute", top: 110, left: 0, right: 0, alignItems: "center", zIndex: 2 },
   icon: { width: ICON_W, height: ICON_H },
-
   content: {
     alignSelf: "center",
     width: "88%",
@@ -156,14 +189,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 6,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 14,
-  },
-
+  title: { fontSize: 22, fontWeight: "800", color: "#fff", textAlign: "center", marginBottom: 14 },
   field: {
     height: 52,
     borderRadius: 26,
@@ -172,36 +198,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 12,
   },
-
-  input: {
-    fontSize: 16,
-    color: "#fff",
-    fontWeight: "700",
-    letterSpacing: 0.3,
-  },
-
+  input: { fontSize: 16, color: "#fff", fontWeight: "700", letterSpacing: 0.3 },
   eye: { position: "absolute", right: 18, height: "100%", justifyContent: "center" },
-
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginVertical: 8 },
-
   remember: { flexDirection: "row", alignItems: "center" },
-
   circle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5, borderColor: "#fff",
+    width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: "#fff",
     marginRight: 8, alignItems: "center", justifyContent: "center",
   },
-
   circleOn: { borderColor: "#fff" },
-
   circleDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: "#fff" },
-
   rememberTxt: { color: "#fff", fontSize: 13 },
-
   forgot: { color: "#fff", fontSize: 13 },
-
   loginBtn: {
     backgroundColor: "#fff",
     borderRadius: 28,
@@ -210,15 +218,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 16,
   },
-
   loginTxt: { color: "#3595FF", fontSize: 16, fontWeight: "700" },
 
+  googleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    borderRadius: 28,
+    height: 54,
+    marginTop: 12,
+  },
+  googleIcon: { width: 22, height: 22, marginRight: 8 },
+  googleTxt: { color: "#000", fontSize: 15, fontWeight: "600" },
+
   signupRow: { flexDirection: "row", justifyContent: "center", marginTop: 12 },
-
   signupTxt: { color: "#fff" },
-
   signupLink: { color: "#fff", fontWeight: "700" },
-
   backBtn: {
     position: "absolute",
     left: 12,
@@ -229,7 +245,6 @@ const styles = StyleSheet.create({
     zIndex: 5,
     overflow: "hidden",
   },
-
   errorTxt: {
     color: "#ff4d4f",
     fontSize: 14,
