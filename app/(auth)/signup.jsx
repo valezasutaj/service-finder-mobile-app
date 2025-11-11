@@ -13,19 +13,35 @@ export default function RegisterScreen() {
   const [showPwd, setShowPwd] = useState(false);
   const [customError, setCustomError] = useState("");
 
-  const handleSignUp = async () => {
-    if (!name || !username || !email || !pwd) {
-      setCustomError("Please fill all fields");
-      return;
-    }
+ const handleSignUp = async () => {
+  
+  setCustomError("");
+  if (!name.trim() || !username.trim() || !email.trim() || !pwd.trim()) {
+    setCustomError("Please fill all fields");
+    return;
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    setCustomError("Please enter a valid email address");
+    return;
+  }
+  if (pwd.length < 6) {
+    setCustomError("Password must be at least 6 characters long");
+    return;
+  }
+  try {
+    
+    const user = await registerUser(name.trim(), username.trim(), email.trim(), pwd);
+    console.log("Registered user:", user.uid);
 
-    try {
-      const user = await registerUser(name, username, email, pwd);
-      console.log('Registered user:', user.uid);
-    } catch (error) {
-      setCustomError(error.customMessage);
-    }
-  };
+    Alert.alert("Success", "Account created successfully!");
+    safeRouter.replace("/login");
+
+  } catch (error) {
+    console.log("Registration error:", error);
+    setCustomError(error.customMessage || "Failed to register. Please try again.");
+  }
+};
 
   const insets = useSafeAreaInsets();
 

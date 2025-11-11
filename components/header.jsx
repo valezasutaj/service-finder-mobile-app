@@ -31,7 +31,7 @@ const Header = () => {
           prev ?? {
             fullName: firebaseUser.displayName || 'Name Surname',
             email: firebaseUser.email || '',
-            location: 'Kosovë, Prishtinë', // default
+            location: 'Kosovë, Prishtinë', 
             photoURL: firebaseUser.photoURL || null,
           }
         );

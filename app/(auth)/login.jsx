@@ -8,7 +8,6 @@ import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { auth } from "../../firebase"; 
-
 const { width } = Dimensions.get("window");
 const ICON_W = width * 0.65;
 const ICON_H = ICON_W * 0.9;
@@ -43,7 +42,7 @@ export default function LoginScreen() {
 
       signInWithCredential(auth, credential)
         .then((userCredential) => {
-          console.log("✅ Logged in with Google:", userCredential.user.email);
+          console.log("Logged in with Google:", userCredential.user.email);
           Alert.alert("Sukses", "U logove si: " + userCredential.user.email);
           safeRouter.replace("/home");
         })
@@ -57,16 +56,26 @@ export default function LoginScreen() {
   }, [response]);
 
   const handleLogin = async () => {
-    setCustomError("");
-    try {
-      const user = await loginUser(email, pwd);
-      console.log("User logged in successfully:", user.uid);
-      safeRouter.replace("/home");
-    } catch (error) {
-      console.log("Error login email/pwd:", error);
-      setCustomError(error.customMessage || "Gabim gjatë login.");
-    }
-  };
+  setCustomError("");
+
+  if (!email || !pwd) {
+    setCustomError("Please enter email and password");
+    return;
+  }
+  const emailRegex = /^\S+@\S+\.\S+$/;
+  if (!emailRegex.test(email)) {
+    setCustomError("Please enter a valid email address");
+    return;
+  }
+
+  try {
+    const user = await loginUser(email, pwd);
+    safeRouter.replace("/home");
+  } catch (error) {
+    setCustomError(error.customMessage || "Login failed");
+  }
+};
+
 
   const insets = useSafeAreaInsets();
 
@@ -141,7 +150,7 @@ export default function LoginScreen() {
           <Text style={styles.loginTxt}>Login</Text>
         </TouchableOpacity>
 
-     
+        
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => promptAsync()}
@@ -220,6 +229,7 @@ const styles = StyleSheet.create({
   },
   loginTxt: { color: "#3595FF", fontSize: 16, fontWeight: "700" },
 
+  
   googleBtn: {
     flexDirection: "row",
     alignItems: "center",

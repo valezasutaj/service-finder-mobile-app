@@ -22,12 +22,6 @@ export default function Welcome() {
           <TouchableOpacity style={styles.btnSecondary} onPress={() => safeRouter.push('/login')}>
             <Text style={styles.btnSecondaryText}>Log In</Text>
           </TouchableOpacity>
-
-          <Text
-            style={styles.linkText}
-            onPress={() => safeRouter.replace('/home')}>
-            Continue to Home
-          </Text>
         </View>
       </View>
       <Image
@@ -116,11 +110,5 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
   },
-  linkText: {
-    color: '#fff',
-    fontSize: width * 0.04,
-    marginTop: 12,
-    textDecorationLine: 'underline',
-  },
-
+ 
 });  
