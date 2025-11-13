@@ -4,7 +4,12 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { saveUser } from './storageService';
 
 export const registerUser = async (fullName, username, email, password) => {
-    if (!fullName?.trim() || !username?.trim() || !email?.trim() || !password?.trim()) {
+    fullName = fullName?.trim();
+    username = username?.trim();
+    email = email?.trim();
+    password = password?.trim();
+
+    if (!fullName || !username || !email || !password) {
         throw { customMessage: "Please fill in all required fields." };
     }
     if (password.length < 6) {
@@ -12,13 +17,13 @@ export const registerUser = async (fullName, username, email, password) => {
     }
 
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
         const userData = {
-            fullName: fullName.trim(),
-            username: username.trim(),
-            email: email.trim(),
+            fullName,
+            username,
+            email,
             createdAt: new Date(),
         };
 
@@ -28,6 +33,7 @@ export const registerUser = async (fullName, username, email, password) => {
         return { uid: user.uid, ...userData };
     } catch (error) {
         let customMessage = "Registration failed. Please try again.";
+
         switch (error.code) {
             case "auth/email-already-in-use":
                 customMessage = "This email is already registered.";
@@ -42,17 +48,21 @@ export const registerUser = async (fullName, username, email, password) => {
                 customMessage = "Firebase authentication not configured properly.";
                 break;
         }
+
         throw { customMessage };
     }
 };
 
 export const loginUser = async (email, password) => {
-    if (!email?.trim() || !password?.trim()) {
+    email = email?.trim();
+    password = password?.trim();
+
+    if (!email || !password) {
         throw { customMessage: "Please fill in both email and password." };
     }
 
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
         const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -64,17 +74,11 @@ export const loginUser = async (email, password) => {
     } catch (error) {
         console.error('Login error:', error);
         let customMessage = "Login failed. Please try again.";
-        switch (error.code) {
-            case "auth/invalid-email":
-                customMessage = "Invalid email format.";
-                break;
-            case "auth/invalid-credential":
-                customMessage = "Invalid credentials.";
-                break;
-            case "auth/configuration-not-found":
-                customMessage = "Firebase authentication not configured properly.";
-                break;
+
+        if (error.code === "auth/invalid-credential") {
+            customMessage = "Invalid credentials.";
         }
+
         throw { customMessage };
     }
 };

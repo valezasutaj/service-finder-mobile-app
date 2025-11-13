@@ -1,4 +1,6 @@
-import { ScrollView, Image, StyleSheet, View, TouchableOpacity, FlatList } from 'react-native';
+// screens/home/HomeScreen.jsx
+import { ScrollView, Image, StyleSheet, View, FlatList, ActivityIndicator } from 'react-native';
+import { useEffect, useState } from 'react';
 import ThemedView from '../../components/ThemedView';
 import ThemedText from '../../components/ThemedText';
 import ThemedServiceCard from '../../components/ThemedServiceCard';
@@ -7,11 +9,53 @@ import ThemedButton from '../../components/ThemedButton';
 import Header from '../../components/header';
 import NavBar from '../../components/NavBar';
 import { useTheme } from '../../context/ThemedModes';
-import { services, categories } from '../../constants/data';
+import { serviceService } from '../../services/servicesService';
+import { categoryService } from '../../services/categoriesService';
+import { serviceImages, categoryIcons } from '../../services/imagesMap';
 
 const HomeScreen = () => {
     const { theme } = useTheme();
     const themeStyles = styles(theme);
+
+    const [services, setServices] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const fetchedServices = await serviceService.getServices();
+                const fetchedCategories = await categoryService.getCategories();
+
+                const mappedServices = fetchedServices.map(s => ({
+                    ...s,
+                    image: s.image ? serviceImages[s.image] : null
+                }));
+
+                const mappedCategories = fetchedCategories.map(c => ({
+                    ...c,
+                    icon: c.icon ? categoryIcons[c.icon] : null
+                }));
+
+                setServices(mappedServices);
+                setCategories(mappedCategories);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return (
+            <ThemedView safe style={[themeStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={theme.primary} />
+            </ThemedView>
+        );
+    }
 
     return (
         <ThemedView safe style={[themeStyles.container, { paddingBottom: 40 }]}>
@@ -22,10 +66,10 @@ const HomeScreen = () => {
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 10 }}>
                         {services.slice(0, 3).map(item => (
                             <View key={item.id} style={themeStyles.bannerCard}>
-                                <Image source={item.image} style={themeStyles.bannerImage} />
+                                {item.image && <Image source={item.image} style={themeStyles.bannerImage} />}
                                 <View style={themeStyles.bannerOverlay}>
                                     <ThemedText style={themeStyles.bannerText}>
-                                        {item.name} with {item.discount} Discount
+                                        {item.name} {item.discount && `with ${item.discount} Discount`}
                                     </ThemedText>
 
                                     <ThemedButton style={themeStyles.bannerButton}>
@@ -43,9 +87,9 @@ const HomeScreen = () => {
                 </View>
 
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={themeStyles.categoriesRow}>
-                    {categories.map(cat => (
+                    {categories.slice(0, 5).map(cat => (
                         <View key={cat.label} style={themeStyles.categoryCard}>
-                            <Image source={cat.icon} style={themeStyles.categoryImg} />
+                            {cat.icon && <Image source={cat.icon} style={themeStyles.categoryImg} />}
                             <ThemedText style={themeStyles.categoryLabel}>{cat.label}</ThemedText>
                         </View>
                     ))}
@@ -85,15 +129,12 @@ const styles = (theme) => StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 10,
     },
-
     scrollContent: {
         paddingBottom: 20,
     },
-
     bannerContainer: {
         marginTop: 10,
     },
-
     bannerCard: {
         width: 280,
         height: 140,
@@ -101,12 +142,10 @@ const styles = (theme) => StyleSheet.create({
         marginRight: 15,
         overflow: 'hidden',
     },
-
     bannerImage: {
         width: '100%',
         height: '100%',
     },
-
     bannerOverlay: {
         ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(0,0,0,0.35)',
@@ -115,7 +154,6 @@ const styles = (theme) => StyleSheet.create({
         paddingHorizontal: 15,
         paddingVertical: 10,
     },
-
     bannerText: {
         color: '#FFFFFF',
         fontSize: 14,
@@ -123,53 +161,44 @@ const styles = (theme) => StyleSheet.create({
         textAlign: 'center',
         marginBottom: 8,
     },
-
     bannerButton: {
         paddingHorizontal: 15,
         paddingVertical: 8,
         borderRadius: 20,
     },
-
     bannerButtonText: {
         color: '#fff',
         fontWeight: '600',
         fontSize: 12,
     },
-
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 15,
     },
-
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         color: theme.text,
         marginVertical: 18,
     },
-
     link: {
         fontSize: 14,
-        color: theme.text,
-        marginVertical: 18,
         color: theme.mutedText,
+        marginVertical: 18,
     },
-
     categoriesRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 5,
         paddingHorizontal: 15
     },
-
     categoryCard: {
         width: 80,
         alignItems: 'center',
         marginRight: 10,
     },
-
     categoryImg: {
         width: 75,
         height: 75,
@@ -177,7 +206,6 @@ const styles = (theme) => StyleSheet.create({
         marginBottom: 6,
         backgroundColor: theme.cardBackground || '#f8f8f8',
     },
-
     categoryLabel: {
         fontSize: 13,
         fontWeight: '500',
@@ -185,4 +213,3 @@ const styles = (theme) => StyleSheet.create({
         textAlign: 'center',
     },
 });
-

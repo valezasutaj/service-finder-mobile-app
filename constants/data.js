@@ -1,3 +1,5 @@
+
+
 export const services = [
     { id: '001', name: 'First Cleaning Service', discount: '25%', price: 200, image: require('../assets/images/services/cleaning.png'), rating: 4.5, distance: 2.5, category: 'Cleaning' },
     { id: '002', name: 'Professional Cleaning', discount: '20%', price: 240, image: require('../assets/images/services/working.png'), rating: 4.8, distance: 1.5, category: 'Cleaning' },

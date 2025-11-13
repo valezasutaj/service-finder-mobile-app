@@ -23,7 +23,7 @@ const NavBar = () => {
             <NavButton
                 icon={Search}
                 label="Browse"
-                active={pathname.includes('/browse')}
+                active={pathname.includes('browse')}
                 onPress={() => safeRouter.push('/browse')}
                 theme={theme}
             />
@@ -44,8 +44,8 @@ const NavBar = () => {
             <NavButton
                 icon={User}
                 label="Profile"
-                active={pathname.includes('/profile')}
-                onPress={() => safeRouter.push('/profile')}
+                active={pathname.includes('/myprofile')}
+                onPress={() => safeRouter.push('/myprofile')}
                 theme={theme}
             />
         </View>
