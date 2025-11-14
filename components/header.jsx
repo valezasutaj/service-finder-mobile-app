@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import ThemedText from './ThemedText';
 import { useTheme } from '../context/ThemedModes';
 import { safeRouter } from "../utils/SafeRouter";
@@ -7,19 +8,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { getUser } from '../services/storageService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
+import { getWeatherByCity } from '../services/WeatherService';
 
 const Header = () => {
   const { theme, isDarkMode } = useTheme();
   const styles = s(theme);
   const [user, setUser] = useState(null);
 
+  const [weather, setWeather] = useState({
+    temp: null,
+    icon: null,
+  });
+
+  
   useEffect(() => {
     const fetchUser = async () => {
       const storedUser = await getUser();
-
-      if (storedUser) {
-        setUser(storedUser);
-      }
+      if (storedUser) setUser(storedUser);
     };
 
     fetchUser();
@@ -30,7 +35,7 @@ const Header = () => {
           prev ?? {
             fullName: firebaseUser.displayName || 'Name Surname',
             email: firebaseUser.email || '',
-            location: 'Kosovë, Prishtinë',
+            location: 'Kosovë, Prishtinë', 
             photoURL: firebaseUser.photoURL || null,
           }
         );
@@ -40,14 +45,63 @@ const Header = () => {
     return () => unsub();
   }, []);
 
+  
+  useEffect(() => {
+  const loadWeather = async () => {
+    try {
+      if (!user || !user.location) return;
 
-  return (
-    <View
-      style={[
-        styles.headerContainer,
-        { backgroundColor: theme.uiBackground },
-      ]}
-    >
+      let city = user.location;
+
+      
+      if (city.includes(",")) {
+        city = city.split(",")[1].trim();
+      }
+
+      
+      city = city
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace("ë", "e")
+        .replace("Ë", "E");
+           
+        
+            if (
+              city.toLowerCase() === "prishtine" ||
+              city.toLowerCase() === "prishtina" ||
+              city.toLowerCase() === "pristine"
+            ) {
+              city = "Pristina,XK";
+            }
+
+      console.log("CITY REQUESTED:", city); 
+
+      const weatherData = await getWeatherByCity(city);
+
+      if (weatherData) {
+        setWeather({
+          temp: weatherData.temp,
+          icon: `https://openweathermap.org/img/wn/${weatherData.icon}@2x.png`,
+        });
+            }
+            } catch (error) {
+              console.log("Weather fetch error: ", error);
+            }
+          };
+
+          if (user?.location) {
+            loadWeather();
+          }
+        }, [user]);
+
+          return (
+            <View
+              style={[
+                styles.headerContainer,
+                { backgroundColor: theme.uiBackground },
+              ]}
+            >
+
       <View style={styles.leftSection}>
         <TouchableOpacity onPress={() => safeRouter.push('/profile')}>
           <Ionicons
@@ -61,14 +115,25 @@ const Header = () => {
           <ThemedText style={[styles.userName, { color: theme.text }]}>
             {user?.fullName || 'Name Surname'}
           </ThemedText>
-          <ThemedText
-            style={[
-              styles.userLocation,
-              { color: theme.mutedText || theme.text },
-            ]}
-          >
-            {user?.location || 'Kosovë, Prishtinë'}
-          </ThemedText>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {weather.icon && (
+              <Image
+                source={{ uri: weather.icon }}
+                style={{ width: 32, height: 32, }}
+                resizeMode="contain"
+              />
+            )}
+
+            <ThemedText
+              style={[
+                styles.userLocation,
+                { color: theme.mutedText || theme.text },
+              ]}
+            >
+              {`${weather.temp ?? '--'}°C | ${user?.location || ''}`}
+            </ThemedText>
+          </View>
         </View>
       </View>
 
@@ -117,3 +182,4 @@ const s = (theme) =>
       alignItems: 'center',
     },
   });
+
