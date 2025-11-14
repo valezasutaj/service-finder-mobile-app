@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, TextInput, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native';
-
 import ThemedView from '../../components/ThemedView';
 import ThemedText from '../../components/ThemedText';
 import ThemedServiceCard from '../../components/ThemedServiceCard';
@@ -9,7 +8,6 @@ import Spacer from '../../components/Spacer';
 import { useTheme } from '../../context/ThemedModes';
 import { Search } from 'lucide-react-native';
 import { useRouter } from "expo-router";
-
 import { categoryService } from '../../services/categoriesService';
 import { jobService } from '../../services/jobsService';
 import { getCategoryIcon } from '../../services/imagesMap';
@@ -18,11 +16,9 @@ const Browse = () => {
     const { theme } = useTheme();
     const router = useRouter();
     const themeStyles = styles(theme);
-
     const [searchText, setSearchText] = useState('');
     const [selectedSort, setSelectedSort] = useState('None');
     const [selectedCategoryId, setSelectedCategoryId] = useState('All');
-
     const [categories, setCategories] = useState([]);
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -30,10 +26,13 @@ const Browse = () => {
     useEffect(() => {
         const load = async () => {
             setLoading(true);
+
             const c = await categoryService.getCategories();
             const j = await jobService.getJobs();
+
             setCategories([{ id: 'All', label: 'All' }, ...c]);
             setJobs(j);
+
             setLoading(false);
         };
         load();
@@ -45,9 +44,13 @@ const Browse = () => {
             job.categories.some(c => c.id === selectedCategoryId))
     );
 
-    if (selectedSort === 'Price Low → High') filteredJobs.sort((a, b) => a.price - b.price);
-    else if (selectedSort === 'Price High → Low') filteredJobs.sort((a, b) => b.price - a.price);
-    else if (selectedSort === 'Rating High → Low') filteredJobs.sort((a, b) => b.rating - a.rating);
+    if (selectedSort === 'Price Low → High') {
+        filteredJobs.sort((a, b) => a.price - b.price);
+    } else if (selectedSort === 'Price High → Low') {
+        filteredJobs.sort((a, b) => b.price - a.price);
+    } else if (selectedSort === 'Rating High → Low') {
+        filteredJobs.sort((a, b) => b.rating - a.rating);
+    }
 
     if (loading) {
         return (
@@ -60,7 +63,6 @@ const Browse = () => {
     return (
         <ThemedView safe style={themeStyles.container}>
             <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-
                 <View style={themeStyles.searchContainer}>
                     <Search size={20} color={theme.mutedText} style={themeStyles.searchIcon} />
                     <TextInput
@@ -83,10 +85,7 @@ const Browse = () => {
                             onPress={() => setSelectedCategoryId(cat.id)}
                         >
                             {cat.id !== 'All' && (
-                                <Image
-                                    source={getCategoryIcon(cat.icon)}
-                                    style={themeStyles.categoryIcon}
-                                />
+                                <Image source={getCategoryIcon(cat.icon)} style={themeStyles.categoryIcon} />
                             )}
 
                             <ThemedText
@@ -128,19 +127,28 @@ const Browse = () => {
                 <FlatList
                     data={filteredJobs}
                     keyExtractor={item => item.id}
-                    renderItem={({ item }) => (
-                        <ThemedServiceCard
-                            id={item.id}
-                            name={item.name}
-                            price={item.price}
-                            discount={item.discount}
-                            rating={item.rating}
-                            image={getCategoryIcon(item.categories?.[0]?.icon)}
-                            providerName={item.provider?.fullName}
-                            onPress={() => router.push(`/jobdetails/${item.id}`)}
-                        />
-                    )}
                     scrollEnabled={false}
+                    renderItem={({ item }) => {
+                        const icon = getCategoryIcon(item.categories?.[0]?.icon);
+
+                        return (
+                            <ThemedServiceCard
+                                id={item.id}
+                                name={item.name}
+                                price={item.price}
+                                discount={item.discount}
+                                rating={item.rating}
+                                image={icon}
+                                providerName={item.provider?.fullName}
+                                onPress={() =>
+                                    router.push({
+                                        pathname: `/jobdetails/${item.id}`,
+                                        params: { image: JSON.stringify(icon) }
+                                    })
+                                }
+                            />
+                        );
+                    }}
                 />
 
                 <Spacer height={40} />
@@ -168,9 +176,20 @@ const styles = (theme) => StyleSheet.create({
         paddingHorizontal: 10,
         margin: 10
     },
-    searchIcon: { width: 20, height: 20, marginRight: 8 },
-    searchInput: { flex: 1, height: 40, color: theme.text },
-    filterScroll: { marginVertical: 10, marginHorizontal: 10 },
+    searchIcon: {
+        width: 20,
+        height: 20,
+        marginRight: 8
+    },
+    searchInput: {
+        flex: 1,
+        height: 40,
+        color: theme.text
+    },
+    filterScroll: {
+        marginVertical: 10,
+        marginHorizontal: 10
+    },
     filterChip: {
         paddingVertical: 8,
         paddingHorizontal: 15,
@@ -179,7 +198,10 @@ const styles = (theme) => StyleSheet.create({
         borderColor: theme.border,
         marginRight: 10
     },
-    filterChipActive: { backgroundColor: theme.primary, borderColor: theme.primary },
+    filterChipActive: {
+        backgroundColor: theme.primary,
+        borderColor: theme.primary
+    },
     categoryChip: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -190,8 +212,16 @@ const styles = (theme) => StyleSheet.create({
         borderColor: theme.border,
         marginRight: 10
     },
-    categoryIcon: { width: 24, height: 24, borderRadius: 12, marginRight: 6 },
-    filterText: { fontWeight: '600', color: theme.text },
+    categoryIcon: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        marginRight: 6
+    },
+    filterText: {
+        fontWeight: '600',
+        color: theme.text
+    },
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',

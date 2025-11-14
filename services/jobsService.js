@@ -29,24 +29,25 @@ export const jobService = {
     },
 
     createJob: async (job) => {
-        const payload = {
-            name: job.name,
-            price: job.price,
-            rating: job.rating,
-            discount: job.discount,
-            distance: job.distance,
+    const payload = {
+        name: job.name,
+        price: job.price,
+        discount: job.discount,
+        description: job.description,
 
-            categories: job.categories || [],
+        category: job.category,   
+        image: job.image,
 
-            provider: job.provider || null,
+        provider: job.provider,     
 
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        };
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+    };
 
-        const ref = await addDoc(collection(db, COLLECTION), payload);
-        return { id: ref.id, ...payload };
-    },
+    const ref = await addDoc(collection(db, COLLECTION), payload);
+    return { id: ref.id, ...payload };
+},
+
 
     updateJob: async (id, data) => {
         await updateDoc(doc(db, COLLECTION, id), {

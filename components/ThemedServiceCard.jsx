@@ -2,28 +2,11 @@ import React from 'react';
 import { StyleSheet, Image, TouchableOpacity, View } from 'react-native';
 import ThemedCard from './ThemedCard';
 import ThemedText from './ThemedText';
-import { Bookmark, Star } from 'lucide-react-native';
+import { Bookmark } from 'lucide-react-native';
 import { useTheme } from '../context/ThemedModes';
 
 const ThemedServiceCard = ({ id, name, discount, price, image, rating = null, providerName, onPress }) => {
     const { theme } = useTheme();
-
-    const renderStars = () => {
-        if (!rating) {
-            return <ThemedText style={{ color: theme.mutedText, fontSize: 12 }}>No rating</ThemedText>;
-        }
-
-        const rounded = Math.round(rating);
-        return [...Array(rounded)].map((_, i) => (
-            <Star
-                key={i}
-                size={14}
-                color="#FFD700"
-                fill="#FFD700"
-                style={{ marginRight: 2 }}
-            />
-        ));
-    };
 
     return (
         <TouchableOpacity onPress={onPress} activeOpacity={0.85}>
@@ -39,10 +22,6 @@ const ThemedServiceCard = ({ id, name, discount, price, image, rating = null, pr
                     <ThemedText style={[styles.provider, { color: theme.mutedText }]}>
                         {providerName || "Unknown Provider"}
                     </ThemedText>
-
-                    <View style={styles.ratingRow}>
-                        <View style={styles.starsContainer}>{renderStars()}</View>
-                    </View>
 
                     {!!discount && (
                         <ThemedText style={[styles.discount, { color: theme.primary }]}>

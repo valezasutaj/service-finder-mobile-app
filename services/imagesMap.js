@@ -6,9 +6,20 @@ export const categoryIcons = {
     "cleaning_services.png": require("../assets/images/categories/cleaning_services.png"),
 };
 
-export const defaultCategoryIcon = require("../assets/images/categories/default.png");
+export const defaultCategoryIcons = [
+    categoryIcons["plumbing_repair_services.jpg"],
+    categoryIcons["electrician_services.jpg"],
+    categoryIcons["painting_services.jpg"],
+    categoryIcons["car_tow_services.jpg"],
+    categoryIcons["cleaning_services.png"],
+];
+
+const getRandomDefault = () => {
+    const index = Math.floor(Math.random() * defaultCategoryIcons.length);
+    return defaultCategoryIcons[index];
+};
 
 export const getCategoryIcon = (icon) => {
-    if (!icon) return defaultCategoryIcon;
-    return categoryIcons[icon] ?? defaultCategoryIcon;
+    if (!icon) return getRandomDefault();
+    return categoryIcons[icon] ?? getRandomDefault();
 };

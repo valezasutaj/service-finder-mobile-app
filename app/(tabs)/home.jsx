@@ -8,6 +8,7 @@ import ThemedButton from '../../components/ThemedButton';
 import Header from '../../components/header';
 import NavBar from '../../components/NavBar';
 import { useTheme } from '../../context/ThemedModes';
+import { useRouter } from "expo-router";
 
 import { jobService } from '../../services/jobsService';
 import { categoryService } from '../../services/categoriesService';
@@ -16,11 +17,11 @@ import { getCategoryIcon } from '../../services/imagesMap';
 const HomeScreen = () => {
     const { theme } = useTheme();
     const themeStyles = styles(theme);
+    const router = useRouter();
 
     const [jobs, setJobs] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
-
 
     useEffect(() => {
         const load = async () => {
@@ -65,7 +66,16 @@ const HomeScreen = () => {
                                         {item.name} {item.discount && `• ${item.discount} Off`}
                                     </ThemedText>
 
-                                    <ThemedButton style={themeStyles.bannerButton}>
+                                    <ThemedButton style={themeStyles.bannerButton}
+                                        onPress={() =>
+                                            router.push({
+                                                pathname: `/jobdetails/${item.id}`,
+                                                params: {
+                                                    image: JSON.stringify(getCategoryIcon(item.categories?.[0]?.icon))
+                                                }
+                                            })
+                                        }
+                                    >
                                         <ThemedText style={themeStyles.bannerButtonText}>Book Now</ThemedText>
                                     </ThemedButton>
                                 </View>
@@ -102,10 +112,17 @@ const HomeScreen = () => {
                             id={item.id}
                             name={item.name}
                             discount={item.discount}
-                            rating={item.rating}
                             price={item.price}
                             image={getCategoryIcon(item.categories?.[0]?.icon)}
                             providerName={item.provider?.fullName}
+                            onPress={() =>
+                                router.push({
+                                    pathname: `/jobdetails/${item.id}`,
+                                    params: {
+                                        image: JSON.stringify(getCategoryIcon(item.categories?.[0]?.icon))
+                                    }
+                                })
+                            }
                         />
                     )}
                 />
@@ -119,7 +136,6 @@ const HomeScreen = () => {
 };
 
 export default HomeScreen;
-
 
 const styles = (theme) => StyleSheet.create({
     container: {

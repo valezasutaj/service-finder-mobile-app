@@ -1,17 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-    View,
-    TextInput,
-    Image,
-    FlatList,
-    TouchableOpacity,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    ScrollView,
-    Modal
-} from 'react-native';
-
+import { View, TextInput, Image, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet, ScrollView, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { safeRouter } from "../../utils/SafeRouter";
 import { useTheme } from '../../context/ThemedModes';
@@ -20,7 +8,6 @@ import ThemedText from '../../components/ThemedText';
 import ThemedButton from '../../components/ThemedButton';
 import Spacer from '../../components/Spacer';
 import { Check } from "lucide-react-native";
-
 import { auth } from "../../firebase";
 import { userService } from "../../services/userService";
 import { jobService } from "../../services/jobsService";
@@ -30,7 +17,6 @@ import { getCategoryIcon } from "../../services/imagesMap";
 export default function Post() {
     const { theme } = useTheme();
     const styles = s(theme);
-
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
     const [discount, setDiscount] = useState("");
@@ -42,9 +28,6 @@ export default function Post() {
     const [error, setError] = useState("");
     const [isSubmitted, setIsSubmitted] = useState(false);
 
-    // -----------------------------
-    // Load Categories
-    // -----------------------------
     useEffect(() => {
         const load = async () => {
             try {
@@ -57,9 +40,6 @@ export default function Post() {
         load();
     }, []);
 
-    // -----------------------------
-    // Pick Image
-    // -----------------------------
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -72,9 +52,6 @@ export default function Post() {
         }
     };
 
-    // -----------------------------
-    // Post Job
-    // -----------------------------
     const handlePost = async () => {
         setError("");
 
@@ -124,17 +101,13 @@ export default function Post() {
 
     return (
         <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
-
             <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-
                     <View style={styles.header}>
                         <ThemedText title style={styles.headerText}>Post Job</ThemedText>
                     </View>
 
                     <View style={styles.content}>
-
-                        {/* Name */}
                         <ThemedText type="subtitle" style={styles.label}>Name</ThemedText>
                         <TextInput
                             placeholder="Enter Service Name"
@@ -146,7 +119,6 @@ export default function Post() {
 
                         <Spacer height={15} />
 
-                        {/* Price */}
                         <ThemedText type="subtitle" style={styles.label}>Price</ThemedText>
                         <TextInput
                             keyboardType="numeric"
@@ -159,7 +131,6 @@ export default function Post() {
 
                         <Spacer height={15} />
 
-                        {/* Discount */}
                         <ThemedText type="subtitle" style={styles.label}>Discount</ThemedText>
                         <TextInput
                             keyboardType="numeric"
@@ -172,7 +143,6 @@ export default function Post() {
 
                         <Spacer height={15} />
 
-                        {/* Description */}
                         <ThemedText type="subtitle" style={styles.label}>Description</ThemedText>
                         <TextInput
                             placeholder="Enter Description"
@@ -184,7 +154,6 @@ export default function Post() {
 
                         <Spacer height={15} />
 
-                        {/* Categories */}
                         <ThemedText type="subtitle" style={styles.label}>Select Category</ThemedText>
 
                         {loadingCategories ? (
@@ -219,7 +188,6 @@ export default function Post() {
 
                         <Spacer height={15} />
 
-                        {/* Image Picker */}
                         <ThemedText type="subtitle" style={styles.label}>Add Image</ThemedText>
                         <ThemedButton onPress={pickImage}>
                             <ThemedText style={{ color: theme.postText }}>Pick an Image</ThemedText>
@@ -239,7 +207,6 @@ export default function Post() {
                     </View>
                 </ScrollView>
 
-                {/* Footer Buttons */}
                 <View style={[styles.footer, { backgroundColor: theme.background, borderTopColor: theme.border }]}>
                     <TouchableOpacity
                         onPress={() => safeRouter.back()}
@@ -255,7 +222,6 @@ export default function Post() {
                     </View>
                 </View>
 
-                {/* SUCCESS POPUP (Copied exactly from your design) */}
                 <Modal visible={isSubmitted} transparent animationType="fade">
                     <View style={styles.overlay}>
                         <View style={styles.popup}>
@@ -283,9 +249,7 @@ export default function Post() {
                         </View>
                     </View>
                 </Modal>
-
             </KeyboardAvoidingView>
-
         </ThemedView>
     );
 }
@@ -327,7 +291,6 @@ const s = (theme) => StyleSheet.create({
         alignItems: "center"
     },
 
-    // Popup styles copied from your design
     overlay: {
         flex: 1,
         justifyContent: 'center',
