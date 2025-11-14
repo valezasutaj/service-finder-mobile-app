@@ -27,13 +27,11 @@ import { safeRouter } from "../../utils/SafeRouter";
 import { userService } from '../../services/userService';
 
 
-const { width } = Dimensions.get('window');
 
 const ProfileScreen = ({ route }) => {
     const { theme } = useTheme();
     const styles = getStyles(theme);
 
-    const { userId } = 1;
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [services, setServices] = useState([]);

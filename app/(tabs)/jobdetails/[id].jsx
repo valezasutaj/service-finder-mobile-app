@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { View, Image, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import { ArrowLeft, MoreVertical, MapPin, Star, MessageCircle } from "lucide-react-native";
-import ThemedView from "../../components/ThemedView";
-import ThemedText from "../../components/ThemedText";
-import ThemedCard from "../../components/ThemedCard";
-import ThemedButton from "../../components/ThemedButton";
+import ThemedView from "../../../components/ThemedView";
+import ThemedText from "../../../components/ThemedText";
+import ThemedCard from "../../../components/ThemedCard";
+import ThemedButton from "../../../components/ThemedButton";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../context/ThemedModes";
+import { useTheme } from "../../../context/ThemedModes";
 
 export default function ServiceDetailsScreen() {
     const router = useRouter();
@@ -16,7 +16,7 @@ export default function ServiceDetailsScreen() {
 
     return (
         <ThemedView style={{ flex: 1 }}>
-            <ScrollView contentContainerStyle={{ paddingBottom: 120 }}  showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
                 <View style={styles.headerContainer}>
                     <View style={styles.headerButtons}>
                         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
@@ -30,7 +30,7 @@ export default function ServiceDetailsScreen() {
                 </View>
 
                 <View style={styles.imageWrapper}>
-                    <Image source={require("../../assets/images/services/electrician.jpg")} style={styles.headerImage}/>
+                    <Image source={require("../../../assets/images/services/electrician.jpg")} style={styles.headerImage} />
                 </View>
 
                 <View style={styles.bodyContainer}>
@@ -40,7 +40,7 @@ export default function ServiceDetailsScreen() {
                     <View style={styles.row}>
                         <MapPin size={17} color={theme.text} />
                         <ThemedText style={styles.mutedText}>1.2 km</ThemedText>
-                        <Star size={17} color="#FFD700" fill="#FFD700" style={ {marginLeft: 15}} />
+                        <Star size={17} color="#FFD700" fill="#FFD700" style={{ marginLeft: 15 }} />
                         <ThemedText style={styles.mutedText}>5.0 (1.5k Reviews)</ThemedText>
                     </View>
 
@@ -69,7 +69,7 @@ export default function ServiceDetailsScreen() {
 
                     <ThemedCard style={styles.providerCard}>
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
-                            <Image source={require("../../assets/images/services/working.png")} style={styles.providerImage}/>
+                            <Image source={require("../../../assets/images/services/working.png")} style={styles.providerImage} />
                             <View style={{ marginLeft: 10 }}>
                                 <ThemedText title style={{ fontSize: 15 }}>Name Surname</ThemedText>
                                 <ThemedText>Service Provider</ThemedText>
@@ -77,7 +77,7 @@ export default function ServiceDetailsScreen() {
                         </View>
                         <TouchableOpacity style={styles.callButton}>
                             <MessageCircle size={20} color="#fff" strokeWidth={2} />
-                        </TouchableOpacity> 
+                        </TouchableOpacity>
                     </ThemedCard>
                 </View>
             </ScrollView>

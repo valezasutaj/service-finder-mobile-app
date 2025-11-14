@@ -6,7 +6,7 @@ import { safeRouter } from "../utils/SafeRouter";
 import { Ionicons } from '@expo/vector-icons';
 import { getUser } from '../services/storageService';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase'; 
+import { auth } from '../firebase';
 
 const Header = () => {
   const { theme, isDarkMode } = useTheme();
@@ -25,13 +25,12 @@ const Header = () => {
     fetchUser();
 
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
-      console.log('User from Firebase in Header:', firebaseUser);
       if (firebaseUser) {
         setUser((prev) =>
           prev ?? {
             fullName: firebaseUser.displayName || 'Name Surname',
             email: firebaseUser.email || '',
-            location: 'Kosovë, Prishtinë', 
+            location: 'Kosovë, Prishtinë',
             photoURL: firebaseUser.photoURL || null,
           }
         );
@@ -41,7 +40,6 @@ const Header = () => {
     return () => unsub();
   }, []);
 
-  console.log('User in Header:', user);
 
   return (
     <View

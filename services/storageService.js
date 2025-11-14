@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export async function saveUser(user) {
     try {
-        console.log("💾 Saving user to storage:", user);
+        console.log("Saving user to storage:", user);
         await AsyncStorage.setItem('user', JSON.stringify(user));
     } catch (error) {
         console.error('Error saving user:', error);

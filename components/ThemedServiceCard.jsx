@@ -5,33 +5,30 @@ import ThemedText from './ThemedText';
 import { Bookmark, Star } from 'lucide-react-native';
 import { useTheme } from '../context/ThemedModes';
 
-const ThemedServiceCard = ({ name, discount, price, image, rating = null, onPress }) => {
+const ThemedServiceCard = ({ id, name, discount, price, image, rating = null, providerName, onPress }) => {
     const { theme } = useTheme();
 
     const renderStars = () => {
-        if (rating === null) {
-            return <ThemedText style={{ color: theme.text + '88', fontSize: 13 }}>No rating</ThemedText>;
+        if (!rating) {
+            return <ThemedText style={{ color: theme.mutedText, fontSize: 12 }}>No rating</ThemedText>;
         }
 
-        const roundedStars = Math.round(rating);
-        const stars = [];
-        for (let i = 0; i < roundedStars; i++) {
-            stars.push(
-                <Star
-                    key={`full-${i}`}
-                    size={14}
-                    color="#FFD700"
-                    fill="#FFD700"
-                    style={{ marginRight: 2 }}
-                />
-            );
-        }
-        return stars;
+        const rounded = Math.round(rating);
+        return [...Array(rounded)].map((_, i) => (
+            <Star
+                key={i}
+                size={14}
+                color="#FFD700"
+                fill="#FFD700"
+                style={{ marginRight: 2 }}
+            />
+        ));
     };
 
     return (
-        <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+        <TouchableOpacity onPress={onPress} activeOpacity={0.85}>
             <ThemedCard style={[styles.card, { shadowColor: theme.shadow }]}>
+
                 <Image source={image} style={styles.image} resizeMode="cover" />
 
                 <View style={styles.content}>
@@ -39,13 +36,20 @@ const ThemedServiceCard = ({ name, discount, price, image, rating = null, onPres
                         {name}
                     </ThemedText>
 
+                    <ThemedText style={[styles.provider, { color: theme.mutedText }]}>
+                        {providerName || "Unknown Provider"}
+                    </ThemedText>
+
                     <View style={styles.ratingRow}>
                         <View style={styles.starsContainer}>{renderStars()}</View>
                     </View>
 
-                    <ThemedText style={[styles.discount, { color: theme.text }]}>
-                        Save {discount}
-                    </ThemedText>
+                    {!!discount && (
+                        <ThemedText style={[styles.discount, { color: theme.primary }]}>
+                            Save {discount}
+                        </ThemedText>
+                    )}
+
                     <ThemedText style={[styles.price, { color: theme.text }]}>
                         ${price}
                     </ThemedText>
@@ -63,28 +67,31 @@ export default ThemedServiceCard;
 
 const styles = StyleSheet.create({
     card: {
-        marginVertical: 0,
-        marginBottom: 15,
+        marginBottom: 14,
         flexDirection: 'row',
+        borderRadius: 14,
+        padding: 12,
         alignItems: 'center',
         marginHorizontal: 10,
-        borderRadius: 10,
     },
     image: {
-        width: 95,
-        height: 95,
-        borderRadius: 10,
+        width: 100,
+        height: 100,
+        borderRadius: 12,
         marginRight: 14,
     },
     content: {
         flex: 1,
         justifyContent: 'center',
-        paddingVertical: 5,
     },
     title: {
         fontSize: 16,
         fontWeight: '700',
-        marginBottom: 4,
+        marginBottom: 2,
+    },
+    provider: {
+        fontSize: 12,
+        marginBottom: 6,
     },
     ratingRow: {
         flexDirection: 'row',
@@ -94,24 +101,22 @@ const styles = StyleSheet.create({
     starsContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginRight: 6,
     },
     discount: {
         fontSize: 13,
-        marginBottom: 4,
+        fontWeight: '600',
+        marginTop: 2,
     },
     price: {
-        fontSize: 15,
-        fontWeight: 'bold',
+        fontSize: 16,
+        fontWeight: '700',
         marginTop: 4,
     },
     bookmark: {
         position: 'absolute',
-        top: 10,
-        right: 10,
+        top: 8,
+        right: 8,
         padding: 8,
         borderRadius: 50,
-        alignItems: 'center',
-        justifyContent: 'center',
     },
 });

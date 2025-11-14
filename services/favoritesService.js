@@ -1,63 +1,34 @@
-import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase';
-import { serviceService } from './servicesService';
+// services/favoriteService.js
+import { collection, addDoc, getDocs, deleteDoc, doc, where, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
 
-const COLLECTIONS = {
-    FAVORITES: 'favorites',
-};
+const COLLECTION = "favorites";
 
 export const favoriteService = {
-    addToFavorites: async (userId, serviceId) => {
-        try {
-            const favoriteDoc = {
-                userId,
-                serviceId,
-                createdAt: serverTimestamp()
-            };
 
-            const docRef = await addDoc(collection(db, COLLECTIONS.FAVORITES), favoriteDoc);
-            return { id: docRef.id, ...favoriteDoc };
-        } catch (error) {
-            console.error('Error adding to favorites:', error);
-            throw error;
-        }
-    },
+    addToFavorites: async (userId, job) => {
+        const payload = {
+            userId,
+            job,  // store entire job
+            createdAt: serverTimestamp()
+        };
 
-    removeFromFavorites: async (favoriteId) => {
-        try {
-            await deleteDoc(doc(db, COLLECTIONS.FAVORITES, favoriteId));
-        } catch (error) {
-            console.error('Error removing from favorites:', error);
-            throw error;
-        }
+        const ref = await addDoc(collection(db, COLLECTION), payload);
+        return { id: ref.id, ...payload };
     },
 
     getUserFavorites: async (userId) => {
-        try {
-            const favoritesQuery = query(
-                collection(db, COLLECTIONS.FAVORITES),
-                where('userId', '==', userId),
-                orderBy('createdAt', 'desc')
-            );
+        const q = query(
+            collection(db, COLLECTION),
+            where("userId", "==", userId),
+            orderBy("createdAt", "desc")
+        );
 
-            const querySnapshot = await getDocs(favoritesQuery);
-            const favorites = [];
+        const snap = await getDocs(q);
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    },
 
-            for (const docItem of querySnapshot.docs) {
-                const favorite = docItem.data();
-                const service = await serviceService.getServiceById(favorite.serviceId);
-                if (service) {
-                    favorites.push({
-                        id: docItem.id,
-                        service: service
-                    });
-                }
-            }
-
-            return favorites;
-        } catch (error) {
-            console.error('Error getting favorites:', error);
-            throw error;
-        }
+    removeFavorite: async (id) => {
+        await deleteDoc(doc(db, COLLECTION, id));
     }
 };
