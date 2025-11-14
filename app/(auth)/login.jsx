@@ -1,91 +1,62 @@
-import React, { useState, useEffect } from "react";
-import {View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Dimensions, Alert} from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator
+} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
 import { safeRouter } from "../../utils/SafeRouter";
 import { loginUser } from "../../services/userService";
-import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
-import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
-import { auth } from "../../firebase"; 
-const { width } = Dimensions.get("window");
-const ICON_W = width * 0.65;
-const ICON_H = ICON_W * 0.9;
-const ICON_TOP = 110;
-const OVERLAP = 26;
-const CONTENT_TOP_SPACER = ICON_TOP + ICON_H - OVERLAP;
-
-WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
-  const [remember, setRemember] = useState(true);
   const [customError, setCustomError] = useState("");
-
- 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: "1083853747405-f8se0d55te3k2781ts2ukpdigalod65c.apps.googleusercontent.com",
-  });
-
-  useEffect(() => {
-    if (response) {
-      console.log("🔍 Google response:", response);
-    }
-
-    if (!response) return;
-
-    if (response.type === "success") {
-      const { id_token } = response.params;
-      const credential = GoogleAuthProvider.credential(id_token);
-
-      signInWithCredential(auth, credential)
-        .then((userCredential) => {
-          console.log("Logged in with Google:", userCredential.user.email);
-          Alert.alert("Sukses", "U logove si: " + userCredential.user.email);
-          safeRouter.replace("/home");
-        })
-        .catch((err) => {
-          console.log("Error Google login:", err);
-          Alert.alert("Gabim Firebase", String(err));
-        });
-    } else {
-      console.log(" Google login jo sukses ose u cancel:", response.type);
-    }
-  }, [response]);
+  const [isLoading, setIsLoading] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleLogin = async () => {
-  setCustomError("");
+    setCustomError("");
+    setIsLoading(true);
 
-  if (!email || !pwd) {
-    setCustomError("Please enter email and password");
-    return;
-  }
-  const emailRegex = /^\S+@\S+\.\S+$/;
-  if (!emailRegex.test(email)) {
-    setCustomError("Please enter a valid email address");
-    return;
-  }
+    if (!email || !pwd) {
+      setCustomError("Please enter email and password");
+      setIsLoading(false);
+      return;
+    }
 
-  try {
-    const user = await loginUser(email, pwd);
-    safeRouter.replace("/home");
-  } catch (error) {
-    setCustomError(error.customMessage || "Login failed");
-  }
-};
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    if (!emailRegex.test(email)) {
+      setCustomError("Please enter a valid email");
+      setIsLoading(false);
+      return;
+    }
 
-
-  const insets = useSafeAreaInsets();
+    try {
+      await loginUser(email, pwd);
+      safeRouter.replace("/home");
+    } catch (error) {
+      setCustomError(error.customMessage || "Login failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.blueBg} />
+
       <TouchableOpacity
         onPress={() => safeRouter.replace("/")}
         activeOpacity={0.8}
-        style={[styles.backBtn, { top: insets.top + 8, alignItems: "center", justifyContent: "center" }]}
+        style={[styles.backBtn, { top: insets.top + 8 }]}
+        disabled={isLoading}
       >
         <ChevronLeft size={26} color="#3595FF" />
       </TouchableOpacity>
@@ -95,15 +66,18 @@ export default function LoginScreen() {
       </View>
 
       <View pointerEvents="none" style={styles.iconLayer}>
-        <Image source={require("../../assets/hero.png")} style={styles.icon} resizeMode="contain" />
+        <Image
+          source={require("../../assets/hero.png")}
+          style={styles.icon}
+          resizeMode="contain"
+        />
       </View>
 
-      <View style={{ height: CONTENT_TOP_SPACER }} />
+      <View style={{ height: 320 }} />
 
       <View style={styles.content}>
         <Text style={styles.title}>Welcome back!</Text>
 
-        
         <View style={styles.field}>
           <TextInput
             style={styles.input}
@@ -112,63 +86,54 @@ export default function LoginScreen() {
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
+            keyboardType="email-address"
+            editable={!isLoading}
           />
         </View>
 
- 
         <View style={[styles.field, { position: "relative" }]}>
           <TextInput
             style={styles.input}
             placeholder="Password"
             placeholderTextColor="#e4e8ed"
+            secureTextEntry={!showPwd}
             value={pwd}
             onChangeText={setPwd}
-            secureTextEntry={!showPwd}
             autoCapitalize="none"
+            editable={!isLoading}
           />
-          <TouchableOpacity style={styles.eye} onPress={() => setShowPwd(!showPwd)}>
+          <TouchableOpacity
+            style={styles.eye}
+            onPress={() => setShowPwd(!showPwd)}
+            disabled={isLoading}
+          >
             {showPwd ? <Eye size={20} color="#6B8ECC" /> : <EyeOff size={20} color="#6B8ECC" />}
           </TouchableOpacity>
         </View>
 
-        <View style={styles.row}>
-          <TouchableOpacity onPress={() => setRemember(!remember)} style={styles.remember}>
-            <View style={[styles.circle, remember && styles.circleOn]}>
-              {remember ? <View style={styles.circleDot} /> : null}
-            </View>
-            <Text style={styles.rememberTxt}>Remember me</Text>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Text style={styles.forgot}>Forget password?</Text>
-          </TouchableOpacity>
-        </View>
+        {customError ? (
+          <Text style={styles.errorTxt}>{customError}</Text>
+        ) : null}
 
-        {customError ? <Text style={styles.errorTxt}>{customError}</Text> : null}
-
- 
-        <TouchableOpacity activeOpacity={0.8} onPress={handleLogin} style={styles.loginBtn}>
-          <Text style={styles.loginTxt}>Login</Text>
-        </TouchableOpacity>
-
-        
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => promptAsync()}
-          style={styles.googleBtn}
-          disabled={!request}
+          onPress={handleLogin}
+          style={[styles.loginBtn, isLoading && styles.loginBtnDisabled]}
+          disabled={isLoading}
         >
-          <Image
-            source={{
-              uri: "https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg",
-            }}
-            style={styles.googleIcon}
-          />
-          <Text style={styles.googleTxt}>Continue with Google</Text>
+          {isLoading ? (
+            <ActivityIndicator color="#3595FF" />
+          ) : (
+            <Text style={styles.loginTxt}>Login</Text>
+          )}
         </TouchableOpacity>
 
         <View style={styles.signupRow}>
           <Text style={styles.signupTxt}>New user?</Text>
-          <TouchableOpacity onPress={() => safeRouter.replace("/signup")}>
+          <TouchableOpacity
+            onPress={() => safeRouter.replace("/signup")}
+            disabled={isLoading}
+          >
             <Text style={styles.signupLink}> Sign Up</Text>
           </TouchableOpacity>
         </View>
@@ -180,10 +145,29 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#3595FF" },
   blueBg: { ...StyleSheet.absoluteFillObject, backgroundColor: "#3595FF" },
-  topTitleWrap: { position: "absolute", top: 100, left: 0, right: 0, alignItems: "center", zIndex: 3 },
-  topTitle: { color: "#fff", fontSize: 44, fontWeight: "800", fontStyle: "italic" },
-  iconLayer: { position: "absolute", top: 110, left: 0, right: 0, alignItems: "center", zIndex: 2 },
-  icon: { width: ICON_W, height: ICON_H },
+  topTitleWrap: {
+    position: "absolute",
+    top: 100,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 3,
+  },
+  topTitle: {
+    color: "#fff",
+    fontSize: 44,
+    fontWeight: "800",
+    fontStyle: "italic",
+  },
+  iconLayer: {
+    position: "absolute",
+    top: 95,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 2,
+  },
+  icon: { width: 260, height: 260 },
   content: {
     alignSelf: "center",
     width: "88%",
@@ -192,13 +176,15 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.35)",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 8 },
     elevation: 6,
   },
-  title: { fontSize: 22, fontWeight: "800", color: "#fff", textAlign: "center", marginBottom: 14 },
+  title: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 14,
+  },
   field: {
     height: 52,
     borderRadius: 26,
@@ -207,18 +193,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 12,
   },
-  input: { fontSize: 16, color: "#fff", fontWeight: "700", letterSpacing: 0.3 },
-  eye: { position: "absolute", right: 18, height: "100%", justifyContent: "center" },
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginVertical: 8 },
-  remember: { flexDirection: "row", alignItems: "center" },
-  circle: {
-    width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: "#fff",
-    marginRight: 8, alignItems: "center", justifyContent: "center",
+  input: {
+    fontSize: 16,
+    color: "#fff",
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
-  circleOn: { borderColor: "#fff" },
-  circleDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: "#fff" },
-  rememberTxt: { color: "#fff", fontSize: 13 },
-  forgot: { color: "#fff", fontSize: 13 },
+  eye: {
+    position: "absolute",
+    right: 18,
+    height: "100%",
+    justifyContent: "center"
+  },
   loginBtn: {
     backgroundColor: "#fff",
     borderRadius: 28,
@@ -227,24 +213,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 16,
   },
-  loginTxt: { color: "#3595FF", fontSize: 16, fontWeight: "700" },
-
-  
-  googleBtn: {
+  loginBtnDisabled: {
+    opacity: 0.6,
+  },
+  loginTxt: {
+    color: "#3595FF",
+    fontSize: 16,
+    fontWeight: "700"
+  },
+  signupRow: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
-    borderRadius: 28,
-    height: 54,
     marginTop: 12,
   },
-  googleIcon: { width: 22, height: 22, marginRight: 8 },
-  googleTxt: { color: "#000", fontSize: 15, fontWeight: "600" },
-
-  signupRow: { flexDirection: "row", justifyContent: "center", marginTop: 12 },
-  signupTxt: { color: "#fff" },
-  signupLink: { color: "#fff", fontWeight: "700" },
+  signupTxt: {
+    color: "#fff"
+  },
+  signupLink: {
+    color: "#fff",
+    fontWeight: "700"
+  },
   backBtn: {
     position: "absolute",
     left: 12,
@@ -252,17 +240,15 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 12,
     backgroundColor: "#fff",
-    zIndex: 5,
-    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
   },
   errorTxt: {
     color: "#ff4d4f",
     fontSize: 14,
     fontWeight: "600",
     textAlign: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
     marginBottom: -10,
   },
 });

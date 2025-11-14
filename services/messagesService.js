@@ -17,26 +17,21 @@ const TYPING_COLLECTION = "typing";
 
 export const messageService = {
 
-    getUserMessages: async (uid) => {
+    listenForUserMessages: (uid, callback) => {
         const q = query(
             collection(db, COLLECTION),
             where("participants", "array-contains", uid),
             orderBy("createdAt", "desc")
         );
 
-        const snap = await getDocs(q);
-        const grouped = {};
+        return onSnapshot(q, (snapshot) => {
+            const list = snapshot.docs.map((d) => ({
+                id: d.id,
+                ...d.data(),
+            }));
 
-        snap.forEach((d) => {
-            const data = { id: d.id, ...d.data() };
-            const other = data.senderId === uid ? data.receiverId : data.senderId;
-
-            if (!grouped[other]) {
-                grouped[other] = { ...data, otherUserId: other };
-            }
+            callback(list);
         });
-
-        return Object.values(grouped);
     },
 
     listenConversation: (user1, user2, callback) => {
@@ -48,8 +43,8 @@ export const messageService = {
 
         return onSnapshot(q, (snapshot) => {
             const msgs = snapshot.docs
-                .map(d => ({ id: d.id, ...d.data() }))
-                .filter(m => m.participants.includes(user2));
+                .map((d) => ({ id: d.id, ...d.data() }))
+                .filter((m) => m.participants.includes(user2));
 
             callback(msgs);
         });

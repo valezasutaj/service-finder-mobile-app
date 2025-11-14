@@ -3,20 +3,8 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword
 } from 'firebase/auth';
-
-import {
-    doc,
-    setDoc,
-    getDoc,
-    query,
-    where,
-    getDocs,
-    collection
-} from 'firebase/firestore';
-
+import { doc, setDoc, getDoc, query, where, getDocs, collection } from 'firebase/firestore';
 import { saveUser } from './storageService';
-
-
 
 export const registerUser = async (fullName, username, email, password) => {
     fullName = fullName?.trim();
@@ -24,22 +12,26 @@ export const registerUser = async (fullName, username, email, password) => {
     email = email?.trim();
     password = password?.trim();
 
-    if (!fullName || !username || !email || !password)
+    if (!fullName || !username || !email || !password) {
         throw { customMessage: "Please fill in all required fields." };
+    }
 
-    if (password.length < 6)
-        throw { customMessage: "Password should be at least 6 characters long." };
-
-    const usernameQuery = query(
-        collection(db, "users"),
-        where("username", "==", username)
-    );
-    const usernameSnap = await getDocs(usernameQuery);
-
-    if (!usernameSnap.empty)
-        throw { customMessage: "This username is already taken." };
+    if (password.length < 6) {
+        throw { customMessage: "Password must be at least 6 characters." };
+    }
 
     try {
+        // Kontrollo username para se të krijosh përdoruesin
+        const usernameQuery = query(
+            collection(db, "users"),
+            where("username", "==", username)
+        );
+        const usernameSnap = await getDocs(usernameQuery);
+
+        if (!usernameSnap.empty) {
+            throw { customMessage: "This username is already taken." };
+        }
+
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
@@ -51,19 +43,18 @@ export const registerUser = async (fullName, username, email, password) => {
             username,
             email,
             avatar,
+            location: "Prishtina",
             createdAt: Date.now(),
             updatedAt: Date.now()
         };
 
-        await setDoc(doc(db, "users", user.uid), userData);
 
+        await setDoc(doc(db, "users", user.uid), userData);
         await saveUser(userData);
 
         return userData;
 
     } catch (error) {
-        console.log("REGISTER ERROR:", error);
-
         let customMessage = "Registration failed.";
 
         switch (error.code) {
@@ -74,7 +65,12 @@ export const registerUser = async (fullName, username, email, password) => {
                 customMessage = "Invalid email format.";
                 break;
             case "auth/weak-password":
-                customMessage = "Password should be at least 6 characters.";
+                customMessage = "Password must be at least 6 characters.";
+                break;
+            default:
+                if (error.customMessage) {
+                    customMessage = error.customMessage;
+                }
                 break;
         }
 
@@ -82,57 +78,55 @@ export const registerUser = async (fullName, username, email, password) => {
     }
 };
 
-
 export const loginUser = async (email, password) => {
     email = email?.trim();
     password = password?.trim();
 
-    if (!email || !password)
-        throw { customMessage: "Please fill in both email and password." };
+    if (!email || !password) {
+        throw { customMessage: "Please enter email and password." };
+    }
 
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        const userData = userDoc.exists() ? userDoc.data() : {};
+        const snap = await getDoc(doc(db, "users", user.uid));
+        const userDataFromDB = snap.exists() ? snap.data() : {};
 
-        const finalUser = { uid: user.uid, ...userData };
+        const userData = {
+            uid: user.uid,
+            email: user.email,
+            avatar: userDataFromDB.avatar || `https://placehold.co/100x100?text=${user.email[0]?.toUpperCase()}`,
+            location: userDataFromDB.location || "Prishtina",
+            fullName: userDataFromDB.fullName || "Unknown User",
+            username: userDataFromDB.username || user.email.split("@")[0].toLowerCase(),
+            createdAt: userDataFromDB.createdAt || Date.now(),
+            updatedAt: Date.now(),
+        };
 
-        await saveUser(finalUser);
-
-        return finalUser;
+        await saveUser(userData);
+        return userData;
 
     } catch (error) {
-        console.log("LOGIN ERROR:", error);
-
         let customMessage = "Login failed. Please try again.";
 
-        if (error.code === "auth/invalid-credential")
+        if (error.code === "auth/invalid-credential") {
             customMessage = "Invalid email or password.";
+        }
 
         throw { customMessage };
     }
 };
 
-
 export const userService = {
-
     getUserById: async (uid) => {
         try {
             const ref = doc(db, "users", uid);
             const snap = await getDoc(ref);
-
             if (!snap.exists()) return null;
-
-            return {
-                uid,
-                ...snap.data(),
-            };
-        } catch (err) {
-            console.error("userService.getUserById ERROR:", err);
+            return { uid, ...snap.data() };
+        } catch {
             return null;
         }
     },
-
 };

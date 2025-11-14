@@ -3,14 +3,11 @@ import ThemedView from "../../components/ThemedView";
 import ThemedText from "../../components/ThemedText";
 import ThemedCard from "../../components/ThemedCard";
 import NavBar from "../../components/NavBar";
-
 import { ChevronRight, UserRound, Settings, LifeBuoy, LogOut } from "lucide-react-native";
 import { useTheme } from '../../context/ThemedModes';
 import { Ionicons } from '@expo/vector-icons';
-
 import { safeRouter } from "../../utils/SafeRouter";
 import { removeUser, getUser, saveUser } from '../../services/storageService';
-
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../firebase";
@@ -18,12 +15,8 @@ import { auth } from "../../firebase";
 const MyProfile = () => {
   const { theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode } = useTheme();
   const themeStyle = styles(theme);
-
   const [user, setUser] = useState(null);
 
-  // ------------------------
-  // LOAD USER + FIREBASE SYNC
-  // ------------------------
   useEffect(() => {
     const loadLocal = async () => {
       const stored = await getUser();
@@ -32,21 +25,13 @@ const MyProfile = () => {
     loadLocal();
 
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log("Firebase user:", firebaseUser);
-
       if (firebaseUser) {
-        const userObj = {
+        setUser(prev => prev || {
           uid: firebaseUser.uid,
-          fullName: firebaseUser.displayName || "Name Surname",
           email: firebaseUser.email || "",
           location: "Kosovë, Prishtinë",
-          avatar: firebaseUser.photoURL || null,
-        };
-
-        setUser(userObj);
-
-        await removeUser();
-        await saveUser(userObj);
+          avatar: firebaseUser.photoURL || null
+        });
       } else {
         setUser(null);
         await removeUser();
@@ -67,11 +52,7 @@ const MyProfile = () => {
 
   return (
     <ThemedView safe style={[themeStyle.container, { backgroundColor: theme.profileBackground }]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 10 }}
-      >
-        {/* PROFILE HEADER */}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 10 }}>
         <View style={themeStyle.profileSection}>
           <Ionicons
             name="person-circle-sharp"
@@ -82,22 +63,16 @@ const MyProfile = () => {
 
           <View>
             <ThemedText title style={[themeStyle.name, { color: theme.title }]}>
-              {user?.fullName || "Name Surname"}
+              {user?.fullName || ""}
             </ThemedText>
 
             <ThemedText style={[themeStyle.email, { color: theme.mutedText ?? theme.text }]}>
-              {user?.email || "namesurname@gmail.com"}
+              {user?.email || ""}
             </ThemedText>
           </View>
         </View>
 
-        {/* ACCOUNT SECTION */}
-        <ThemedCard
-          style={[
-            themeStyle.section,
-            { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }
-          ]}
-        >
+        <ThemedCard style={[themeStyle.section, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }]}>
           <View style={themeStyle.sectionHeader}>
             <UserRound color={theme.profileIcon} size={26} strokeWidth={1.2} />
             <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>
@@ -115,13 +90,7 @@ const MyProfile = () => {
           ))}
         </ThemedCard>
 
-        {/* SETTINGS SECTION */}
-        <ThemedCard
-          style={[
-            themeStyle.section,
-            { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }
-          ]}
-        >
+        <ThemedCard style={[themeStyle.section, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }]}>
           <View style={themeStyle.sectionHeader}>
             <Settings color={theme.profileIcon} size={26} strokeWidth={1.2} />
             <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>
@@ -129,7 +98,6 @@ const MyProfile = () => {
             </ThemedText>
           </View>
 
-          {/* APPEARANCE */}
           <View style={themeStyle.row}>
             <ThemedText style={[themeStyle.rowText, { color: theme.text }]}>Appearance</ThemedText>
           </View>
@@ -139,14 +107,12 @@ const MyProfile = () => {
               .map(({ label, value }) => (
                 <TouchableOpacity
                   key={label}
-                  onPress={() =>
-                    value === null ? setSystemMode() : value === "light" ? setLightMode() : setDarkMode()
-                  }
+                  onPress={() => (value === null ? setSystemMode() : value === "light" ? setLightMode() : setDarkMode())}
                   style={[
                     themeStyle.modeButton,
                     userPreference === value || (value === null && userPreference === null)
                       ? themeStyle.modeButtonActive
-                      : {},
+                      : {}
                   ]}
                 >
                   <ThemedText
@@ -156,8 +122,8 @@ const MyProfile = () => {
                         color:
                           userPreference === value || (value === null && userPreference === null)
                             ? "#fff"
-                            : theme.text,
-                      },
+                            : theme.text
+                      }
                     ]}
                   >
                     {label}
@@ -176,13 +142,7 @@ const MyProfile = () => {
           ))}
         </ThemedCard>
 
-        {/* SUPPORT */}
-        <ThemedCard
-          style={[
-            themeStyle.section,
-            { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }
-          ]}
-        >
+        <ThemedCard style={[themeStyle.section, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }]}>
           <View style={themeStyle.sectionHeader}>
             <LifeBuoy color={theme.profileIcon} size={26} strokeWidth={1.2} />
             <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>
@@ -196,14 +156,8 @@ const MyProfile = () => {
           </TouchableOpacity>
         </ThemedCard>
 
-        {/* LOGOUT */}
         <TouchableOpacity onPress={handleLogout}>
-          <ThemedCard
-            style={[
-              themeStyle.logoutButton,
-              { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }
-            ]}
-          >
+          <ThemedCard style={[themeStyle.logoutButton, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }]}>
             <View style={themeStyle.logoutRow}>
               <LogOut color={"#da0000ff"} size={20} strokeWidth={2.5} />
               <ThemedText style={[themeStyle.logoutText, { color: "#da0000ff" }]}>Logout</ThemedText>
@@ -225,32 +179,32 @@ const styles = (theme) =>
       flex: 1,
       backgroundColor: theme.background,
       paddingTop: 16,
-      paddingHorizontal: 24,
+      paddingHorizontal: 24
     },
     profileSection: {
       flexDirection: "row",
       alignItems: "center",
       marginVertical: 10,
       marginHorizontal: 10,
-      gap: 14,
+      gap: 14
     },
     profileImage: {
       width: 60,
-      height: 60,
+      height: 60
     },
     name: {
       fontSize: 18,
-      fontWeight: "700",
+      fontWeight: "700"
     },
     email: {
       fontSize: 13,
-      opacity: 0.8,
+      opacity: 0.8
     },
     section: {
       borderWidth: 1,
       borderRadius: 14,
       paddingHorizontal: 10,
-      paddingVertical: 10,
+      paddingVertical: 10
     },
     sectionHeader: {
       flexDirection: "row",
@@ -259,41 +213,41 @@ const styles = (theme) =>
       marginBottom: 6,
       paddingBottom: 10,
       borderBottomWidth: 1,
-      borderBottomColor: theme.border,
+      borderBottomColor: theme.border
     },
     sectionTitle: {
       fontSize: 16,
-      fontWeight: "700",
+      fontWeight: "700"
     },
     row: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingVertical: 10,
+      paddingVertical: 10
     },
     rowText: {
-      fontSize: 15,
+      fontSize: 15
     },
     logoutButton: {
       alignItems: "center",
       backgroundColor: theme.surface,
       borderWidth: 1,
-      borderColor: theme.border,
+      borderColor: theme.border
     },
     logoutRow: {
       flexDirection: "row",
       gap: 8,
-      justifyContent: "center",
+      justifyContent: "center"
     },
     logoutText: {
       fontWeight: "600",
-      fontSize: 16,
+      fontSize: 16
     },
     modeContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginTop: 8,
-      marginBottom: 10,
+      marginBottom: 10
     },
     modeButton: {
       flex: 1,
@@ -302,13 +256,13 @@ const styles = (theme) =>
       marginHorizontal: 1,
       borderWidth: 1,
       borderColor: theme.border,
-      borderRadius: 8,
+      borderRadius: 8
     },
     modeButtonActive: {
       backgroundColor: theme.primary,
-      borderColor: theme.primary,
+      borderColor: theme.primary
     },
     modeButtonText: {
-      fontWeight: '600',
-    },
+      fontWeight: '600'
+    }
   });

@@ -28,35 +28,60 @@ export default function Messages() {
     const [search, setSearch] = useState("");
 
     useEffect(() => {
-        const load = async () => {
+        let unsubscribe = null;
+
+        const init = async () => {
             const u = await getUser();
             if (!u) return;
+
             setUser(u);
 
-            const lastMessages = await messageService.getUserMessages(u.uid);
+            unsubscribe = messageService.listenForUserMessages(u.uid, async (rawMessages) => {
+                const lastByUser = {};
 
-            const enriched = await Promise.all(
-                lastMessages.map(async (m) => {
-                    const otherUser = await userService.getUserById(m.otherUserId);
+                rawMessages.forEach((m) => {
+                    const other = m.senderId === u.uid ? m.receiverId : m.senderId;
 
-                    return {
-                        ...m,
-                        name: otherUser?.fullName || "Unknown User",
-                        username: otherUser?.username || "",
-                        avatar: otherUser?.avatar || "https://placehold.co/100",
-                    };
-                })
-            );
+                    if (!lastByUser[other]) {
+                        lastByUser[other] = { ...m, otherUserId: other };
+                    } else {
+                        if (m.createdAt?.seconds > lastByUser[other]?.createdAt?.seconds) {
+                            lastByUser[other] = { ...m, otherUserId: other };
+                        }
+                    }
+                });
 
-            setMessages(enriched);
+                const arr = Object.values(lastByUser);
+
+                const enriched = await Promise.all(
+                    arr.map(async (m) => {
+                        const otherUser = await userService.getUserById(m.otherUserId);
+
+                        return {
+                            ...m,
+                            name: otherUser?.fullName || "Unknown User",
+                            username: otherUser?.username || "",
+                            avatar: otherUser?.avatar || "https://placehold.co/100",
+                        };
+                    })
+                );
+
+                enriched.sort((a, b) => b?.createdAt?.seconds - a?.createdAt?.seconds);
+
+                setMessages(enriched);
+            });
         };
 
-        load();
+        init();
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
     }, []);
 
     if (!user) return null;
 
-    const filtered = messages.filter(m =>
+    const filtered = messages.filter((m) =>
         m.name.toLowerCase().includes(search.toLowerCase()) ||
         m.username.toLowerCase().includes(search.toLowerCase())
     );
@@ -67,13 +92,9 @@ export default function Messages() {
         return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     };
 
-    const getStatusIcon = (item) => {
-        if (item.read) {
-            return "☑ ☑";
-        }
-        if (item.delivered) {
-            return "☑";
-        }
+    const getStatus = (item) => {
+        if (item.read) return "☑☑";
+        if (item.delivered) return "☑";
         return "✔";
     };
 
@@ -119,10 +140,11 @@ export default function Messages() {
                                         {formatTime(item.createdAt)}
                                     </ThemedText>
                                     <ThemedText style={s.statusIcon}>
-                                        {getStatusIcon(item)}
+                                        {getStatus(item)}
                                     </ThemedText>
                                 </View>
                             </View>
+
                             <ThemedText numberOfLines={1} style={s.msg}>
                                 {item.message}
                             </ThemedText>
@@ -169,17 +191,11 @@ const styles = (theme) => StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 12,
     },
-    searchIcon: {
-        marginRight: 8,
-        fontSize: 16,
-        opacity: 0.7,
-    },
     searchInput: {
         flex: 1,
         fontSize: 16,
         color: theme.text,
     },
-    // CHAT ROW
     row: {
         flexDirection: "row",
         alignItems: "center",

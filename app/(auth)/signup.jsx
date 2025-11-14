@@ -1,9 +1,19 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  Alert,
+  ActivityIndicator
+} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
 import { safeRouter } from "../../utils/SafeRouter";
-import { registerUser } from '../../services/userService';
+import { registerUser } from "../../services/userService";
 
 export default function RegisterScreen() {
   const [name, setName] = useState("");
@@ -12,47 +22,50 @@ export default function RegisterScreen() {
   const [pwd, setPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [customError, setCustomError] = useState("");
-
- const handleSignUp = async () => {
-  
-  setCustomError("");
-  if (!name.trim() || !username.trim() || !email.trim() || !pwd.trim()) {
-    setCustomError("Please fill all fields");
-    return;
-  }
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    setCustomError("Please enter a valid email address");
-    return;
-  }
-  if (pwd.length < 6) {
-    setCustomError("Password must be at least 6 characters long");
-    return;
-  }
-  try {
-    
-    const user = await registerUser(name.trim(), username.trim(), email.trim(), pwd);
-    console.log("Registered user:", user.uid);
-
-    Alert.alert("Success", "Account created successfully!");
-    safeRouter.replace("/login");
-
-  } catch (error) {
-    console.log("Registration error:", error);
-    setCustomError(error.customMessage || "Failed to register. Please try again.");
-  }
-};
+  const [isLoading, setIsLoading] = useState(false);
 
   const insets = useSafeAreaInsets();
 
+  const handleSignUp = async () => {
+    setCustomError("");
+    setIsLoading(true);
+
+    if (!name || !username || !email || !pwd) {
+      setCustomError("Please fill all fields");
+      setIsLoading(false);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setCustomError("Please enter a valid email");
+      setIsLoading(false);
+      return;
+    }
+
+    if (pwd.length < 6) {
+      setCustomError("Password must be at least 6 characters");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await registerUser(name, username, email, pwd);
+      Alert.alert("Success", "Account created successfully!");
+      safeRouter.replace("/login");
+    } catch (error) {
+      setCustomError(error.customMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.blueBg} />
-
       <TouchableOpacity
-        onPress={() => safeRouter.replace('/')}
-        activeOpacity={0.8}
-        style={[styles.backBtn, { top: insets.top + 8, alignItems: "center", justifyContent: "center" }]}
+        onPress={() => safeRouter.replace("/")}
+        style={[styles.backBtn, { top: insets.top + 8 }]}
+        disabled={isLoading}
       >
         <ChevronLeft size={26} color="#3595FF" />
       </TouchableOpacity>
@@ -61,75 +74,96 @@ export default function RegisterScreen() {
         <Text style={styles.topTitle}>Service Finder</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
-          <View style={styles.header}>
-            <Image
-              source={require("../../assets/hero.png")}
-              style={styles.icon}
-              resizeMode="contain"
-            />
-            <Text style={styles.title}>Create your account</Text>
-          </View>
+          <Image
+            source={require("../../assets/hero.png")}
+            style={styles.icon}
+            resizeMode="contain"
+          />
+
+          <Text style={styles.title}>Create your account</Text>
 
           <View style={styles.field}>
             <TextInput
-              style={styles.input}
               placeholder="Full name"
               placeholderTextColor="#e1e5ea"
+              style={styles.input}
               value={name}
               onChangeText={setName}
-              autoCapitalize="words"
+              editable={!isLoading}
             />
           </View>
 
           <View style={styles.field}>
             <TextInput
-              style={styles.input}
               placeholder="Username"
               placeholderTextColor="#e1e5ea"
+              style={styles.input}
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
+              editable={!isLoading}
             />
           </View>
 
           <View style={styles.field}>
             <TextInput
-              style={styles.input}
               placeholder="Email"
               placeholderTextColor="#e1e5ea"
+              style={styles.input}
               value={email}
               onChangeText={setEmail}
-              keyboardType="email-address"
               autoCapitalize="none"
+              keyboardType="email-address"
+              editable={!isLoading}
             />
           </View>
 
           <View style={[styles.field, { position: "relative" }]}>
             <TextInput
-              style={styles.input}
               placeholder="Password"
-              placeholderTextColor="#e4e8ed"
+              placeholderTextColor="#e1e5ea"
+              style={styles.input}
               value={pwd}
-              onChangeText={setPwd}
               secureTextEntry={!showPwd}
+              onChangeText={setPwd}
               autoCapitalize="none"
+              editable={!isLoading}
             />
-            <TouchableOpacity style={styles.eye} onPress={() => setShowPwd(!showPwd)}>
+
+            <TouchableOpacity
+              style={styles.eye}
+              onPress={() => setShowPwd(!showPwd)}
+              disabled={isLoading}
+            >
               {showPwd ? <Eye size={20} color="#6B8ECC" /> : <EyeOff size={20} color="#6B8ECC" />}
             </TouchableOpacity>
           </View>
 
-          {customError.length > 0 && <Text style={styles.errorTxt}>{customError}</Text>}
+          {customError ? (
+            <Text style={styles.errorTxt}>{customError}</Text>
+          ) : null}
 
-          <TouchableOpacity activeOpacity={0.85} onPress={handleSignUp} style={styles.primaryBtn}>
-            <Text style={styles.primaryTxt}>Register</Text>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={handleSignUp}
+            style={[styles.primaryBtn, isLoading && styles.primaryBtnDisabled]}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#3595FF" />
+            ) : (
+              <Text style={styles.primaryTxt}>Register</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.bottomRow}>
             <Text style={styles.bottomTxt}>Already have an account?</Text>
-            <TouchableOpacity onPress={() => safeRouter.replace("/login")}>
+            <TouchableOpacity
+              onPress={() => safeRouter.replace("/login")}
+              disabled={isLoading}
+            >
               <Text style={styles.bottomLink}> Sign In</Text>
             </TouchableOpacity>
           </View>
@@ -140,9 +174,10 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#3595FF" },
-  blueBg: { ...StyleSheet.absoluteFillObject, backgroundColor: "#3595FF" },
-
+  screen: {
+    flex: 1,
+    backgroundColor: "#3595FF"
+  },
   topTitleWrap: {
     position: "absolute",
     top: 60,
@@ -158,7 +193,10 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginTop: 50,
   },
-
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 40,
+  },
   card: {
     alignSelf: "center",
     width: "88%",
@@ -169,33 +207,22 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.35)",
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 8 },
     elevation: 6,
   },
-
-  header: {
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    marginBottom: 20,
-  },
   icon: {
-    width: 150,
-    height: 160,
-    position: "absolute",
-    top: -60,
+    width: 250,
+    height: 250,
+    alignSelf: "center",
+    marginVertical: -80,
   },
   title: {
     textAlign: "center",
     color: "#fff",
     fontSize: 22,
     fontWeight: "800",
-    marginTop: 110,
+    marginTop: 80,
+    marginBottom: 15,
   },
-
   field: {
     height: 52,
     borderRadius: 26,
@@ -208,7 +235,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#fff",
     fontWeight: "700",
-    letterSpacing: 0.3,
   },
   eye: {
     position: "absolute",
@@ -216,7 +242,6 @@ const styles = StyleSheet.create({
     height: "100%",
     justifyContent: "center",
   },
-
   primaryBtn: {
     backgroundColor: "#fff",
     borderRadius: 28,
@@ -225,21 +250,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 8,
   },
+  primaryBtnDisabled: {
+    opacity: 0.6,
+  },
   primaryTxt: {
     color: "#3595FF",
     fontSize: 16,
     fontWeight: "700",
   },
-
   bottomRow: {
     flexDirection: "row",
     justifyContent: "center",
     marginTop: 12,
   },
-
-  bottomTxt: { color: "#fff" },
-  bottomLink: { color: "#fff", fontWeight: "700" },
-
+  bottomTxt: {
+    color: "#fff"
+  },
+  bottomLink: {
+    color: "#fff",
+    fontWeight: "700"
+  },
   backBtn: {
     position: "absolute",
     left: 12,
@@ -247,10 +277,10 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 12,
     backgroundColor: "#fff",
-    zIndex: 5,
-    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
   },
-
   errorTxt: {
     color: "#ff4d4f",
     fontSize: 14,
@@ -258,7 +288,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 6,
-    marginVertical: -10,
   },
 });

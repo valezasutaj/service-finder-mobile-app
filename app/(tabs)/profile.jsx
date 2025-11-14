@@ -36,6 +36,7 @@ const ProfileScreen = ({ route }) => {
     const [loading, setLoading] = useState(true);
     const [services, setServices] = useState([]);
 
+
     useEffect(() => {
         if (!userId) return;
         const loadUserProfile = async () => {

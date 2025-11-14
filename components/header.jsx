@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import ThemedText from './ThemedText';
@@ -20,7 +19,6 @@ const Header = () => {
     icon: null,
   });
 
-  
   useEffect(() => {
     const fetchUser = async () => {
       const storedUser = await getUser();
@@ -35,7 +33,7 @@ const Header = () => {
           prev ?? {
             fullName: firebaseUser.displayName || 'Name Surname',
             email: firebaseUser.email || '',
-            location: 'Kosovë, Prishtinë', 
+            location: 'Kosovë, Prishtinë',
             photoURL: firebaseUser.photoURL || null,
           }
         );
@@ -45,63 +43,56 @@ const Header = () => {
     return () => unsub();
   }, []);
 
-  
   useEffect(() => {
-  const loadWeather = async () => {
-    try {
-      if (!user || !user.location) return;
+    const loadWeather = async () => {
+      try {
+        if (!user || !user.location) return;
 
-      let city = user.location;
+        let city = user.location;
 
-      
-      if (city.includes(",")) {
-        city = city.split(",")[1].trim();
-      }
+        if (city.includes(",")) {
+          city = city.split(",")[1].trim();
+        }
 
-      
-      city = city
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace("ë", "e")
-        .replace("Ë", "E");
-           
-        
-            if (
-              city.toLowerCase() === "prishtine" ||
-              city.toLowerCase() === "prishtina" ||
-              city.toLowerCase() === "pristine"
-            ) {
-              city = "Pristina,XK";
-            }
+        city = city
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/ë/gi, "e");
 
-      console.log("CITY REQUESTED:", city); 
+        if (city.toLowerCase().startsWith("prisht")) {
+          city = "Pristina";
+        }
 
-      const weatherData = await getWeatherByCity(city);
+        let apiCity = city;
 
-      if (weatherData) {
-        setWeather({
-          temp: weatherData.temp,
-          icon: `https://openweathermap.org/img/wn/${weatherData.icon}@2x.png`,
-        });
-            }
-            } catch (error) {
-              console.log("Weather fetch error: ", error);
-            }
-          };
+        if (
+          city.toLowerCase().startsWith("prisht") ||
+          city.toLowerCase().includes("kosov")
+        ) {
+          apiCity = `${city},XK`;
+        }
 
-          if (user?.location) {
-            loadWeather();
-          }
-        }, [user]);
+        const weatherData = await getWeatherByCity(apiCity);
 
-          return (
-            <View
-              style={[
-                styles.headerContainer,
-                { backgroundColor: theme.uiBackground },
-              ]}
-            >
+        if (weatherData) {
+          setWeather({
+            temp: weatherData.temp,
+            icon: `https://openweathermap.org/img/wn/${weatherData.icon}@2x.png`,
+          });
+        }
+      } catch { }
+    };
 
+    if (user?.location) loadWeather();
+  }, [user]);
+
+  return (
+    <View
+      style={[
+        styles.headerContainer,
+        { backgroundColor: theme.uiBackground },
+      ]}
+    >
       <View style={styles.leftSection}>
         <TouchableOpacity onPress={() => safeRouter.push('/profile')}>
           <Ionicons
@@ -112,26 +103,21 @@ const Header = () => {
         </TouchableOpacity>
 
         <View style={styles.userInfo}>
-          <ThemedText style={[styles.userName, { color: theme.text }]}>
+          <ThemedText style={styles.userName}>
             {user?.fullName || 'Name Surname'}
           </ThemedText>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={styles.weatherRow}>
             {weather.icon && (
               <Image
                 source={{ uri: weather.icon }}
-                style={{ width: 32, height: 32, }}
+                style={styles.weatherIcon}
                 resizeMode="contain"
               />
             )}
 
-            <ThemedText
-              style={[
-                styles.userLocation,
-                { color: theme.mutedText || theme.text },
-              ]}
-            >
-              {`${weather.temp ?? '--'}°C | ${user?.location || ''}`}
+            <ThemedText style={styles.userLocation}>
+              {`${weather.temp ?? '--'}°C - ${user?.location || ''}`}
             </ThemedText>
           </View>
         </View>
@@ -171,8 +157,28 @@ const s = (theme) =>
     },
     leftSection: { flexDirection: 'row', alignItems: 'center', gap: 10 },
     userInfo: { flexDirection: 'column' },
-    userName: { fontSize: 14, fontWeight: '600' },
-    userLocation: { fontSize: 11, opacity: 0.7 },
+    userName: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: theme.text,
+      marginBottom: 2,
+    },
+    weatherRow: {
+      position: 'relative',
+      right: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    weatherIcon: {
+      width: 22,
+      height: 22,
+      opacity: 0.9,
+    },
+    userLocation: {
+      fontSize: 12,
+      opacity: 0.8,
+      color: theme.mutedText || theme.text,
+    },
     rightSection: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     iconButton: {
       width: 36,
@@ -182,4 +188,3 @@ const s = (theme) =>
       alignItems: 'center',
     },
   });
-

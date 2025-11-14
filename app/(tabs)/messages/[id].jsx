@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
     View,
     TextInput,
@@ -19,6 +19,7 @@ import { userService } from "../../../services/userService";
 import { getUser } from "../../../services/storageService";
 import { safeRouter } from "../../../utils/SafeRouter";
 
+import { ArrowLeft } from "lucide-react-native";
 
 export default function ChatPage() {
     const { id: receiverId } = useLocalSearchParams();
@@ -30,6 +31,8 @@ export default function ChatPage() {
     const [messages, setMessages] = useState([]);
     const [typing, setTyping] = useState(false);
     const [text, setText] = useState("");
+
+    const flatListRef = useRef(null);
 
     const chatId = user ? [user.uid, receiverId].sort().join("_") : null;
 
@@ -47,7 +50,9 @@ export default function ChatPage() {
         const unsubMessages = messageService.listenConversation(
             user.uid,
             receiverId,
-            (msgs) => setMessages(msgs)
+            (msgs) => {
+                setMessages(msgs);
+            }
         );
 
         const unsubTyping = messageService.listenTyping(
@@ -63,6 +68,10 @@ export default function ChatPage() {
         };
     }, [user]);
 
+    useEffect(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+    }, [messages]);
+
     const send = async () => {
         if (!text.trim()) return;
 
@@ -74,6 +83,10 @@ export default function ChatPage() {
 
         setText("");
         messageService.setTyping(chatId, user.uid, false);
+
+        setTimeout(() => {
+            flatListRef.current?.scrollToEnd({ animated: true });
+        }, 50);
     };
 
     if (!user || !otherUser) return null;
@@ -89,29 +102,42 @@ export default function ChatPage() {
             <View style={s.header}>
                 <View style={s.headerLeft}>
                     <TouchableOpacity style={s.backButton} onPress={() => safeRouter.back()}>
-                        <ThemedText style={s.backArrow}>←</ThemedText>
+                        <ArrowLeft color={theme.text} size={22} />
                     </TouchableOpacity>
 
-                    <View style={s.headerUser}>
-                        <Image source={{ uri: otherUser.avatar }} style={s.headerAvatar} />
-                        <View style={s.headerText}>
-                            <ThemedText style={s.headerName}>{otherUser.fullName}</ThemedText>
-                            <ThemedText style={s.headerStatus}>Online</ThemedText>
+                    <TouchableOpacity onPress={() => safeRouter.push('/profile')}>
+                        <View style={s.headerUser}>
+                            <Image
+                                source={{
+                                    uri:
+                                        otherUser?.avatar?.startsWith("http")
+                                            ? otherUser.avatar
+                                            : "https://placehold.co/100"
+                                }}
+                                style={s.headerAvatar}
+                            />
+                            <View style={s.headerText}>
+                                <ThemedText style={s.headerName}>{otherUser.fullName}</ThemedText>
+                            </View>
                         </View>
-                    </View>
-                </View>
 
-                <TouchableOpacity style={s.menuButton}>
-                    <ThemedText style={s.menuDots}>⋯</ThemedText>
-                </TouchableOpacity>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <View style={s.chatArea}>
                 <FlatList
+                    ref={flatListRef}
                     data={messages}
                     keyExtractor={(m) => m.id}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingVertical: 16 }}
+                    onContentSizeChange={() =>
+                        flatListRef.current?.scrollToEnd({ animated: true })
+                    }
+                    onLayout={() =>
+                        flatListRef.current?.scrollToEnd({ animated: false })
+                    }
                     renderItem={({ item }) => {
                         const mine = item.senderId === user.uid;
 
@@ -148,8 +174,6 @@ export default function ChatPage() {
 
             <View style={s.inputContainer}>
                 <View style={s.inputRow}>
-
-
                     <TextInput
                         value={text}
                         onChangeText={(v) => {
@@ -167,7 +191,7 @@ export default function ChatPage() {
                     </TouchableOpacity>
                 </View>
             </View>
-        </ThemedView>
+        </ThemedView >
     );
 }
 
@@ -194,11 +218,6 @@ const styles = (theme) =>
             padding: 8,
             marginRight: 8,
         },
-        backArrow: {
-            fontSize: 20,
-            fontWeight: "600",
-            color: theme.text,
-        },
         headerUser: {
             flexDirection: "row",
             alignItems: "center",
@@ -216,11 +235,6 @@ const styles = (theme) =>
             fontSize: 18,
             fontWeight: "600",
             color: theme.text,
-        },
-        headerStatus: {
-            fontSize: 14,
-            color: "#19C463",
-            marginTop: 2,
         },
         menuButton: {
             padding: 8,
@@ -276,7 +290,6 @@ const styles = (theme) =>
             paddingVertical: 8,
             paddingHorizontal: 16,
             borderRadius: 20,
-            borderBottomLeftRadius: 6,
         },
         typingText: {
             fontSize: 14,
@@ -294,21 +307,8 @@ const styles = (theme) =>
             backgroundColor: theme.cardBackground,
             borderRadius: 24,
             paddingHorizontal: 12,
-            paddingVertical: 8,
-        },
-        attachmentBtn: {
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            backgroundColor: theme.primary,
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: 8,
-        },
-        attachmentIcon: {
-            color: "#fff",
-            fontSize: 18,
-            fontWeight: "600",
+            height: 53,
+            alignItems: 'center'
         },
         input: {
             flex: 1,
@@ -319,8 +319,8 @@ const styles = (theme) =>
             height: 40,
         },
         sendBtn: {
-            width: 40,
-            height: 40,
+            width: 35,
+            height: 35,
             borderRadius: 20,
             backgroundColor: theme.primary,
             alignItems: "center",
