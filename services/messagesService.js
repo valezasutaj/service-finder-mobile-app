@@ -1,76 +1,85 @@
-import { collection, getDocs, addDoc, query, where, orderBy, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import {
+    collection,
+    addDoc,
+    getDocs,
+    doc,
+    query,
+    where,
+    orderBy,
+    onSnapshot,
+    serverTimestamp,
+    setDoc
+} from "firebase/firestore";
+import { db } from "../firebase";
 
-const COLLECTIONS = {
-    MESSAGES: 'messages',
-};
+const COLLECTION = "messages";
+const TYPING_COLLECTION = "typing";
 
 export const messageService = {
-    sendMessage: async (messageData) => {
-        try {
-            const messageDoc = {
-                senderId: messageData.senderId,
-                senderName: messageData.senderName,
-                receiverId: messageData.receiverId,
-                receiverName: messageData.receiverName,
-                message: messageData.message,
-                isRead: false,
-                createdAt: serverTimestamp()
-            };
 
-            const docRef = await addDoc(collection(db, COLLECTIONS.MESSAGES), messageDoc);
-            return { id: docRef.id, ...messageDoc };
-        } catch (error) {
-            console.error('Error sending message:', error);
-            throw error;
-        }
+    getUserMessages: async (uid) => {
+        const q = query(
+            collection(db, COLLECTION),
+            where("participants", "array-contains", uid),
+            orderBy("createdAt", "desc")
+        );
+
+        const snap = await getDocs(q);
+        const grouped = {};
+
+        snap.forEach((d) => {
+            const data = { id: d.id, ...d.data() };
+            const other = data.senderId === uid ? data.receiverId : data.senderId;
+
+            if (!grouped[other]) {
+                grouped[other] = { ...data, otherUserId: other };
+            }
+        });
+
+        return Object.values(grouped);
     },
 
-    getConversation: async (userId1, userId2) => {
-        try {
-            const messagesQuery = query(
-                collection(db, COLLECTIONS.MESSAGES),
-                where('senderId', 'in', [userId1, userId2]),
-                where('receiverId', 'in', [userId1, userId2]),
-                orderBy('createdAt', 'asc')
-            );
+    listenConversation: (user1, user2, callback) => {
+        const q = query(
+            collection(db, COLLECTION),
+            where("participants", "array-contains", user1),
+            orderBy("createdAt", "asc")
+        );
 
-            const querySnapshot = await getDocs(messagesQuery);
-            const messages = [];
-            querySnapshot.forEach((doc) => messages.push({ id: doc.id, ...doc.data() }));
-            return messages;
-        } catch (error) {
-            console.error('Error getting conversation:', error);
-            throw error;
-        }
+        return onSnapshot(q, (snapshot) => {
+            const msgs = snapshot.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .filter(m => m.participants.includes(user2));
+
+            callback(msgs);
+        });
     },
 
-    getUserConversations: async (userId) => {
-        try {
-            const messagesQuery = query(
-                collection(db, COLLECTIONS.MESSAGES),
-                where('senderId', '==', userId),
-                orderBy('createdAt', 'desc')
-            );
+    sendMessage: async (payload) => {
+        const data = {
+            ...payload,
+            participants: [payload.senderId, payload.receiverId],
+            createdAt: serverTimestamp()
+        };
 
-            const querySnapshot = await getDocs(messagesQuery);
-            const conversations = [];
-            querySnapshot.forEach((doc) => {
-                const message = doc.data();
-                conversations.push({
-                    id: doc.id,
-                    userId: message.receiverId,
-                    name: message.receiverName,
-                    lastMessage: message.message,
-                    time: message.createdAt,
-                    unread: false
-                });
-            });
+        await addDoc(collection(db, COLLECTION), data);
+    },
 
-            return conversations;
-        } catch (error) {
-            console.error('Error getting conversations:', error);
-            throw error;
-        }
+    setTyping: async (chatId, userId, isTyping) => {
+        await setDoc(
+            doc(db, TYPING_COLLECTION, chatId),
+            {
+                userId,
+                isTyping,
+                updatedAt: serverTimestamp()
+            },
+            { merge: true }
+        );
+    },
+
+    listenTyping: (chatId, callback) => {
+        return onSnapshot(doc(db, TYPING_COLLECTION, chatId), (snap) => {
+            callback(snap.exists() ? snap.data() : { isTyping: false });
+        });
     }
 };
