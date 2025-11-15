@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,14 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
 import { safeRouter } from "../../utils/SafeRouter";
 import { loginUser } from "../../services/userService";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import { auth } from "../../firebase";
+import { Alert } from "react-native";
+
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -20,6 +28,31 @@ export default function LoginScreen() {
   const [customError, setCustomError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const insets = useSafeAreaInsets();
+
+   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: "1083853747405-f8se0d55te3k2781ts2ukpdigalod65c.apps.googleusercontent.com",
+  });
+
+   useEffect(() => {
+    if (!response) return;
+
+    if (response.type === "success") {
+      const { id_token } = response.params;
+
+      const credential = GoogleAuthProvider.credential(id_token);
+
+      signInWithCredential(auth, credential)
+        .then((userCredential) => {
+          Alert.alert("Success", "Logged in as " + userCredential.user.email);
+          safeRouter.replace("/home");
+        })
+        .catch((err) => {
+          Alert.alert("Firebase Error", String(err));
+        });
+    } else {
+      console.log("Google login canceled or failed:", response.type);
+    }
+  }, [response]);
 
   const handleLogin = async () => {
     setCustomError("");
@@ -128,6 +161,21 @@ export default function LoginScreen() {
           )}
         </TouchableOpacity>
 
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => promptAsync()}
+          style={styles.googleBtn}
+          disabled={!request}
+        >
+          <Image
+            source={{
+              uri: "https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg",
+            }}
+            style={styles.googleIcon}
+          />
+          <Text style={styles.googleTxt}>Continue with Google</Text>
+        </TouchableOpacity>
+
         <View style={styles.signupRow}>
           <Text style={styles.signupTxt}>New user?</Text>
           <TouchableOpacity
@@ -221,6 +269,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700"
   },
+
+  googleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    borderRadius: 28,
+    height: 54,
+    marginTop: 14,
+  },
+  googleIcon: { width: 22, height: 22, marginRight: 10 },
+  googleTxt: { color: "#3595FF", fontSize: 15, fontWeight: "600" },
+
   signupRow: {
     flexDirection: "row",
     justifyContent: "center",
