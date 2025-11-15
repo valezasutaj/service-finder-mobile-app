@@ -18,8 +18,11 @@ import { messageService } from "../../../services/messagesService";
 import { userService } from "../../../services/userService";
 import { getUser } from "../../../services/storageService";
 import { safeRouter } from "../../../utils/SafeRouter";
+import { KeyboardAvoidingView, Platform } from "react-native";
+
 
 import { ArrowLeft } from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function ChatPage() {
     const { id: receiverId } = useLocalSearchParams();
@@ -98,101 +101,107 @@ export default function ChatPage() {
     };
 
     return (
-        <ThemedView safe style={s.container}>
-            <View style={s.header}>
-                <View style={s.headerLeft}>
-                    <TouchableOpacity style={s.backButton} onPress={() => safeRouter.back()}>
-                        <ArrowLeft color={theme.text} size={22} />
-                    </TouchableOpacity>
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+            <ThemedView safe style={s.container}>
+                <View style={s.header}>
+                    <View style={s.headerLeft}>
+                        <TouchableOpacity style={s.backButton} onPress={() => safeRouter.back()}>
+                            <ArrowLeft color={theme.text} size={22} />
+                        </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => safeRouter.push('/profile')}>
-                        <View style={s.headerUser}>
-                            <Image
-                                source={{
-                                    uri:
-                                        otherUser?.avatar?.startsWith("http")
-                                            ? otherUser.avatar
-                                            : "https://placehold.co/100"
-                                }}
-                                style={s.headerAvatar}
-                            />
-                            <View style={s.headerText}>
-                                <ThemedText style={s.headerName}>{otherUser.fullName}</ThemedText>
+                        <TouchableOpacity onPress={() => safeRouter.push(`/profile/${otherUser.uid}`)}>
+                            <View style={s.headerUser}>
+                                {otherUser?.avatar ? (
+                                    <Image
+                                        source={{ uri: otherUser.avatar }}
+                                        style={s.headerAvatar}
+                                    />
+                                ) : (
+                                    <Ionicons name="person-circle" size={40} color={theme.text} style={{ marginLeft: -10, marginRight: 5 }} />
+                                )}
+
+                                <View style={s.headerText}>
+                                    <ThemedText style={s.headerName}>{otherUser.fullName}</ThemedText>
+                                </View>
                             </View>
-                        </View>
-
-                    </TouchableOpacity>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
 
-            <View style={s.chatArea}>
-                <FlatList
-                    ref={flatListRef}
-                    data={messages}
-                    keyExtractor={(m) => m.id}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingVertical: 16 }}
-                    onContentSizeChange={() =>
-                        flatListRef.current?.scrollToEnd({ animated: true })
-                    }
-                    onLayout={() =>
-                        flatListRef.current?.scrollToEnd({ animated: false })
-                    }
-                    renderItem={({ item }) => {
-                        const mine = item.senderId === user.uid;
+                <View style={s.chatArea}>
+                    <FlatList
+                        ref={flatListRef}
+                        data={messages}
+                        keyExtractor={(m) => m.id}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ paddingVertical: 16 }}
+                        onContentSizeChange={() =>
+                            flatListRef.current?.scrollToEnd({ animated: true })
+                        }
+                        onLayout={() =>
+                            flatListRef.current?.scrollToEnd({ animated: false })
+                        }
+                        renderItem={({ item }) => {
+                            const mine = item.senderId === user.uid;
 
-                        return (
-                            <View
-                                style={[
-                                    s.msgWrapper,
-                                    mine ? s.msgWrapperMe : s.msgWrapperThem
-                                ]}
-                            >
-                                <View style={[s.bubble, mine ? s.me : s.them]}>
-                                    <ThemedText style={s.bubbleText}>
-                                        {item.message}
+                            return (
+                                <View
+                                    style={[
+                                        s.msgWrapper,
+                                        mine ? s.msgWrapperMe : s.msgWrapperThem
+                                    ]}
+                                >
+                                    <View style={[s.bubble, mine ? s.me : s.them]}>
+                                        <ThemedText style={s.bubbleText}>
+                                            {item.message}
+                                        </ThemedText>
+                                    </View>
+                                    <ThemedText style={s.timestamp}>
+                                        {formatTime(item.createdAt)}
                                     </ThemedText>
                                 </View>
-                                <ThemedText style={s.timestamp}>
-                                    {formatTime(item.createdAt)}
-                                </ThemedText>
-                            </View>
-                        );
-                    }}
-                />
-
-                {typing && (
-                    <View style={s.typingWrapper}>
-                        <View style={s.typingBubble}>
-                            <ThemedText style={s.typingText}>
-                                {otherUser.fullName} is typing...
-                            </ThemedText>
-                        </View>
-                    </View>
-                )}
-            </View>
-
-            <View style={s.inputContainer}>
-                <View style={s.inputRow}>
-                    <TextInput
-                        value={text}
-                        onChangeText={(v) => {
-                            setText(v);
-                            messageService.setTyping(chatId, user.uid, v.length > 0);
+                            );
                         }}
-                        placeholder="Message..."
-                        placeholderTextColor={theme.mutedText}
-                        style={s.input}
-                        multiline
                     />
 
-                    <TouchableOpacity onPress={send} style={s.sendBtn}>
-                        <ThemedText style={s.sendIcon}>➤</ThemedText>
-                    </TouchableOpacity>
+                    {typing && (
+                        <View style={s.typingWrapper}>
+                            <View style={s.typingBubble}>
+                                <ThemedText style={s.typingText}>
+                                    {otherUser.fullName} is typing...
+                                </ThemedText>
+                            </View>
+                        </View>
+                    )}
                 </View>
-            </View>
-        </ThemedView >
+
+                <View style={s.inputContainer}>
+                    <View style={s.inputRow}>
+                        <TextInput
+                            value={text}
+                            onChangeText={(v) => {
+                                setText(v);
+                                messageService.setTyping(chatId, user.uid, v.length > 0);
+                            }}
+                            placeholder="Message..."
+                            placeholderTextColor={theme.mutedText}
+                            style={s.input}
+                            multiline
+                        />
+
+                        <TouchableOpacity onPress={send} style={s.sendBtn}>
+                            <ThemedText style={s.sendIcon}>➤</ThemedText>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+            </ThemedView>
+        </KeyboardAvoidingView>
     );
+
 }
 
 const styles = (theme) =>
@@ -222,25 +231,21 @@ const styles = (theme) =>
             flexDirection: "row",
             alignItems: "center",
         },
+
         headerAvatar: {
-            width: 44,
-            height: 44,
+            width: 30,
+            height: 30,
             borderRadius: 22,
             marginRight: 12,
+            marginLeft: -5
         },
+
         headerText: {
-            flex: 1,
+            maxWidth: 180,
         },
+
         headerName: {
             fontSize: 18,
-            fontWeight: "600",
-            color: theme.text,
-        },
-        menuButton: {
-            padding: 8,
-        },
-        menuDots: {
-            fontSize: 20,
             fontWeight: "600",
             color: theme.text,
         },
@@ -298,26 +303,26 @@ const styles = (theme) =>
         },
         inputContainer: {
             padding: 16,
+            paddingBottom: 5,
             borderTopWidth: 1,
             borderTopColor: theme.cardBackground,
         },
         inputRow: {
             flexDirection: "row",
-            alignItems: "flex-end",
+            alignItems: "center",
             backgroundColor: theme.cardBackground,
             borderRadius: 24,
             paddingHorizontal: 12,
             height: 53,
-            alignItems: 'center'
         },
         input: {
             flex: 1,
             fontSize: 16,
             color: theme.text,
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            height: 40,
+            height: 26.5,
+            marginLeft: 10
         },
+
         sendBtn: {
             width: 35,
             height: 35,

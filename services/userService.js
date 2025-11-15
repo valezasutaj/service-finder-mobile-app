@@ -21,7 +21,7 @@ export const registerUser = async (fullName, username, email, password) => {
     }
 
     try {
-        // Kontrollo username para se të krijosh përdoruesin
+
         const usernameQuery = query(
             collection(db, "users"),
             where("username", "==", username)
@@ -128,5 +128,19 @@ export const userService = {
         } catch {
             return null;
         }
+    },
+
+    getUserServices: async (userId) => {
+        const q = query(
+            collection(db, "services"),
+            where("userId", "==", userId)
+        );
+
+        const snap = await getDocs(q);
+
+        return snap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
     },
 };

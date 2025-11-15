@@ -40,8 +40,10 @@ const Browse = () => {
 
     let filteredJobs = jobs.filter(job =>
         job.name.toLowerCase().includes(searchText.toLowerCase()) &&
-        (selectedCategoryId === 'All' ||
-            job.categories.some(c => c.id === selectedCategoryId))
+        (
+            selectedCategoryId === "All" ||
+            (job.category && job.category.id === selectedCategoryId)
+        )
     );
 
     if (selectedSort === 'Price Low → High') {

@@ -1,4 +1,4 @@
-import { ScrollView, Image, StyleSheet, View, FlatList, ActivityIndicator } from 'react-native';
+import { ScrollView, Image, StyleSheet, View, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useEffect, useState } from 'react';
 import ThemedView from '../../components/ThemedView';
 import ThemedText from '../../components/ThemedText';
@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { jobService } from '../../services/jobsService';
 import { categoryService } from '../../services/categoriesService';
 import { getCategoryIcon } from '../../services/imagesMap';
+import { safeRouter } from '../../utils/SafeRouter';
 
 const HomeScreen = () => {
     const { theme } = useTheme();
@@ -86,7 +87,9 @@ const HomeScreen = () => {
 
                 <View style={themeStyles.sectionHeader}>
                     <ThemedText title style={themeStyles.sectionTitle}>Categories</ThemedText>
-                    <ThemedText title style={themeStyles.link}>View More</ThemedText>
+                    <TouchableOpacity onPress={() => { safeRouter.push('/browse') }}>
+                        <ThemedText title style={themeStyles.link}>View More</ThemedText>
+                    </TouchableOpacity>
                 </View>
 
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={themeStyles.categoriesRow}>

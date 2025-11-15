@@ -161,6 +161,7 @@ export default function Post() {
                         ) : (
                             <FlatList
                                 horizontal
+                                showsHorizontalScrollIndicator={false}
                                 data={categories}
                                 keyExtractor={(item) => item.id}
                                 renderItem={({ item }) => (

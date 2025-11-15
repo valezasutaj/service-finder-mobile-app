@@ -1,4 +1,3 @@
-// services/categoriesService.js
 import { collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 

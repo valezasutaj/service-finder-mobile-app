@@ -1,4 +1,3 @@
-// services/favoriteService.js
 import { collection, addDoc, getDocs, deleteDoc, doc, where, query, orderBy, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -9,7 +8,7 @@ export const favoriteService = {
     addToFavorites: async (userId, job) => {
         const payload = {
             userId,
-            job,  // store entire job
+            job,
             createdAt: serverTimestamp()
         };
 

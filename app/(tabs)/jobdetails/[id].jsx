@@ -9,6 +9,8 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../context/ThemedModes";
 import { jobService } from "../../../services/jobsService";
 import { getCategoryIcon } from "../../../services/imagesMap";
+import { safeRouter } from "../../../utils/SafeRouter";
+
 
 export default function ServiceDetailsScreen() {
     const router = useRouter();
@@ -47,7 +49,7 @@ export default function ServiceDetailsScreen() {
 
                         <ThemedText title style={styles.headerText}>Details</ThemedText>
 
-                        <TouchableOpacity style={{color: theme.background, padding: 10}}>
+                        <TouchableOpacity style={{ color: theme.background, padding: 10 }}>
                             <MoreVertical color={theme.background} size={22} />
                         </TouchableOpacity>
                     </View>
@@ -97,27 +99,31 @@ export default function ServiceDetailsScreen() {
 
                     {activeTab === "Gallery" && (
                         <View style={{ marginTop: 10 }}>
-                                <ThemedText style={styles.aboutText}>No photos yet.</ThemedText>
-                            
+                            <ThemedText style={styles.aboutText}>No photos yet.</ThemedText>
+
                         </View>
                     )}
 
                     {activeTab === "Review" && (
                         <View style={{ marginTop: 10 }}>
-                                <ThemedText style={styles.aboutText}>No reviews yet.</ThemedText>
-                            
+                            <ThemedText style={styles.aboutText}>No reviews yet.</ThemedText>
+
                         </View>
                     )}
 
                     {activeTab === "Services" && (
                         <View style={{ marginTop: 10 }}>
-                                <ThemedText style={styles.aboutText}>No other services yet.</ThemedText>
-                            
+                            <ThemedText style={styles.aboutText}>No other services yet.</ThemedText>
+
                         </View>
                     )}
 
                     <ThemedCard style={styles.providerCard}>
-                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+
+                        <TouchableOpacity
+                            style={{ flexDirection: "row", alignItems: "center" }}
+                            onPress={() => safeRouter.push(`/profile/${job.provider.uid}`)}
+                        >
                             <Image source={{ uri: job.provider?.avatar }} style={styles.providerImage} />
                             <View style={{ marginLeft: 10 }}>
                                 <ThemedText title style={{ fontSize: 15 }}>
@@ -125,12 +131,17 @@ export default function ServiceDetailsScreen() {
                                 </ThemedText>
                                 <ThemedText>Service Provider</ThemedText>
                             </View>
-                        </View>
+                        </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.callButton}>
+                        <TouchableOpacity
+                            style={[styles.callButton, { backgroundColor: theme.primary }]}
+                            onPress={() => safeRouter.push(`/messages/${job.provider.uid}`)}
+                        >
                             <MessageCircle size={20} color="#fff" strokeWidth={2} />
                         </TouchableOpacity>
+
                     </ThemedCard>
+
                 </View>
             </ScrollView>
 

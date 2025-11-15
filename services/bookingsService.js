@@ -1,4 +1,3 @@
-// services/bookingsService.js
 import { collection, addDoc, getDocs, query, where, orderBy, updateDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 
