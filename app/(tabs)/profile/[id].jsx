@@ -5,21 +5,29 @@ import {
     Image,
     ScrollView,
     TouchableOpacity,
-    ActivityIndicator
+    Alert,
+    ActivityIndicator,
+    FlatList
 } from "react-native";
 
 import { useLocalSearchParams } from "expo-router";
 import ThemedView from "../../../components/ThemedView";
 import ThemedText from "../../../components/ThemedText";
+import ThemedCard from "../../../components/ThemedCard";
 import NavBar from "../../../components/NavBar";
-import ErrorModal from "../../../components/modals/ErrorModal";
 import {
     ChevronLeft,
+    Star,
+    MapPin,
+    MessageCircle,
+    Phone,
+    Mail
 } from "lucide-react-native";
 
 import { useTheme } from '../../../context/ThemedModes';
 import { safeRouter } from "../../../utils/SafeRouter";
 import { userService } from '../../../services/userService';
+import { Ionicons } from "@expo/vector-icons";
 
 const ProfileScreen = () => {
     const { theme } = useTheme();
@@ -28,9 +36,7 @@ const ProfileScreen = () => {
     const { id: userId } = useLocalSearchParams();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-
-    const [showErrorModal, setShowErrorModal] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
+    const [services, setServices] = useState([]);
 
     useEffect(() => {
         if (!userId) return;
@@ -45,8 +51,7 @@ const ProfileScreen = () => {
                 setServices(userServices || []);
             } catch (error) {
                 console.error('Error loading user profile:', error);
-                setErrorMessage('Failed to load user profile.');
-                setShowErrorModal(true);
+                Alert.alert('Error', 'Failed to load user profile.');
             } finally {
                 setLoading(false);
             }
@@ -55,9 +60,22 @@ const ProfileScreen = () => {
         loadUserProfile();
     }, [userId]);
 
+    const handleContact = (type) => {
+        switch (type) {
+            case 'message':
+                safeRouter.push(`/messages/${userId}`);
+                break;
+            case 'call':
+                Alert.alert('Call', `Calling ${user?.phone || '+383 44 123 456'}`);
+                break;
+            case 'email':
+                Alert.alert('Email', `Sending email to ${user?.email}`);
+                break;
+        }
+    };
 
-    const handleCloseError = () => {
-        setShowErrorModal(false);
+    const handleServicePress = (serviceId) => {
+        safeRouter.push(`/jobdetails/${serviceId}`);
     };
 
     if (loading) {
@@ -95,28 +113,114 @@ const ProfileScreen = () => {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-            </ScrollView>
+                <ThemedCard style={styles.profileSection}>
 
-            <ErrorModal
-                visible={showErrorModal}
-                onClose={handleCloseError}
-                title="Error"
-                message={errorMessage}
-            />
-            {/* `
-            <ContactModal
-                visible={showContactModal}
-                onClose={() => setShowContactModal(false)}
-                onConfirm={handleContactAction}
-                type={contactType}
-                user={user}
-            />` */}
+                    <View style={styles.avatarContainer}>
+                        {user.avatar ? (
+                            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+                        ) : (
+                            <Ionicons name="person-circle" size={100} color={theme.text} />
+                        )}
+                    </View>
+
+                    <ThemedText style={styles.userName}>{user.fullName}</ThemedText>
+                    <ThemedText style={styles.userTitle}>{user.profession || 'Service Provider'}</ThemedText>
+
+                    <View style={styles.locationContainer}>
+                        <MapPin size={16} color={theme.mutedText} />
+                        <ThemedText style={styles.locationText}>
+                            {user.location || "Prishtina"}
+                        </ThemedText>
+                    </View>
+
+                    <View style={styles.statsContainer}>
+                        <View style={styles.statItem}>
+                            <ThemedText style={styles.statNumber}>{user.totalJobs || 0}+</ThemedText>
+                            <ThemedText style={styles.statLabel}>Jobs Done</ThemedText>
+                        </View>
+
+                        <View style={styles.statDivider} />
+
+                        <View style={styles.statItem}>
+                            <ThemedText style={styles.statNumber}>{user.successRate || 0}%</ThemedText>
+                            <ThemedText style={styles.statLabel}>Success Rate</ThemedText>
+                        </View>
+
+                        <View style={styles.statDivider} />
+
+                        <View style={styles.statItem}>
+                            <ThemedText style={styles.statNumber}>{user.experience || 0}</ThemedText>
+                            <ThemedText style={styles.statLabel}>Years Exp.</ThemedText>
+                        </View>
+                    </View>
+                </ThemedCard>
+
+                <View style={styles.contactContainer}>
+                    <TouchableOpacity style={styles.contactButton} onPress={() => handleContact('message')}>
+                        <MessageCircle size={20} color={theme.primary} />
+                        <ThemedText style={styles.contactButtonText}>Message</ThemedText>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.contactButton} onPress={() => handleContact('call')}>
+                        <Phone size={20} color={theme.primary} />
+                        <ThemedText style={styles.contactButtonText}>Call</ThemedText>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.contactButton} onPress={() => handleContact('email')}>
+                        <Mail size={20} color={theme.primary} />
+                        <ThemedText style={styles.contactButtonText}>Email</ThemedText>
+                    </TouchableOpacity>
+                </View>
+
+                <ThemedCard style={styles.section}>
+                    <ThemedText style={styles.sectionTitle}>About</ThemedText>
+                    <ThemedText style={styles.aboutText}>
+                        {user.bio || "Professional service provider with experience."}
+                    </ThemedText>
+                </ThemedCard>
+
+                <ThemedCard style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <ThemedText style={styles.sectionTitle}>Services</ThemedText>
+                    </View>
+
+                    {services.length > 0 ? (
+                        <FlatList
+                            data={services}
+                            keyExtractor={(item) => item.id}
+                            scrollEnabled={false}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={styles.serviceItem}
+                                    onPress={() => handleServicePress(item.id)}
+                                >
+                                    <Image
+                                        source={
+                                            item.image
+                                                ? { uri: item.image }
+                                                : require('../../../assets/images/categories/default.png')
+                                        }
+                                        style={styles.serviceImage}
+                                    />
+
+                                    <View style={styles.serviceInfo}>
+                                        <ThemedText style={styles.serviceName}>{item.name}</ThemedText>
+                                        <ThemedText style={styles.servicePrice}>${item.price}</ThemedText>
+                                    </View>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    ) : (
+                        <ThemedText style={styles.noServicesText}>No services available</ThemedText>
+                    )}
+
+                </ThemedCard>
+            </ScrollView>
 
             <NavBar />
         </ThemedView>
     );
 };
-
 
 const getStyles = (theme) =>
     StyleSheet.create({
@@ -137,7 +241,7 @@ const getStyles = (theme) =>
         headerTitle: { fontSize: 18, fontWeight: "bold", color: theme.text },
         placeholder: { width: 32 },
 
-        scrollContent: { paddingBottom: 20 },
+        scrollContent: { paddingBottom: 20, marginBottom: 61 },
 
         profileSection: { alignItems: "center", padding: 20, margin: 16, marginBottom: 8 },
 

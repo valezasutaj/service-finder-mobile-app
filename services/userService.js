@@ -132,8 +132,8 @@ export const userService = {
 
     getUserServices: async (userId) => {
         const q = query(
-            collection(db, "services"),
-            where("userId", "==", userId)
+            collection(db, "jobs"),
+            where("provider.uid", "==", userId)
         );
 
         const snap = await getDocs(q);
