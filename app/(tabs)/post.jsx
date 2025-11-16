@@ -45,10 +45,12 @@ export default function Post() {
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             quality: 0.8,
+            base64: true, 
         });
 
         if (!result.canceled) {
-            setImage(result.assets[0].uri);
+            const base64Img = `data:image/jpeg;base64,${result.assets[0].base64}`;
+            setImage(base64Img);
         }
     };
 
@@ -72,22 +74,19 @@ export default function Post() {
                 price: parseFloat(price),
                 discount: discount ? `${discount}%` : "0%",
                 description,
-                image: image || "https://placehold.co/600x400",
-
+                image: image, // <-- already base64
                 category: {
                     id: category.id,
                     label: category.label,
                     icon: category.icon
                 },
-
                 provider: {
                     uid: provider.uid,
                     fullName: provider.fullName || "Unknown",
                     username: provider.username || "",
                     email: provider.email || "",
                     avatar:
-                        provider.avatar ??
-                        `https://placehold.co/100x100?text=${provider.fullName?.[0]?.toUpperCase() || "U"}`
+                        provider.avatar || `https://placehold.co/100x100?text=${provider.fullName?.[0]?.toUpperCase() || "U"}`
                 }
             });
 

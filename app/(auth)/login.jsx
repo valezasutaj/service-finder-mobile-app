@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   googleIcon: { width: 22, height: 22, marginRight: 10 },
-  googleTxt: { color: "#3595FF", fontSize: 15, fontWeight: "600" },
+  googleTxt: { color: "#3595FF", fontSize: 15, fontWeight: "700" },
 
   signupRow: {
     flexDirection: "row",

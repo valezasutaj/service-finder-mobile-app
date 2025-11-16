@@ -11,21 +11,22 @@ import { jobService } from "../../../services/jobsService";
 import { getCategoryIcon } from "../../../services/imagesMap";
 import { safeRouter } from "../../../utils/SafeRouter";
 
-
 export default function ServiceDetailsScreen() {
     const router = useRouter();
     const { theme } = useTheme();
     const { id, image } = useLocalSearchParams();
-    const selectedImage = image ? JSON.parse(image) : null;
+
     const [activeTab, setActiveTab] = useState("About");
     const [job, setJob] = useState(null);
+
+    const selectedImage = image ? { uri: image } : null;
     const styles = getStyles(theme);
 
     useEffect(() => {
         const load = async () => {
             const jobs = await jobService.getJobs();
             const found = jobs.find(j => String(j.id) === String(id));
-            setJob(found);
+            setJob(found || null);
         };
         load();
     }, [id]);
@@ -41,6 +42,7 @@ export default function ServiceDetailsScreen() {
     return (
         <ThemedView style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+                
                 <View style={styles.headerContainer}>
                     <View style={styles.headerButtons}>
                         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
@@ -49,7 +51,7 @@ export default function ServiceDetailsScreen() {
 
                         <ThemedText title style={styles.headerText}>Details</ThemedText>
 
-                        <TouchableOpacity style={{ color: theme.background, padding: 10 }}>
+                        <TouchableOpacity style={{ padding: 10 }}>
                             <MoreVertical color={theme.background} size={22} />
                         </TouchableOpacity>
                     </View>
@@ -57,13 +59,19 @@ export default function ServiceDetailsScreen() {
 
                 <View style={styles.imageWrapper}>
                     <Image
-                        source={selectedImage || getCategoryIcon(job.categories?.[0]?.icon)}
+                        source={
+                            selectedImage
+                                ? selectedImage
+                                : job.image
+                                ? { uri: job.image }
+                                : getCategoryIcon(job.category?.icon)
+                        }
                         style={styles.headerImage}
                     />
                 </View>
 
                 <View style={styles.bodyContainer}>
-                    <ThemedText style={styles.category}>{job.categories?.[0]?.label}</ThemedText>
+                    <ThemedText style={styles.category}>{job.category?.label}</ThemedText>
 
                     <ThemedText title style={styles.title}>{job.name}</ThemedText>
 
@@ -100,21 +108,18 @@ export default function ServiceDetailsScreen() {
                     {activeTab === "Gallery" && (
                         <View style={{ marginTop: 10 }}>
                             <ThemedText style={styles.aboutText}>No photos yet.</ThemedText>
-
                         </View>
                     )}
 
                     {activeTab === "Review" && (
                         <View style={{ marginTop: 10 }}>
                             <ThemedText style={styles.aboutText}>No reviews yet.</ThemedText>
-
                         </View>
                     )}
 
                     {activeTab === "Services" && (
                         <View style={{ marginTop: 10 }}>
                             <ThemedText style={styles.aboutText}>No other services yet.</ThemedText>
-
                         </View>
                     )}
 

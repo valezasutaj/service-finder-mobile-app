@@ -52,28 +52,33 @@ const HomeScreen = () => {
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={themeStyles.scrollContent}>
 
+                {/* BANNERS */}
                 <View style={themeStyles.bannerContainer}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 10 }}>
+
                         {jobs.slice(0, 3).map(item => (
                             <View key={item.id} style={themeStyles.bannerCard}>
 
                                 <Image
-                                    source={getCategoryIcon(item.categories?.[0]?.icon)}
+                                    source={
+                                        item.image
+                                            ? { uri: item.image }
+                                            : getCategoryIcon(item.category?.icon)
+                                    }
                                     style={themeStyles.bannerImage}
                                 />
 
                                 <View style={themeStyles.bannerOverlay}>
                                     <ThemedText style={themeStyles.bannerText}>
-                                        {item.name} {item.discount && `• ${item.discount} Off`}
+                                        {item.name} {item.discount && `• ${item.discount}`}
                                     </ThemedText>
 
-                                    <ThemedButton style={themeStyles.bannerButton}
+                                    <ThemedButton
+                                        style={themeStyles.bannerButton}
                                         onPress={() =>
                                             router.push({
                                                 pathname: `/jobdetails/${item.id}`,
-                                                params: {
-                                                    image: JSON.stringify(getCategoryIcon(item.categories?.[0]?.icon))
-                                                }
+                                                params: { image: item.image }
                                             })
                                         }
                                     >
@@ -82,12 +87,14 @@ const HomeScreen = () => {
                                 </View>
                             </View>
                         ))}
+
                     </ScrollView>
                 </View>
 
+                {/* CATEGORIES */}
                 <View style={themeStyles.sectionHeader}>
                     <ThemedText title style={themeStyles.sectionTitle}>Categories</ThemedText>
-                    <TouchableOpacity onPress={() => { safeRouter.push('/browse') }}>
+                    <TouchableOpacity onPress={() => safeRouter.push('/browse')}>
                         <ThemedText title style={themeStyles.link}>View More</ThemedText>
                     </TouchableOpacity>
                 </View>
@@ -104,7 +111,10 @@ const HomeScreen = () => {
                     ))}
                 </ScrollView>
 
-                <ThemedText title style={[themeStyles.sectionTitle, { paddingHorizontal: 15 }]}>Top Jobs</ThemedText>
+                {/* TOP JOBS */}
+                <ThemedText title style={[themeStyles.sectionTitle, { paddingHorizontal: 15 }]}>
+                    Top Jobs
+                </ThemedText>
 
                 <FlatList
                     data={jobs.slice(0, 5)}
@@ -116,14 +126,12 @@ const HomeScreen = () => {
                             name={item.name}
                             discount={item.discount}
                             price={item.price}
-                            image={getCategoryIcon(item.categories?.[0]?.icon)}
+                            image={ item.image ? { uri: item.image } : getCategoryIcon(item.category?.icon) }
                             providerName={item.provider?.fullName}
                             onPress={() =>
                                 router.push({
                                     pathname: `/jobdetails/${item.id}`,
-                                    params: {
-                                        image: JSON.stringify(getCategoryIcon(item.categories?.[0]?.icon))
-                                    }
+                                    params: { image: item.image }
                                 })
                             }
                         />
@@ -158,7 +166,10 @@ const styles = (theme) => StyleSheet.create({
         overflow: 'hidden',
         marginRight: 15,
     },
-    bannerImage: { width: '100%', height: '100%' },
+    bannerImage: {
+        width: '100%',
+        height: '100%',
+    },
     bannerOverlay: {
         ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(0,0,0,0.35)',
@@ -207,18 +218,18 @@ const styles = (theme) => StyleSheet.create({
     categoryCard: {
         width: 80,
         alignItems: 'center',
-        marginRight: 10
+        marginRight: 10,
     },
     categoryImg: {
         width: 75,
         height: 75,
         borderRadius: 18,
         backgroundColor: theme.cardBackground,
-        marginBottom: 6
+        marginBottom: 6,
     },
     categoryLabel: {
         fontSize: 13,
         color: theme.mutedText,
         textAlign: 'center',
-    }
+    },
 });

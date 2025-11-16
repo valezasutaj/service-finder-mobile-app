@@ -51,7 +51,7 @@ const Browse = () => {
     } else if (selectedSort === 'Price High → Low') {
         filteredJobs.sort((a, b) => b.price - a.price);
     } else if (selectedSort === 'Rating High → Low') {
-        filteredJobs.sort((a, b) => b.rating - a.rating);
+        filteredJobs.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
 
     if (loading) {
@@ -131,7 +131,6 @@ const Browse = () => {
                     keyExtractor={item => item.id}
                     scrollEnabled={false}
                     renderItem={({ item }) => {
-                        const icon = getCategoryIcon(item.categories?.[0]?.icon);
 
                         return (
                             <ThemedServiceCard
@@ -140,12 +139,12 @@ const Browse = () => {
                                 price={item.price}
                                 discount={item.discount}
                                 rating={item.rating}
-                                image={icon}
+                                image={item.image}
                                 providerName={item.provider?.fullName}
                                 onPress={() =>
                                     router.push({
                                         pathname: `/jobdetails/${item.id}`,
-                                        params: { image: JSON.stringify(icon) }
+                                        params: { image: item.image }
                                     })
                                 }
                             />
