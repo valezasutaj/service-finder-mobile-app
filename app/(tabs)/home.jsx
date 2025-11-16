@@ -52,7 +52,6 @@ const HomeScreen = () => {
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={themeStyles.scrollContent}>
 
-                {/* BANNERS */}
                 <View style={themeStyles.bannerContainer}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 10 }}>
 
@@ -91,7 +90,6 @@ const HomeScreen = () => {
                     </ScrollView>
                 </View>
 
-                {/* CATEGORIES */}
                 <View style={themeStyles.sectionHeader}>
                     <ThemedText title style={themeStyles.sectionTitle}>Categories</ThemedText>
                     <TouchableOpacity onPress={() => safeRouter.push('/browse')}>
@@ -111,7 +109,6 @@ const HomeScreen = () => {
                     ))}
                 </ScrollView>
 
-                {/* TOP JOBS */}
                 <ThemedText title style={[themeStyles.sectionTitle, { paddingHorizontal: 15 }]}>
                     Top Jobs
                 </ThemedText>
@@ -126,7 +123,7 @@ const HomeScreen = () => {
                             name={item.name}
                             discount={item.discount}
                             price={item.price}
-                            image={ item.image ? { uri: item.image } : getCategoryIcon(item.category?.icon) }
+                            image={item.image ? { uri: item.image } : getCategoryIcon(item.category?.icon)}
                             providerName={item.provider?.fullName}
                             onPress={() =>
                                 router.push({

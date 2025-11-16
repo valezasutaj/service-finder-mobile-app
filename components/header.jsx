@@ -46,31 +46,31 @@ const Header = () => {
   useEffect(() => {
     const loadWeather = async () => {
       try {
-        if (!user || !user.location) return;
+        let city = null;
 
-        let city = user.location;
+        if (user?.location) {
+          city = user.location;
 
-        if (city.includes(",")) {
-          city = city.split(",")[1].trim();
-        }
+          if (city.includes(",")) {
+            city = city.split(",")[1].trim();
+          }
 
-        city = city
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/ë/gi, "e");
+          city = city
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/ë/gi, "e");
 
-        if (city.toLowerCase().startsWith("prisht")) {
+          if (city.toLowerCase().startsWith("prisht")) {
+            city = "Pristina";
+          }
+        } else {
           city = "Pristina";
         }
 
-        let apiCity = city;
-
-        if (
-          city.toLowerCase().startsWith("prisht") ||
-          city.toLowerCase().includes("kosov")
-        ) {
-          apiCity = `${city},XK`;
-        }
+        const apiCity =
+          city.toLowerCase().startsWith("prisht") || city.toLowerCase().includes("kosov")
+            ? `${city},XK`
+            : city;
 
         const weatherData = await getWeatherByCity(apiCity);
 
@@ -80,10 +80,12 @@ const Header = () => {
             icon: `https://openweathermap.org/img/wn/${weatherData.icon}@2x.png`,
           });
         }
-      } catch { }
+      } catch (e) {
+        console.log("Weather error", e);
+      }
     };
 
-    if (user?.location) loadWeather();
+    loadWeather();
   }, [user]);
 
   return (
@@ -117,7 +119,7 @@ const Header = () => {
             )}
 
             <ThemedText style={styles.userLocation}>
-              {`${weather.temp ?? '--'}°C - ${user?.location || ''}`}
+              {`${weather.temp ?? '--'}°C - ${user?.location || 'Prishtina'}`}
             </ThemedText>
           </View>
         </View>

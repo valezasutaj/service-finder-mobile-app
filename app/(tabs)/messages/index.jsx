@@ -12,6 +12,8 @@ import ThemedView from "../../../components/ThemedView";
 import ThemedText from "../../../components/ThemedText";
 import NavBar from "../../../components/NavBar";
 
+import LoginRequiredScreen from "../../../components/LoginRequiredScreen";
+
 import { useTheme } from "../../../context/ThemedModes";
 import { safeRouter } from "../../../utils/SafeRouter";
 
@@ -33,6 +35,7 @@ export default function Messages() {
 
         const init = async () => {
             const u = await getUser();
+
             if (!u) return;
 
             setUser(u);
@@ -75,10 +78,19 @@ export default function Messages() {
         };
 
         init();
+
         return () => unsubscribe && unsubscribe();
     }, []);
 
-    if (!user) return null;
+    if (!user) {
+        return (
+            <LoginRequiredScreen
+                onLogin={() => safeRouter.push("/login")}
+                onSignup={() => safeRouter.push("/signup")}
+                message="Please login to view your messages."
+            />
+        );
+    }
 
     const filtered = messages.filter((m) =>
         m.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -133,11 +145,7 @@ export default function Messages() {
                             {item.avatar ? (
                                 <Image source={{ uri: item.avatar }} style={s.avatar} />
                             ) : (
-                                <Ionicons
-                                    name="person-circle"
-                                    size={60}
-                                    color={'black'}
-                                />
+                                <Ionicons name="person-circle" size={60} color={'black'} />
                             )}
                         </View>
 

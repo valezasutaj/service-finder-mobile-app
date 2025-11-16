@@ -63,11 +63,11 @@ const MyProfile = () => {
 
           <View>
             <ThemedText title style={[themeStyle.name, { color: theme.title }]}>
-              {user?.fullName || ""}
+              {user?.fullName || "Name Surname"}
             </ThemedText>
 
             <ThemedText style={[themeStyle.email, { color: theme.mutedText ?? theme.text }]}>
-              {user?.email || ""}
+              {user?.email || "email@domain.com"}
             </ThemedText>
           </View>
         </View>
@@ -80,14 +80,24 @@ const MyProfile = () => {
             </ThemedText>
           </View>
 
-          {["Edit profile", "Change password", "Recent Activity"].map((item, index) => (
-            <TouchableOpacity key={index} style={themeStyle.row}>
+          {[
+            { label: "Edit profile", route: "/editprofile" },
+            // { label: "Change password", route: "/changepassword" },
+            // { label: "Recent Activity", route: "/activity" },
+            { label: "My Services", route: "/myservices" }
+          ].map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={themeStyle.row}
+              onPress={() => safeRouter.push(item.route)}
+            >
               <ThemedText style={[themeStyle.rowText, { color: theme.text }]}>
-                {item}
+                {item.label}
               </ThemedText>
               <ChevronRight color={theme.profileIcon} size={22} />
             </TouchableOpacity>
           ))}
+
         </ThemedCard>
 
         <ThemedCard style={[themeStyle.section, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }]}>
@@ -156,14 +166,43 @@ const MyProfile = () => {
           </TouchableOpacity>
         </ThemedCard>
 
-        <TouchableOpacity onPress={handleLogout}>
-          <ThemedCard style={[themeStyle.logoutButton, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }]}>
-            <View style={themeStyle.logoutRow}>
-              <LogOut color={"#da0000ff"} size={20} strokeWidth={2.5} />
-              <ThemedText style={[themeStyle.logoutText, { color: "#da0000ff" }]}>Logout</ThemedText>
-            </View>
-          </ThemedCard>
-        </TouchableOpacity>
+        {user && (
+          <TouchableOpacity onPress={handleLogout}>
+            <ThemedCard
+              style={[
+                themeStyle.logoutButton,
+                { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }
+              ]}
+            >
+              <View style={themeStyle.logoutRow}>
+                <LogOut color={"#da0000ff"} size={20} strokeWidth={2.5} />
+                <ThemedText style={[themeStyle.logoutText, { color: "#da0000ff" }]}>
+                  Logout
+                </ThemedText>
+              </View>
+            </ThemedCard>
+          </TouchableOpacity>
+        )}
+
+        {!user && (
+          <TouchableOpacity onPress={() => safeRouter.push("/login")}>
+            <ThemedCard
+              style={[
+                themeStyle.logoutButton,
+                { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }
+              ]}
+            >
+              <View style={themeStyle.logoutRow}>
+                <LogOut color={theme.primary} size={20} strokeWidth={2.5} />
+                <ThemedText style={[themeStyle.logoutText, { color: theme.primary }]}>
+                  Login
+                </ThemedText>
+              </View>
+            </ThemedCard>
+          </TouchableOpacity>
+        )}
+
+
       </ScrollView>
 
       <NavBar />

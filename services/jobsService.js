@@ -6,7 +6,9 @@ import {
     doc,
     deleteDoc,
     updateDoc,
-    serverTimestamp
+    serverTimestamp,
+    query,
+    where
 } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -29,25 +31,24 @@ export const jobService = {
     },
 
     createJob: async (job) => {
-    const payload = {
-        name: job.name,
-        price: job.price,
-        discount: job.discount,
-        description: job.description,
+        const payload = {
+            name: job.name,
+            price: job.price,
+            discount: job.discount,
+            description: job.description,
 
-        category: job.category,   
-        image: job.image,
+            category: job.category,
+            image: job.image,
 
-        provider: job.provider,     
+            provider: job.provider,
 
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-    };
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        };
 
-    const ref = await addDoc(collection(db, COLLECTION), payload);
-    return { id: ref.id, ...payload };
-},
-
+        const ref = await addDoc(collection(db, COLLECTION), payload);
+        return { id: ref.id, ...payload };
+    },
 
     updateJob: async (id, data) => {
         await updateDoc(doc(db, COLLECTION, id), {
@@ -58,5 +59,12 @@ export const jobService = {
 
     deleteJob: async (id) => {
         await deleteDoc(doc(db, COLLECTION, id));
+    },
+
+    getJobsByUser: async (uid) => {
+        const q = query(collection(db, "jobs"), where("provider.uid", "==", uid));
+        const snap = await getDocs(q);
+
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     }
 };

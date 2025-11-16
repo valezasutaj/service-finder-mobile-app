@@ -5,22 +5,20 @@ import {
     TouchableOpacity,
     FlatList,
     Image,
-    StyleSheet
+    StyleSheet,
+    KeyboardAvoidingView,
+    Platform
 } from "react-native";
 
 import ThemedView from "../../../components/ThemedView";
 import ThemedText from "../../../components/ThemedText";
-
+import LoginRequiredScreen from "../../../components/LoginRequiredScreen";
 import { useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../context/ThemedModes";
-
 import { messageService } from "../../../services/messagesService";
 import { userService } from "../../../services/userService";
 import { getUser } from "../../../services/storageService";
 import { safeRouter } from "../../../utils/SafeRouter";
-import { KeyboardAvoidingView, Platform } from "react-native";
-
-
 import { ArrowLeft } from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -34,49 +32,61 @@ export default function ChatPage() {
     const [messages, setMessages] = useState([]);
     const [typing, setTyping] = useState(false);
     const [text, setText] = useState("");
+    const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
     const flatListRef = useRef(null);
 
-    const chatId = user ? [user.uid, receiverId].sort().join("_") : null;
+    const chatId =
+        user && receiverId ? [user.uid, receiverId].sort().join("_") : null;
 
     useEffect(() => {
+        let unsubMessages = null;
+        let unsubTyping = null;
+
         const init = async () => {
-            setUser(await getUser());
-            setOtherUser(await userService.getUserById(receiverId));
+            const currentUser = await getUser();
+
+            if (!currentUser) {
+                setHasCheckedAuth(true);
+                return;
+            }
+
+            setUser(currentUser);
+
+            const other = await userService.getUserById(receiverId);
+            setOtherUser(other);
+
+            unsubMessages = messageService.listenConversation(
+                currentUser.uid,
+                receiverId,
+                (msgs) => setMessages(msgs)
+            );
+
+            if (chatId) {
+                unsubTyping = messageService.listenTyping(chatId, (data) => {
+                    if (data.userId !== currentUser.uid) {
+                        setTyping(data.isTyping);
+                    }
+                });
+            }
+
+            setHasCheckedAuth(true);
         };
+
         init();
-    }, []);
-
-    useEffect(() => {
-        if (!user) return;
-
-        const unsubMessages = messageService.listenConversation(
-            user.uid,
-            receiverId,
-            (msgs) => {
-                setMessages(msgs);
-            }
-        );
-
-        const unsubTyping = messageService.listenTyping(
-            chatId,
-            (data) => {
-                if (data.userId !== user.uid) setTyping(data.isTyping);
-            }
-        );
 
         return () => {
-            unsubMessages();
-            unsubTyping();
+            unsubMessages && unsubMessages();
+            unsubTyping && unsubTyping();
         };
-    }, [user]);
+    }, [receiverId, chatId]);
 
     useEffect(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
     }, [messages]);
 
     const send = async () => {
-        if (!text.trim()) return;
+        if (!text.trim() || !user) return;
 
         await messageService.sendMessage({
             senderId: user.uid,
@@ -85,14 +95,27 @@ export default function ChatPage() {
         });
 
         setText("");
-        messageService.setTyping(chatId, user.uid, false);
+
+        if (chatId) {
+            messageService.setTyping(chatId, user.uid, false);
+        }
 
         setTimeout(() => {
             flatListRef.current?.scrollToEnd({ animated: true });
         }, 50);
     };
 
-    if (!user || !otherUser) return null;
+    if (!user && hasCheckedAuth) {
+        return (
+            <LoginRequiredScreen
+                onLogin={() => safeRouter.push("/login")}
+                onSignup={() => safeRouter.push("/signup")}
+                message="Please login to view your messages."
+            />
+        );
+    }
+
+    if (!otherUser) return null;
 
     const formatTime = (createdAt) => {
         if (!createdAt || typeof createdAt.toDate !== "function") return "";
@@ -108,11 +131,16 @@ export default function ChatPage() {
             <ThemedView safe style={s.container}>
                 <View style={s.header}>
                     <View style={s.headerLeft}>
-                        <TouchableOpacity style={s.backButton} onPress={() => safeRouter.back()}>
+                        <TouchableOpacity
+                            style={s.backButton}
+                            onPress={() => safeRouter.back()}
+                        >
                             <ArrowLeft color={theme.text} size={22} />
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={() => safeRouter.push(`/profile/${otherUser.uid}`)}>
+                        <TouchableOpacity
+                            onPress={() => safeRouter.push(`/profile/${otherUser.uid}`)}
+                        >
                             <View style={s.headerUser}>
                                 {otherUser?.avatar ? (
                                     <Image
@@ -120,11 +148,18 @@ export default function ChatPage() {
                                         style={s.headerAvatar}
                                     />
                                 ) : (
-                                    <Ionicons name="person-circle" size={40} color={theme.text} style={{ marginLeft: -10, marginRight: 5 }} />
+                                    <Ionicons
+                                        name="person-circle"
+                                        size={40}
+                                        color={theme.text}
+                                        style={{ marginLeft: -10, marginRight: 5 }}
+                                    />
                                 )}
 
                                 <View style={s.headerText}>
-                                    <ThemedText style={s.headerName}>{otherUser.fullName}</ThemedText>
+                                    <ThemedText style={s.headerName}>
+                                        {otherUser.fullName}
+                                    </ThemedText>
                                 </View>
                             </View>
                         </TouchableOpacity>
@@ -138,12 +173,6 @@ export default function ChatPage() {
                         keyExtractor={(m) => m.id}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingVertical: 16 }}
-                        onContentSizeChange={() =>
-                            flatListRef.current?.scrollToEnd({ animated: true })
-                        }
-                        onLayout={() =>
-                            flatListRef.current?.scrollToEnd({ animated: false })
-                        }
                         renderItem={({ item }) => {
                             const mine = item.senderId === user.uid;
 
@@ -151,7 +180,7 @@ export default function ChatPage() {
                                 <View
                                     style={[
                                         s.msgWrapper,
-                                        mine ? s.msgWrapperMe : s.msgWrapperThem
+                                        mine ? s.msgWrapperMe : s.msgWrapperThem,
                                     ]}
                                 >
                                     <View style={[s.bubble, mine ? s.me : s.them]}>
@@ -159,6 +188,7 @@ export default function ChatPage() {
                                             {item.message}
                                         </ThemedText>
                                     </View>
+
                                     <ThemedText style={s.timestamp}>
                                         {formatTime(item.createdAt)}
                                     </ThemedText>
@@ -184,7 +214,10 @@ export default function ChatPage() {
                             value={text}
                             onChangeText={(v) => {
                                 setText(v);
-                                messageService.setTyping(chatId, user.uid, v.length > 0);
+
+                                if (chatId) {
+                                    messageService.setTyping(chatId, user.uid, v.length > 0);
+                                }
                             }}
                             placeholder="Message..."
                             placeholderTextColor={theme.mutedText}
@@ -197,11 +230,9 @@ export default function ChatPage() {
                         </TouchableOpacity>
                     </View>
                 </View>
-
             </ThemedView>
         </KeyboardAvoidingView>
     );
-
 }
 
 const styles = (theme) =>
@@ -231,19 +262,16 @@ const styles = (theme) =>
             flexDirection: "row",
             alignItems: "center",
         },
-
         headerAvatar: {
             width: 30,
             height: 30,
             borderRadius: 22,
             marginRight: 12,
-            marginLeft: -5
+            marginLeft: -5,
         },
-
         headerText: {
             maxWidth: 180,
         },
-
         headerName: {
             fontSize: 18,
             fontWeight: "600",
@@ -320,9 +348,8 @@ const styles = (theme) =>
             fontSize: 16,
             color: theme.text,
             height: 26.5,
-            marginLeft: 10
+            marginLeft: 10,
         },
-
         sendBtn: {
             width: 35,
             height: 35,
