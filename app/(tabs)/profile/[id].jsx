@@ -1,29 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-    View,
-    StyleSheet,
-    Image,
-    ScrollView,
-    TouchableOpacity,
-    Alert,
-    ActivityIndicator,
-    FlatList
-} from "react-native";
-
+import { View, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, ActivityIndicator, FlatList } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import ThemedView from "../../../components/ThemedView";
 import ThemedText from "../../../components/ThemedText";
 import ThemedCard from "../../../components/ThemedCard";
 import NavBar from "../../../components/NavBar";
-import {
-    ChevronLeft,
-    Star,
-    MapPin,
-    MessageCircle,
-    Phone,
-    Mail
-} from "lucide-react-native";
-
+import { ChevronLeft, MapPin, MessageCircle, Phone, Mail } from "lucide-react-native";
 import { useTheme } from '../../../context/ThemedModes';
 import { safeRouter } from "../../../utils/SafeRouter";
 import { userService } from '../../../services/userService';
@@ -326,15 +308,31 @@ const getStyles = (theme) =>
             backgroundColor: theme.cardBackground,
         },
 
-        serviceInfo: { flex: 1 },
+        serviceInfo: { 
+            flex: 1 
+        },
 
-        serviceName: { fontSize: 16, fontWeight: "500", color: theme.text },
+        serviceName: { 
+            fontSize: 16, 
+            fontWeight: "500", 
+            color: theme.text 
+        },
 
-        servicePrice: { fontSize: 14, color: theme.primary, fontWeight: "600" },
+        servicePrice: { 
+            fontSize: 14, color: 
+            theme.primary, fontWeight: "600" 
+        },
 
-        serviceRating: { flexDirection: "row", alignItems: "center" },
+        serviceRating: { 
+            flexDirection: "row",
+            alignItems: "center" 
+            },
 
-        noServicesText: { textAlign: "center", color: theme.mutedText, paddingVertical: 20 },
+        noServicesText: { 
+            textAlign: "center", 
+            color: theme.mutedText, 
+            paddingVertical: 20 
+        },
     });
 
 export default ProfileScreen;

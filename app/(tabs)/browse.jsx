@@ -11,6 +11,9 @@ import { useRouter } from "expo-router";
 import { categoryService } from '../../services/categoriesService';
 import { jobService } from '../../services/jobsService';
 import { getCategoryIcon } from '../../services/imagesMap';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
+import "../../assets/images/categories/default.png"
 
 const Browse = () => {
     const { theme } = useTheme();
@@ -23,20 +26,22 @@ const Browse = () => {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const load = async () => {
-            setLoading(true);
 
-            const c = await categoryService.getCategories();
-            const j = await jobService.getJobs();
+    useFocusEffect(
+        useCallback(() => {
+            const load = async () => {
+                setLoading(true);
+                const c = await categoryService.getCategories();
+                const j = await jobService.getJobs();
+                setCategories([{ id: 'All', label: 'All' }, ...c]);
+                setJobs(j);
+                setLoading(false);
+            };
 
-            setCategories([{ id: 'All', label: 'All' }, ...c]);
-            setJobs(j);
+            load();
+        }, [])
+    );
 
-            setLoading(false);
-        };
-        load();
-    }, []);
 
     let filteredJobs = jobs.filter(job =>
         job.name.toLowerCase().includes(searchText.toLowerCase()) &&
@@ -139,7 +144,7 @@ const Browse = () => {
                                 price={item.price}
                                 discount={item.discount}
                                 rating={item.rating}
-                                image={item.image}
+                                image={ item.image ? { uri: item.image } : require('../../assets/images/categories/default.png')}
                                 providerName={item.provider?.fullName}
                                 onPress={() =>
                                     router.push({

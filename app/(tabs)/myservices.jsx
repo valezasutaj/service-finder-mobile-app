@@ -161,7 +161,7 @@ export default function MyServices() {
                                     name={item.name}
                                     price={item.price}
                                     discount={item.discount}
-                                    image={getCategoryIcon(item.categories?.[0]?.icon)}
+                                    image={ item.image ? { uri: item.image } : require('../../assets/images/categories/default.png')}
                                     providerName={item.provider?.fullName}
                                     onPress={() => handleServicePress(item.id)}
                                     showDelete={true}

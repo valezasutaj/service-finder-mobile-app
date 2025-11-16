@@ -24,12 +24,17 @@ const HomeScreen = () => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const shuffle = (array) => {
+        return [...array].sort(() => Math.random() - 0.5);
+    };
+
     useEffect(() => {
         const load = async () => {
             try {
                 const j = await jobService.getJobs();
                 const c = await categoryService.getCategories();
-                setJobs(j);
+                const randomJobs = shuffle(j);
+                setJobs(randomJobs);
                 setCategories(c);
             } finally {
                 setLoading(false);
@@ -60,9 +65,9 @@ const HomeScreen = () => {
 
                                 <Image
                                     source={
-                                        item.image
-                                            ? { uri: item.image }
-                                            : getCategoryIcon(item.category?.icon)
+                                            item.image
+                                                ? { uri: item.image }
+                                                : require('../../assets/images/categories/default.png')
                                     }
                                     style={themeStyles.bannerImage}
                                 />
@@ -114,7 +119,7 @@ const HomeScreen = () => {
                 </ThemedText>
 
                 <FlatList
-                    data={jobs.slice(0, 5)}
+                    data={jobs.slice(0, 4)}
                     keyExtractor={item => item.id}
                     scrollEnabled={false}
                     renderItem={({ item }) => (
@@ -123,7 +128,7 @@ const HomeScreen = () => {
                             name={item.name}
                             discount={item.discount}
                             price={item.price}
-                            image={item.image ? { uri: item.image } : getCategoryIcon(item.category?.icon)}
+                            image={ item.image ? { uri: item.image } : require('../../assets/images/categories/default.png')}
                             providerName={item.provider?.fullName}
                             onPress={() =>
                                 router.push({

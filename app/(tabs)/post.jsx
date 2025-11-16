@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     View, TextInput, Image, FlatList, TouchableOpacity,
-    KeyboardAvoidingView, StyleSheet, ScrollView, Modal
+    KeyboardAvoidingView, StyleSheet, ScrollView
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -13,7 +13,8 @@ import ThemedText from '../../components/ThemedText';
 import ThemedButton from '../../components/ThemedButton';
 import Spacer from '../../components/Spacer';
 
-import { Check } from "lucide-react-native";
+import SuccessModal from "../../components/modals/SuccessModal";
+import ErrorModal from "../../components/modals/ErrorModal";
 
 import { auth } from "../../firebase";
 import { userService } from "../../services/userService";
@@ -25,7 +26,6 @@ import LoginRequiredScreen from "../../components/LoginRequiredScreen";
 export default function Post() {
     const { theme } = useTheme();
     const styles = s(theme);
-
     const [user, setUser] = useState(null);
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
@@ -36,7 +36,9 @@ export default function Post() {
     const [loadingCategories, setLoadingCategories] = useState(true);
     const [image, setImage] = useState("");
     const [error, setError] = useState("");
-    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [modalContent, setModalContent] = useState({ title: "", message: "" });
 
     useEffect(() => {
         const checkUser = async () => {
@@ -55,9 +57,17 @@ export default function Post() {
                 setLoadingCategories(false);
             }
         };
-
         loadCategories();
     }, []);
+
+    const showModal = (title, message, isError = false) => {
+        setModalContent({ title, message });
+        if (isError) {
+            setShowErrorModal(true);
+        } else {
+            setShowSuccessModal(true);
+        }
+    };
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -82,10 +92,14 @@ export default function Post() {
         }
 
         try {
-            if (!auth.currentUser) return;
+            if (!auth.currentUser) {
+                return;
+            }
 
             const provider = await userService.getUserById(auth.currentUser.uid);
-            if (!provider) return setError("Provider profile not found.");
+            if (!provider) {
+                return setError("Provider profile not found.");
+            }
 
             await jobService.createJob({
                 name,
@@ -103,16 +117,12 @@ export default function Post() {
                     fullName: provider.fullName || "Unknown",
                     username: provider.username || "",
                     email: provider.email || "",
-                    avatar:
-                        provider.avatar ||
-                        `https://placehold.co/100x100?text=${provider.fullName?.[0]?.toUpperCase() || "U"}`
+                    avatar: provider.avatar || `https://placehold.co/100x100?text=${provider.fullName?.[0]?.toUpperCase() || "U"}`
                 }
             });
-
-            setIsSubmitted(true);
-
+            showModal("Success", "You have successfully posted your service!");
         } catch (err) {
-            setError(err.message ?? "Failed to post job.");
+            showModal("Error", "Failed to post job.", true);
         }
     };
 
@@ -135,7 +145,7 @@ export default function Post() {
                     </View>
 
                     <View style={styles.content}>
-                        <ThemedText type="subtitle" style={styles.label}>Name</ThemedText>
+                        <ThemedText type="subtitle" style={styles.label}>Name*</ThemedText>
                         <TextInput
                             placeholder="Enter Service Name"
                             placeholderTextColor={theme.mutedText}
@@ -146,7 +156,7 @@ export default function Post() {
 
                         <Spacer height={15} />
 
-                        <ThemedText type="subtitle" style={styles.label}>Price</ThemedText>
+                        <ThemedText type="subtitle" style={styles.label}>Price*</ThemedText>
                         <TextInput
                             keyboardType="numeric"
                             placeholder="Enter Price"
@@ -181,7 +191,7 @@ export default function Post() {
 
                         <Spacer height={15} />
 
-                        <ThemedText type="subtitle" style={styles.label}>Select Category</ThemedText>
+                        <ThemedText type="subtitle" style={styles.label}>Select Category*</ThemedText>
 
                         {loadingCategories ? (
                             <ThemedText>Loading...</ThemedText>
@@ -249,42 +259,29 @@ export default function Post() {
                         <ThemedText style={{ color: theme.primary }}>Cancel</ThemedText>
                     </TouchableOpacity>
 
-                    <View style={{ flex: 1, backgroundColor: theme.primary, borderRadius: 10 }}>
+                    <View style={{ flex: 1, backgroundColor: theme.primary, borderRadius: 10, justifyContent: "center" }}>
                         <ThemedButton onPress={handlePost}>
                             <ThemedText style={{ color: theme.postText }}>Post Job</ThemedText>
                         </ThemedButton>
                     </View>
                 </View>
 
-                <Modal visible={isSubmitted} transparent animationType="fade">
-                    <View style={styles.overlay}>
-                        <View style={styles.popup}>
-                            <View style={styles.checkmark}>
-                                <Check color={theme.postText} size={36} strokeWidth={3} />
-                            </View>
+                <SuccessModal
+                    visible={showSuccessModal}
+                    onClose={() => {
+                        setShowSuccessModal(false);
+                        safeRouter.back();
+                    }}
+                    title={modalContent.title}
+                    message={modalContent.message}
+                />
 
-                            <ThemedText style={{ color: theme.backHome, fontSize: 18 }}>
-                                Posted Successfully
-                            </ThemedText>
-
-                            <ThemedText style={{ color: theme.backHome }}>
-                                You have successfully posted your service
-                            </ThemedText>
-
-                            <TouchableOpacity
-                                onPress={() => {
-                                    setIsSubmitted(false);
-                                    safeRouter.back();
-                                }}
-                                style={styles.homeButton}
-                            >
-                                <ThemedText style={{ color: theme.postText, fontSize: 15 }}>
-                                    Back To Home
-                                </ThemedText>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </Modal>
+                <ErrorModal
+                    visible={showErrorModal}
+                    onClose={() => setShowErrorModal(false)}
+                    title={modalContent.title}
+                    message={modalContent.message}
+                />
             </KeyboardAvoidingView>
         </ThemedView>
     );
@@ -292,18 +289,35 @@ export default function Post() {
 
 const s = (theme) =>
     StyleSheet.create({
-        container: { flex: 1, paddingTop: 10 },
-        header: { alignItems: "center" },
-        headerText: { fontSize: 22, fontWeight: "700", color: theme.text },
-        content: { paddingHorizontal: 20, paddingTop: 10 },
-        label: { marginBottom: 8 },
+        container: { 
+            flex: 1, 
+            paddingTop: 10,
+        },
+        header: { 
+            alignItems: "center",
+        },
+        headerText: { 
+            fontSize: 22, 
+            fontWeight: "700", 
+            color: theme.text,
+        },
+        content: { 
+            paddingHorizontal: 20, 
+            paddingTop: 10,
+        },
+        label: { 
+            marginBottom: 8,
+        },
         input: {
             borderRadius: 10,
             padding: 12,
             borderWidth: 1,
-            fontSize: 15
+            fontSize: 15,
         },
-        categoryItem: { alignItems: "center", marginRight: 16 },
+        categoryItem: { 
+            alignItems: "center", 
+            marginRight: 16 ,
+        },
         categoryBox: {
             width: 80,
             height: 80,
@@ -311,48 +325,27 @@ const s = (theme) =>
             borderRadius: 12,
             overflow: "hidden",
         },
-        categoryImage: { width: "100%", height: "100%" },
-        preview: { width: "100%", height: 180, borderRadius: 10 },
+        categoryImage: { 
+            width: "100%", 
+            height: "100%",
+        },
+        preview: { 
+            width: "100%", 
+            height: 180, 
+            borderRadius: 10,
+        },
         footer: {
             flexDirection: "row",
             paddingHorizontal: 20,
             paddingVertical: 15,
             borderTopWidth: 1,
-            gap: 12
+            gap: 12,
         },
         cancelButton: {
             flex: 1,
             borderWidth: 1.5,
             borderRadius: 10,
             paddingVertical: 14,
-            alignItems: "center"
-        },
-        overlay: {
-            flex: 1,
-            justifyContent: "center",
             alignItems: "center",
-            backgroundColor: "rgba(18, 18, 18, 0.66)",
-        },
-        popup: {
-            width: "85%",
-            height: 300,
-            backgroundColor: theme.background,
-            borderRadius: 20,
-            alignItems: "center",
-            justifyContent: "space-between",
-            paddingVertical: 30,
-            paddingHorizontal: 20,
-        },
-        checkmark: {
-            backgroundColor: theme.primary,
-            borderRadius: 50,
-            paddingHorizontal: 25,
-            paddingVertical: 25,
-        },
-        homeButton: {
-            backgroundColor: theme.primary,
-            borderRadius: 25,
-            paddingVertical: 12,
-            paddingHorizontal: 55,
-        },
+        }
     });

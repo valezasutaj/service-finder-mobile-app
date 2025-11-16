@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import {
     View,
     TextInput,
@@ -7,7 +7,8 @@ import {
     Image,
     StyleSheet,
     KeyboardAvoidingView,
-    Platform
+    Platform,
+    AppState
 } from "react-native";
 
 import ThemedView from "../../../components/ThemedView";
@@ -21,6 +22,7 @@ import { getUser } from "../../../services/storageService";
 import { safeRouter } from "../../../utils/SafeRouter";
 import { ArrowLeft } from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function ChatPage() {
     const { id: receiverId } = useLocalSearchParams();
@@ -36,8 +38,29 @@ export default function ChatPage() {
 
     const flatListRef = useRef(null);
 
-    const chatId =
-        user && receiverId ? [user.uid, receiverId].sort().join("_") : null;
+    const chatId = user && receiverId ? [user.uid, receiverId].sort().join("_") : null;
+
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                if (chatId && user) {
+                    messageService.setTyping(chatId, user.uid, false);
+                }
+            };
+        }, [chatId, user])
+    );
+
+    useEffect(() => {
+        const sub = AppState.addEventListener("change", (state) => {
+            if (state !== "active") {
+                if (chatId && user) {
+                    messageService.setTyping(chatId, user.uid, false);
+                }
+            }
+        });
+
+        return () => sub.remove();
+    }, [chatId, user]);
 
     useEffect(() => {
         let unsubMessages = null;
@@ -91,7 +114,7 @@ export default function ChatPage() {
         await messageService.sendMessage({
             senderId: user.uid,
             receiverId,
-            message: text,
+            message: text.trim(),
         });
 
         setText("");
@@ -105,23 +128,53 @@ export default function ChatPage() {
         }, 50);
     };
 
-    if (!user && hasCheckedAuth) {
-        return (
-            <LoginRequiredScreen
-                onLogin={() => safeRouter.push("/login")}
-                onSignup={() => safeRouter.push("/signup")}
-                message="Please login to view your messages."
-            />
-        );
-    }
-
-    if (!otherUser) return null;
-
     const formatTime = (createdAt) => {
         if (!createdAt || typeof createdAt.toDate !== "function") return "";
         const d = createdAt.toDate();
         return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     };
+
+    const formatDateSeparator = (createdAt) => {
+        if (!createdAt || typeof createdAt.toDate !== "function") {
+            return "";
+        }
+        const d = createdAt.toDate();
+        return d.toLocaleDateString([], {weekday: "short", month: "short", day: "numeric", year: "numeric"});
+    };
+
+    const buildChatItems = (msgs) => {
+        if (!Array.isArray(msgs)) {
+            return [];
+        }
+
+        const items = [];
+        let lastDateKey = null;
+
+        const sorted = [...msgs].sort((a, b) => {
+            const aTime = a.createdAt?.toMillis?.() ?? 0;
+            const bTime = b.createdAt?.toMillis?.() ?? 0;
+            return aTime - bTime;
+        });
+
+        sorted.forEach((msg) => {
+            const d = msg.createdAt?.toDate?.();
+            const dateKey = d ? d.toISOString().split("T")[0] : "unknown";
+
+            if (dateKey !== lastDateKey) {
+                items.push({
+                    id: `date-${dateKey}`,
+                    type: "date",
+                    label: formatDateSeparator(msg.createdAt),
+                });
+                lastDateKey = dateKey;
+            }
+
+            items.push({ ...msg, type: "message" });
+        });
+        return items;
+    };
+
+    const chatItems = useMemo(() => buildChatItems(messages), [messages]);
 
     return (
         <KeyboardAvoidingView
@@ -129,107 +182,134 @@ export default function ChatPage() {
             behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
             <ThemedView safe style={s.container}>
-                <View style={s.header}>
-                    <View style={s.headerLeft}>
-                        <TouchableOpacity
-                            style={s.backButton}
-                            onPress={() => safeRouter.back()}
-                        >
-                            <ArrowLeft color={theme.text} size={22} />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            onPress={() => safeRouter.push(`/profile/${otherUser.uid}`)}
-                        >
-                            <View style={s.headerUser}>
-                                {otherUser?.avatar ? (
-                                    <Image
-                                        source={{ uri: otherUser.avatar }}
-                                        style={s.headerAvatar}
-                                    />
-                                ) : (
-                                    <Ionicons
-                                        name="person-circle"
-                                        size={40}
-                                        color={theme.text}
-                                        style={{ marginLeft: -10, marginRight: 5 }}
-                                    />
-                                )}
-
-                                <View style={s.headerText}>
-                                    <ThemedText style={s.headerName}>
-                                        {otherUser.fullName}
-                                    </ThemedText>
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
-                <View style={s.chatArea}>
-                    <FlatList
-                        ref={flatListRef}
-                        data={messages}
-                        keyExtractor={(m) => m.id}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingVertical: 16 }}
-                        renderItem={({ item }) => {
-                            const mine = item.senderId === user.uid;
-
-                            return (
-                                <View
-                                    style={[
-                                        s.msgWrapper,
-                                        mine ? s.msgWrapperMe : s.msgWrapperThem,
-                                    ]}
-                                >
-                                    <View style={[s.bubble, mine ? s.me : s.them]}>
-                                        <ThemedText style={s.bubbleText}>
-                                            {item.message}
-                                        </ThemedText>
-                                    </View>
-
-                                    <ThemedText style={s.timestamp}>
-                                        {formatTime(item.createdAt)}
-                                    </ThemedText>
-                                </View>
-                            );
-                        }}
+                {!user && hasCheckedAuth ? (
+                    <LoginRequiredScreen
+                        onLogin={() => safeRouter.push("/login")}
+                        onSignup={() => safeRouter.push("/signup")}
+                        message="Please login to view your messages."
                     />
+                ) : !otherUser ? (
+                    <View style={{ flex: 1 }} />
+                ) : (
+                    <>
+                        <View style={s.header}>
+                            <View style={s.headerLeft}>
+                                <TouchableOpacity
+                                    style={s.backButton}
+                                    onPress={() => safeRouter.back()}
+                                >
+                                    <ArrowLeft color={theme.text} size={22} />
+                                </TouchableOpacity>
 
-                    {typing && (
-                        <View style={s.typingWrapper}>
-                            <View style={s.typingBubble}>
-                                <ThemedText style={s.typingText}>
-                                    {otherUser.fullName} is typing...
-                                </ThemedText>
+                                <TouchableOpacity
+                                    onPress={() =>
+                                        safeRouter.push(`/profile/${otherUser.uid}`)
+                                    }
+                                >
+                                    <View style={s.headerUser}>
+                                        {otherUser?.avatar ? (
+                                            <Image
+                                                source={{ uri: otherUser.avatar }}
+                                                style={s.headerAvatar}
+                                            />
+                                        ) : (
+                                            <Ionicons
+                                                name="person-circle"
+                                                size={40}
+                                                color={theme.text}
+                                                style={{ marginLeft: -10, marginRight: 5 }}
+                                            />
+                                        )}
+
+                                        <View style={s.headerText}>
+                                            <ThemedText style={s.headerName}>
+                                                {otherUser.fullName}
+                                            </ThemedText>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
                             </View>
                         </View>
-                    )}
-                </View>
 
-                <View style={s.inputContainer}>
-                    <View style={s.inputRow}>
-                        <TextInput
-                            value={text}
-                            onChangeText={(v) => {
-                                setText(v);
+                        <View style={s.chatArea}>
+                            <FlatList
+                                ref={flatListRef}
+                                data={chatItems}
+                                keyExtractor={(item) => item.id}
+                                showsVerticalScrollIndicator={false}
+                                contentContainerStyle={{ paddingVertical: 16 }}
+                                renderItem={({ item }) => {
+                                    if (item.type === "date") {
+                                        return (
+                                            <View style={s.dateSeparator}>
+                                                <ThemedText style={s.dateText}>
+                                                    {item.label}
+                                                </ThemedText>
+                                            </View>
+                                        );
+                                    }
 
-                                if (chatId) {
-                                    messageService.setTyping(chatId, user.uid, v.length > 0);
-                                }
-                            }}
-                            placeholder="Message..."
-                            placeholderTextColor={theme.mutedText}
-                            style={s.input}
-                            multiline
-                        />
+                                    const mine = item.senderId === user.uid;
 
-                        <TouchableOpacity onPress={send} style={s.sendBtn}>
-                            <ThemedText style={s.sendIcon}>➤</ThemedText>
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                                    return (
+                                        <View
+                                            style={[
+                                                s.msgWrapper,
+                                                mine ? s.msgWrapperMe : s.msgWrapperThem,
+                                            ]}
+                                        >
+                                            <View style={[s.bubble, mine ? s.me : s.them]}>
+                                                <ThemedText style={s.bubbleText}>
+                                                    {item.message}
+                                                </ThemedText>
+                                            </View>
+
+                                            <ThemedText style={s.timestamp}>
+                                                {formatTime(item.createdAt)}
+                                            </ThemedText>
+                                        </View>
+                                    );
+                                }}
+                            />
+
+                            {typing && (
+                                <View style={s.typingWrapper}>
+                                    <View style={s.typingBubble}>
+                                        <ThemedText style={s.typingText}>
+                                            {otherUser.fullName} is typing...
+                                        </ThemedText>
+                                    </View>
+                                </View>
+                            )}
+                        </View>
+
+                        <View style={s.inputContainer}>
+                            <View style={s.inputRow}>
+                                <TextInput
+                                    value={text}
+                                    onChangeText={(v) => {
+                                        setText(v);
+                                        if (chatId) {
+                                            messageService.setTyping(
+                                                chatId,
+                                                user.uid,
+                                                v.trim().length > 0
+                                            );
+                                        }
+                                    }}
+                                    placeholder="Message..."
+                                    placeholderTextColor={theme.mutedText}
+                                    style={s.input}
+                                    multiline
+                                />
+
+                                <TouchableOpacity onPress={send} style={s.sendBtn}>
+                                    <ThemedText style={s.sendIcon}>➤</ThemedText>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </>
+                )}
             </ThemedView>
         </KeyboardAvoidingView>
     );
@@ -280,6 +360,18 @@ const styles = (theme) =>
         chatArea: {
             flex: 1,
             paddingHorizontal: 16,
+        },
+        dateSeparator: {
+            alignItems: "center",
+            marginVertical: 12,
+        },
+        dateText: {
+            fontSize: 12,
+            color: theme.mutedText,
+            paddingVertical: 4,
+            paddingHorizontal: 10,
+            backgroundColor: theme.cardBackground,
+            borderRadius: 10,
         },
         msgWrapper: {
             marginVertical: 6,
