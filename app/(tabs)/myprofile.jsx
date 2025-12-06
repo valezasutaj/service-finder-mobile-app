@@ -11,6 +11,8 @@ import { removeUser, getUser, saveUser } from '../../services/storageService';
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../firebase";
+import * as ImagePicker from "expo-image-picker";
+import { Modal } from "react-native";
 
 const MyProfile = () => {
   const { theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode } = useTheme();
@@ -50,16 +52,67 @@ const MyProfile = () => {
     }
   };
 
+
+
+const [modalVisible, setModalVisible] = useState(false);
+
+const pickImage = async () => {
+  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!permission.granted) return alert("Duhet leja për galerinë!");
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    quality: 1,
+  });
+
+  if (!result.canceled) {
+    const uri = result.assets[0].uri;
+    setUser(prev => ({ ...prev, avatar: uri }));
+    saveUser({ ...user, avatar: uri });
+  }
+  setModalVisible(false);
+};
+
+const openCamera = async () => {
+  const permission = await ImagePicker.requestCameraPermissionsAsync();
+  if (!permission.granted) return alert("Duhet leja për kamerën!");
+
+  const result = await ImagePicker.launchCameraAsync({
+    quality: 1,
+  });
+
+  if (!result.canceled) {
+    const uri = result.assets[0].uri;
+    setUser(prev => ({ ...prev, avatar: uri }));
+    saveUser({ ...user, avatar: uri });
+  }
+  setModalVisible(false);
+};
+
   return (
     <ThemedView safe style={[themeStyle.container, { backgroundColor: theme.profileBackground }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 10 }}>
         <View style={themeStyle.profileSection}>
-          <Ionicons
-            name="person-circle-sharp"
-            size={themeStyle.profileImage.width}
-            color={isDarkMode ? "#fff" : "#000"}
-            style={[themeStyle.profileImage, { borderColor: theme.border }]}
-          />
+        
+                  <TouchableOpacity onPress={() => setModalVisible(true)}>
+            {user?.avatar ? (
+              <Image
+                source={{ uri: user.avatar }}
+                style={[
+                  themeStyle.profileImage,
+                  { borderRadius: 50, borderWidth: 2, borderColor: theme.border }
+                ]}
+              />
+            ) : (
+              <Ionicons
+                name="person-circle-sharp"
+                size={themeStyle.profileImage.width}
+                color={isDarkMode ? "#fff" : "#000"}
+                style={[themeStyle.profileImage, { borderColor: theme.border }]}
+              />
+            )}
+          </TouchableOpacity>
+
 
           <View>
             <ThemedText title style={[themeStyle.name, { color: theme.title }]}>
@@ -204,6 +257,51 @@ const MyProfile = () => {
 
 
       </ScrollView>
+        
+        <Modal
+  animationType="slide"
+  transparent={true}
+  visible={modalVisible}
+  onRequestClose={() => setModalVisible(false)}
+>
+  <View
+    style={{
+      flex: 1,
+      justifyContent: "flex-end",
+      backgroundColor: "rgba(0,0,0,0.5)",
+    }}
+  >
+    <View
+      style={{
+        backgroundColor: theme.surface,
+        padding: 20,
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16
+      }}
+    >
+      <TouchableOpacity
+        style={{ padding: 15 }}
+        onPress={openCamera}
+      >
+        <ThemedText style={{ fontSize: 16 }}>Take Photo</ThemedText>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={{ padding: 15 }}
+        onPress={pickImage}
+      >
+        <ThemedText style={{ fontSize: 16 }}>Choose From Gallery</ThemedText>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={{ padding: 15 }}
+        onPress={() => setModalVisible(false)}
+      >
+        <ThemedText style={{ fontSize: 16, color: "red" }}>Cancel</ThemedText>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
 
       <NavBar />
     </ThemedView>
