@@ -30,7 +30,7 @@ export default function Post() {
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
     const [discount, setDiscount] = useState("");
-    const [description, setDescription] = useState("");
+       const [description, setDescription] = useState("");
     const [category, setCategory] = useState(null);
     const [categories, setCategories] = useState([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
@@ -69,9 +69,30 @@ export default function Post() {
         }
     };
 
-    const pickImage = async () => {
+    
+    const pickImageFromGallery = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            quality: 0.8,
+            base64: true,
+        });
+
+        if (!result.canceled) {
+            const base64Img = `data:image/jpeg;base64,${result.assets[0].base64}`;
+            setImage(base64Img);
+        }
+    };
+
+    
+    const pickImageFromCamera = async () => {
+        const permission = await ImagePicker.requestCameraPermissionsAsync();
+        if (permission.status !== "granted") {
+            alert("Camera permission is required.");
+            return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
             quality: 0.8,
             base64: true,
@@ -92,9 +113,7 @@ export default function Post() {
         }
 
         try {
-            if (!auth.currentUser) {
-                return;
-            }
+            if (!auth.currentUser) return;
 
             const provider = await userService.getUserById(auth.currentUser.uid);
             if (!provider) {
@@ -233,10 +252,18 @@ export default function Post() {
 
                         <Spacer height={15} />
 
+                       
                         <ThemedText type="subtitle" style={styles.label}>Add Image</ThemedText>
-                        <ThemedButton onPress={pickImage}>
-                            <ThemedText style={{ color: theme.postText }}>Pick an Image</ThemedText>
-                        </ThemedButton>
+
+                        <View style={{ flexDirection: "row", gap: 10 }}>
+                            <ThemedButton onPress={pickImageFromCamera} style={{ flex: 1 }}>
+                                <ThemedText style={{ color: theme.postText }}>Use Camera</ThemedText>
+                            </ThemedButton>
+
+                            <ThemedButton onPress={pickImageFromGallery} style={{ flex: 1 }}>
+                                <ThemedText style={{ color: theme.postText }}>Gallery</ThemedText>
+                            </ThemedButton>
+                        </View>
 
                         {image ? (
                             <>
