@@ -96,13 +96,24 @@ const Header = () => {
       ]}
     >
       <View style={styles.leftSection}>
-        <TouchableOpacity onPress={() => safeRouter.push('/profile')}>
+            <TouchableOpacity onPress={() => safeRouter.push('/profile')}>
+        {user?.avatar ? (
+          <Image
+            source={{ uri: user.avatar }}
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 21,
+            }}
+          />
+        ) : (
           <Ionicons
             name="person-circle"
             size={42}
             color={isDarkMode ? '#fff' : '#000'}
           />
-        </TouchableOpacity>
+        )}
+      </TouchableOpacity>
 
         <View style={styles.userInfo}>
           <ThemedText style={styles.userName}>

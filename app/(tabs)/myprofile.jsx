@@ -13,6 +13,8 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../firebase";
 import * as ImagePicker from "expo-image-picker";
 import { Modal } from "react-native";
+import { saveUserToFirestore } from "../../services/updateUserProfile";
+
 
 const MyProfile = () => {
   const { theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode } = useTheme();
@@ -65,11 +67,19 @@ const pickImage = async () => {
     quality: 1,
   });
 
-  if (!result.canceled) {
-    const uri = result.assets[0].uri;
-    setUser(prev => ({ ...prev, avatar: uri }));
-    saveUser({ ...user, avatar: uri });
-  }
+ if (!result.canceled) {
+  const uri = result.assets[0].uri;
+
+  setUser(prev => {
+    const updated = { ...prev, avatar: uri };
+
+    saveUser(updated);                     
+    saveUserToFirestore(prev.uid, updated); 
+
+    return updated;
+  });
+}
+
   setModalVisible(false);
 };
 
@@ -82,10 +92,17 @@ const openCamera = async () => {
   });
 
   if (!result.canceled) {
-    const uri = result.assets[0].uri;
-    setUser(prev => ({ ...prev, avatar: uri }));
-    saveUser({ ...user, avatar: uri });
-  }
+  const uri = result.assets[0].uri;
+
+  setUser(prev => {
+    const updated = { ...prev, avatar: uri };
+
+    saveUser(updated);                     
+    saveUserToFirestore(prev.uid, updated);
+
+    return updated;
+  });
+}
   setModalVisible(false);
 };
 
