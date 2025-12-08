@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,9 @@ import * as Google from "expo-auth-session/providers/google";
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { auth } from "../../firebase";
 import { Alert } from "react-native";
+import { requestAndSaveLocation } from "../../utils/location";
+import { updateUserLocation } from "../../services/userService";
+
 
 
 WebBrowser.maybeCompleteAuthSession();
@@ -29,11 +32,11 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const insets = useSafeAreaInsets();
 
-   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     clientId: "1083853747405-f8se0d55te3k2781ts2ukpdigalod65c.apps.googleusercontent.com",
   });
 
-   useEffect(() => {
+  useEffect(() => {
     if (!response) return;
 
     if (response.type === "success") {
@@ -72,8 +75,24 @@ export default function LoginScreen() {
     }
 
     try {
-      await loginUser(email, pwd);
+      // 1) Login me email/password
+      const user = await loginUser(email, pwd);
+
+      if (!user?.uid) {
+        throw { customMessage: "Unexpected login error." };
+      }
+
+      // 2) Marrim GPS + City
+      const coords = await requestAndSaveLocation(user.uid);
+
+      // 3) Përditësojmë Firestore nëse kemi GPS
+      if (coords) {
+        await updateUserLocation(user.uid, coords);
+      }
+
+      // 4) Navigojmë
       safeRouter.replace("/home");
+
     } catch (error) {
       setCustomError(error.customMessage || "Login failed");
     } finally {

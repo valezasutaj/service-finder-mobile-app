@@ -4,6 +4,20 @@
     "slug": "ServiceFinder",
     "version": "1.0.0",
     "scheme": "servicefinder",
+
+    "android": {
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+
+    "ios": {
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location to show nearby services."
+      }
+    },
+
     "plugins": [
       "expo-asset",
       "expo-router",

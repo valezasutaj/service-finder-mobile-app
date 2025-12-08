@@ -14,19 +14,33 @@ import { auth } from "../../firebase";
 import * as ImagePicker from "expo-image-picker";
 import { Modal } from "react-native";
 import { saveUserToFirestore } from "../../services/updateUserProfile";
-
+import { userService } from "../../services/userService";   // <-- SHTUAR për lokacionin
 
 const MyProfile = () => {
   const { theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode } = useTheme();
   const themeStyle = styles(theme);
   const [user, setUser] = useState(null);
 
+  //  ----------------------------
+  //  LOAD USER + LOCATION
+  //  ----------------------------
   useEffect(() => {
-    const loadLocal = async () => {
+    const loadUser = async () => {
       const stored = await getUser();
       if (stored) setUser(stored);
+
+      // 🔥 Merr user-in nga Firestore me të dhënat më të reja SI LOKACIONIN
+      if (stored?.uid) {
+        const freshUser = await userService.getUserById(stored.uid);
+
+        if (freshUser) {
+          setUser(freshUser);
+          await saveUser(freshUser);
+        }
+      }
     };
-    loadLocal();
+
+    loadUser();
 
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -45,91 +59,89 @@ const MyProfile = () => {
     return () => unsub();
   }, []);
 
+  //  ----------------------------
+  //  LOGOUT
+  //  ----------------------------
   const handleLogout = async () => {
     try {
       await removeUser();
-      await signOut(auth).catch(() => { });
+      await signOut(auth).catch(() => {});
     } finally {
       safeRouter.replace("/");
     }
   };
 
+  //  ----------------------------
+  //  MODAL + CAMERA/GALLERY
+  //  ----------------------------
+  const [modalVisible, setModalVisible] = useState(false);
 
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return alert("Duhet leja për galerinë!");
 
-const [modalVisible, setModalVisible] = useState(false);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
 
-const pickImage = async () => {
-  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (!permission.granted) return alert("Duhet leja për galerinë!");
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 1,
-  });
+      setUser(prev => {
+        const updated = { ...prev, avatar: uri };
+        saveUser(updated);
+        saveUserToFirestore(prev.uid, updated);
+        return updated;
+      });
+    }
 
- if (!result.canceled) {
-  const uri = result.assets[0].uri;
+    setModalVisible(false);
+  };
 
-  setUser(prev => {
-    const updated = { ...prev, avatar: uri };
+  const openCamera = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) return alert("Duhet leja për kamerën!");
 
-    saveUser(updated);                     
-    saveUserToFirestore(prev.uid, updated); 
+    const result = await ImagePicker.launchCameraAsync({ quality: 1 });
 
-    return updated;
-  });
-}
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
 
-  setModalVisible(false);
-};
+      setUser(prev => {
+        const updated = { ...prev, avatar: uri };
+        saveUser(updated);
+        saveUserToFirestore(prev.uid, updated);
+        return updated;
+      });
+    }
 
-const openCamera = async () => {
-  const permission = await ImagePicker.requestCameraPermissionsAsync();
-  if (!permission.granted) return alert("Duhet leja për kamerën!");
-
-  const result = await ImagePicker.launchCameraAsync({
-    quality: 1,
-  });
-
-  if (!result.canceled) {
-  const uri = result.assets[0].uri;
-
-  setUser(prev => {
-    const updated = { ...prev, avatar: uri };
-
-    saveUser(updated);                     
-    saveUserToFirestore(prev.uid, updated);
-
-    return updated;
-  });
-}
-  setModalVisible(false);
-};
+    setModalVisible(false);
+  };
 
   return (
     <ThemedView safe style={[themeStyle.container, { backgroundColor: theme.profileBackground }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 10 }}>
-        <View style={themeStyle.profileSection}>
         
-                  <TouchableOpacity onPress={() => setModalVisible(true)}>
+        {/* -----------------------------------------------------
+            PROFILE HEADER
+        ----------------------------------------------------- */}
+        <View style={themeStyle.profileSection}>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
             {user?.avatar ? (
               <Image
                 source={{ uri: user.avatar }}
-                style={[
-                  themeStyle.profileImage,
-                  { borderRadius: 50, borderWidth: 2, borderColor: theme.border }
-                ]}
+                style={[themeStyle.profileImage, { borderRadius: 50, borderWidth: 2, borderColor: theme.border }]}
               />
             ) : (
               <Ionicons
                 name="person-circle-sharp"
                 size={themeStyle.profileImage.width}
                 color={isDarkMode ? "#fff" : "#000"}
-                style={[themeStyle.profileImage, { borderColor: theme.border }]}
+                style={themeStyle.profileImage}
               />
             )}
           </TouchableOpacity>
-
 
           <View>
             <ThemedText title style={[themeStyle.name, { color: theme.title }]}>
@@ -139,186 +151,137 @@ const openCamera = async () => {
             <ThemedText style={[themeStyle.email, { color: theme.mutedText ?? theme.text }]}>
               {user?.email || "email@domain.com"}
             </ThemedText>
+
+            {/* 🔥 LOKACIONI NGA FIRESTORE */}
+            <ThemedText style={[themeStyle.email, { color: theme.text }]}>
+              {user?.location?.city || "Lokacioni nuk është gjetur"}
+            </ThemedText>
           </View>
         </View>
 
-        <ThemedCard style={[themeStyle.section, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }]}>
+        {/* -----------------------------------------------------
+            ACCOUNT SECTION
+        ----------------------------------------------------- */}
+        <ThemedCard style={[themeStyle.section]}>
           <View style={themeStyle.sectionHeader}>
             <UserRound color={theme.profileIcon} size={26} strokeWidth={1.2} />
-            <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>
-              Account
-            </ThemedText>
+            <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>Account</ThemedText>
           </View>
 
           {[
             { label: "Edit profile", route: "/editprofile" },
-            // { label: "Change password", route: "/changepassword" },
-            // { label: "Recent Activity", route: "/activity" },
             { label: "My Services", route: "/myservices" }
           ].map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={themeStyle.row}
-              onPress={() => safeRouter.push(item.route)}
-            >
-              <ThemedText style={[themeStyle.rowText, { color: theme.text }]}>
-                {item.label}
-              </ThemedText>
+            <TouchableOpacity key={index} style={themeStyle.row} onPress={() => safeRouter.push(item.route)}>
+              <ThemedText style={themeStyle.rowText}>{item.label}</ThemedText>
               <ChevronRight color={theme.profileIcon} size={22} />
             </TouchableOpacity>
           ))}
-
         </ThemedCard>
 
-        <ThemedCard style={[themeStyle.section, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }]}>
+        {/* -----------------------------------------------------
+            SETTINGS SECTION
+        ----------------------------------------------------- */}
+        <ThemedCard style={[themeStyle.section]}>
           <View style={themeStyle.sectionHeader}>
             <Settings color={theme.profileIcon} size={26} strokeWidth={1.2} />
-            <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>
-              Settings
-            </ThemedText>
+            <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>Settings</ThemedText>
           </View>
 
           <View style={themeStyle.row}>
-            <ThemedText style={[themeStyle.rowText, { color: theme.text }]}>Appearance</ThemedText>
+            <ThemedText style={themeStyle.rowText}>Appearance</ThemedText>
           </View>
 
           <View style={themeStyle.modeContainer}>
-            {[{ label: "System", value: null }, { label: "Light", value: "light" }, { label: "Dark", value: "dark" }]
-              .map(({ label, value }) => (
-                <TouchableOpacity
-                  key={label}
-                  onPress={() => (value === null ? setSystemMode() : value === "light" ? setLightMode() : setDarkMode())}
+            {[{ label: "System", value: null }, { label: "Light", value: "light" }, { label: "Dark", value: "dark" }].map(({ label, value }) => (
+              <TouchableOpacity
+                key={label}
+                onPress={() => (value === null ? setSystemMode() : value === "light" ? setLightMode() : setDarkMode())}
+                style={[
+                  themeStyle.modeButton,
+                  userPreference === value || (value === null && userPreference === null)
+                    ? themeStyle.modeButtonActive
+                    : {}
+                ]}
+              >
+                <ThemedText
                   style={[
-                    themeStyle.modeButton,
-                    userPreference === value || (value === null && userPreference === null)
-                      ? themeStyle.modeButtonActive
-                      : {}
+                    themeStyle.modeButtonText,
+                    { color: userPreference === value || (value === null && userPreference === null) ? "#fff" : theme.text }
                   ]}
                 >
-                  <ThemedText
-                    style={[
-                      themeStyle.modeButtonText,
-                      {
-                        color:
-                          userPreference === value || (value === null && userPreference === null)
-                            ? "#fff"
-                            : theme.text
-                      }
-                    ]}
-                  >
-                    {label}
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
+                  {label}
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
           </View>
 
           {["Notifications", "Language and Region"].map((item, index) => (
             <TouchableOpacity key={index} style={themeStyle.row}>
-              <ThemedText style={[themeStyle.rowText, { color: theme.text }]}>
-                {item}
-              </ThemedText>
+              <ThemedText style={themeStyle.rowText}>{item}</ThemedText>
               <ChevronRight color={theme.profileIcon} size={22} />
             </TouchableOpacity>
           ))}
         </ThemedCard>
 
-        <ThemedCard style={[themeStyle.section, { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }]}>
+        {/* -----------------------------------------------------
+            SUPPORT
+        ----------------------------------------------------- */}
+        <ThemedCard style={[themeStyle.section]}>
           <View style={themeStyle.sectionHeader}>
             <LifeBuoy color={theme.profileIcon} size={26} strokeWidth={1.2} />
-            <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>
-              Support
-            </ThemedText>
+            <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>Support</ThemedText>
           </View>
 
           <TouchableOpacity style={themeStyle.row}>
-            <ThemedText style={[themeStyle.rowText, { color: theme.text }]}>Contact us</ThemedText>
+            <ThemedText style={themeStyle.rowText}>Contact us</ThemedText>
             <ChevronRight color={theme.profileIcon} size={22} />
           </TouchableOpacity>
         </ThemedCard>
 
-        {user && (
+        {/* -----------------------------------------------------
+            LOGIN / LOGOUT
+        ----------------------------------------------------- */}
+        {user ? (
           <TouchableOpacity onPress={handleLogout}>
-            <ThemedCard
-              style={[
-                themeStyle.logoutButton,
-                { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }
-              ]}
-            >
+            <ThemedCard style={themeStyle.logoutButton}>
               <View style={themeStyle.logoutRow}>
                 <LogOut color={"#da0000ff"} size={20} strokeWidth={2.5} />
-                <ThemedText style={[themeStyle.logoutText, { color: "#da0000ff" }]}>
-                  Logout
-                </ThemedText>
+                <ThemedText style={themeStyle.logoutText}>Logout</ThemedText>
               </View>
             </ThemedCard>
           </TouchableOpacity>
-        )}
-
-        {!user && (
+        ) : (
           <TouchableOpacity onPress={() => safeRouter.push("/login")}>
-            <ThemedCard
-              style={[
-                themeStyle.logoutButton,
-                { borderColor: theme.border, backgroundColor: theme.surface ?? theme.cardBackground }
-              ]}
-            >
+            <ThemedCard style={themeStyle.logoutButton}>
               <View style={themeStyle.logoutRow}>
                 <LogOut color={theme.primary} size={20} strokeWidth={2.5} />
-                <ThemedText style={[themeStyle.logoutText, { color: theme.primary }]}>
-                  Login
-                </ThemedText>
+                <ThemedText style={[themeStyle.logoutText, { color: theme.primary }]}>Login</ThemedText>
               </View>
             </ThemedCard>
           </TouchableOpacity>
         )}
 
-
       </ScrollView>
-        
-        <Modal
-  animationType="slide"
-  transparent={true}
-  visible={modalVisible}
-  onRequestClose={() => setModalVisible(false)}
->
-  <View
-    style={{
-      flex: 1,
-      justifyContent: "flex-end",
-      backgroundColor: "rgba(0,0,0,0.5)",
-    }}
-  >
-    <View
-      style={{
-        backgroundColor: theme.surface,
-        padding: 20,
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16
-      }}
-    >
-      <TouchableOpacity
-        style={{ padding: 15 }}
-        onPress={openCamera}
-      >
-        <ThemedText style={{ fontSize: 16 }}>Take Photo</ThemedText>
-      </TouchableOpacity>
 
-      <TouchableOpacity
-        style={{ padding: 15 }}
-        onPress={pickImage}
-      >
-        <ThemedText style={{ fontSize: 16 }}>Choose From Gallery</ThemedText>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={{ padding: 15 }}
-        onPress={() => setModalVisible(false)}
-      >
-        <ThemedText style={{ fontSize: 16, color: "red" }}>Cancel</ThemedText>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
+      {/* -----------------------------------------------------
+          MODAL FOR CAMERA / GALLERY
+      ----------------------------------------------------- */}
+      <Modal animationType="slide" transparent visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
+        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <View style={{ backgroundColor: theme.surface, padding: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>
+            <TouchableOpacity style={{ padding: 15 }} onPress={openCamera}>
+              <ThemedText style={{ fontSize: 16 }}>Take Photo</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity style={{ padding: 15 }} onPress={pickImage}>
+              <ThemedText style={{ fontSize: 16 }}>Choose From Gallery</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity style={{ padding: 15 }} onPress={() => setModalVisible(false)}>
+              <ThemedText style={{ fontSize: 16, color: "red" }}>Cancel</ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <NavBar />
     </ThemedView>
@@ -326,6 +289,7 @@ const openCamera = async () => {
 };
 
 export default MyProfile;
+
 
 const styles = (theme) =>
   StyleSheet.create({
@@ -420,3 +384,6 @@ const styles = (theme) =>
       fontWeight: '600'
     }
   });
+
+
+
