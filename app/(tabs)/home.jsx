@@ -15,6 +15,7 @@ import { categoryService } from '../../services/categoriesService';
 import { getCategoryIcon } from '../../services/imagesMap';
 import { safeRouter } from '../../utils/SafeRouter';
 
+
 const HomeScreen = () => {
     const { theme } = useTheme();
     const themeStyles = styles(theme);

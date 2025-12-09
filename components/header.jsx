@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, TouchableOpacity, Image, Animated } from 'react-native';
 import ThemedText from './ThemedText';
 import { useTheme } from '../context/ThemedModes';
 import { safeRouter } from "../utils/SafeRouter";
@@ -8,7 +8,45 @@ import { getUser } from '../services/storageService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
 import { getWeatherByCity } from '../services/WeatherService';
-import { userService } from '../services/userService';   // <-- për Firestore user-in me lokacion
+import { userService } from '../services/userService';   
+
+
+// ---------------------------------------------
+// FadePress – efekt fade kur përdoruesi prek elementin
+// ---------------------------------------------
+const FadePress = ({ onPress, children, style }) => {
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.timing(opacity, {
+      toValue: 0.5,
+      duration: 120,
+      useNativeDriver: true
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 120,
+      useNativeDriver: true
+    }).start();
+  };
+
+  return (
+    <Animated.View style={{ opacity }}>
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={style}
+      >
+        {children}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
 
 const Header = () => {
   const { theme, isDarkMode } = useTheme();
@@ -20,20 +58,17 @@ const Header = () => {
     icon: null,
   });
 
-  // =====================================================
-  // 1️⃣ Marrim user-in nga storage + Firestore (me lokacion)
-  // =====================================================
+  // ---------------------------------------------
+  // LOAD USER
+  // ---------------------------------------------
   useEffect(() => {
     const loadUser = async () => {
       const stored = await getUser();
       if (stored) setUser(stored);
 
-      // 👉 SHKARKO VERSIONIN E RI NGA FIRESTORE (SIDOMOS LOKACIONIN)
       if (stored?.uid) {
         const fresh = await userService.getUserById(stored.uid);
-        if (fresh) {
-          setUser(fresh);
-        }
+        if (fresh) setUser(fresh);
       }
     };
 
@@ -44,7 +79,7 @@ const Header = () => {
         setUser(prev => prev ?? {
           fullName: firebaseUser.displayName || "Name Surname",
           email: firebaseUser.email,
-          location: { city: "Prishtina" },  // fallback
+          location: { city: "Prishtina" },  
           avatar: firebaseUser.photoURL || null,
         });
       }
@@ -53,23 +88,20 @@ const Header = () => {
     return () => unsub();
   }, []);
 
-  // =====================================================
-  // 2️⃣ Marrim motin sipas user.location.city
-  // =====================================================
+
+  // ---------------------------------------------
+  // LOAD WEATHER
+  // ---------------------------------------------
   useEffect(() => {
     const loadWeather = async () => {
       try {
         let city = user?.location?.city || "Prishtina";
-
-        // Normalizim për API
         city = city
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
           .replace(/ë/gi, "e");
 
-        if (city.toLowerCase().startsWith("prisht")) {
-          city = "Pristina";
-        }
+        if (city.toLowerCase().startsWith("prisht")) city = "Pristina";
 
         const apiCity = `${city},XK`;
 
@@ -89,29 +121,28 @@ const Header = () => {
     if (user) loadWeather();
   }, [user]);
 
+
   return (
     <View style={[styles.headerContainer, { backgroundColor: theme.uiBackground }]}>
-      
-      {/* ================= LEFT SIDE ================= */}
-      <View style={styles.leftSection}>
-        
-        <TouchableOpacity onPress={() => safeRouter.push('/profile')}>
-          {user?.avatar ? (
-            <Image
-              source={{ uri: user.avatar }}
-              style={{ width: 42, height: 42, borderRadius: 21 }}
-            />
-          ) : (
-            <Ionicons name="person-circle" size={42} color={isDarkMode ? "#fff" : "#000"} />
-          )}
-        </TouchableOpacity>
+
+      <FadePress
+        onPress={() => safeRouter.push('/myprofile')}
+        style={styles.leftSection}
+      >
+        {user?.avatar ? (
+          <Image
+            source={{ uri: user.avatar }}
+            style={{ width: 42, height: 42, borderRadius: 21 }}
+          />
+        ) : (
+          <Ionicons name="person-circle" size={42} color={isDarkMode ? "#fff" : "#000"} />
+        )}
 
         <View style={styles.userInfo}>
           <ThemedText style={styles.userName}>
             {user?.fullName || "Name Surname"}
           </ThemedText>
 
-          {/* Temperature + City */}
           <View style={styles.weatherRow}>
             {weather.icon && (
               <Image source={{ uri: weather.icon }} style={styles.weatherIcon} resizeMode="contain" />
@@ -122,20 +153,23 @@ const Header = () => {
             </ThemedText>
           </View>
         </View>
-      </View>
+      </FadePress>
 
-      {/* ================= RIGHT SIDE ================= */}
+
+     
       <View style={styles.rightSection}>
-        <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.primary }]}>
-          <Ionicons name="notifications" size={20} color="#fff" />
-        </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.iconButton, { backgroundColor: theme.primary }]}
+        <FadePress style={[styles.iconButton, { backgroundColor: theme.primary }]}>
+          <Ionicons name="notifications" size={20} color="#fff" />
+        </FadePress>
+
+        <FadePress
           onPress={() => safeRouter.push('/booking')}
+          style={[styles.iconButton, { backgroundColor: theme.primary }]}
         >
           <Ionicons name="calendar" size={20} color="#fff" />
-        </TouchableOpacity>
+        </FadePress>
+
       </View>
 
     </View>
@@ -144,6 +178,11 @@ const Header = () => {
 
 export default Header;
 
+
+
+// ---------------------------------------------
+// STYLES
+// ---------------------------------------------
 const s = (theme) =>
   StyleSheet.create({
     headerContainer: {
@@ -156,7 +195,11 @@ const s = (theme) =>
       borderBottomColor: theme.border,
       borderRadius: 16,
     },
-    leftSection: { flexDirection: "row", alignItems: "center", gap: 10 },
+    leftSection: { 
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10 
+    },
     userInfo: { flexDirection: "column" },
     userName: {
       fontSize: 15,
@@ -179,7 +222,11 @@ const s = (theme) =>
       opacity: 0.8,
       color: theme.mutedText || theme.text,
     },
-    rightSection: { flexDirection: "row", alignItems: "center", gap: 8 },
+    rightSection: { 
+      flexDirection: "row", 
+      alignItems: "center", 
+      gap: 8 
+    },
     iconButton: {
       width: 36,
       height: 36,

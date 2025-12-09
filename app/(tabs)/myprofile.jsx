@@ -1,4 +1,14 @@
-import { View, StyleSheet, Image, Switch, TouchableOpacity, ScrollView } from "react-native";
+import { 
+  View, 
+  StyleSheet, 
+  Image, 
+  TouchableOpacity, 
+  ScrollView, 
+  Modal, 
+  Animated 
+} 
+from "react-native";
+
 import ThemedView from "../../components/ThemedView";
 import ThemedText from "../../components/ThemedText";
 import ThemedCard from "../../components/ThemedCard";
@@ -8,28 +18,57 @@ import { useTheme } from '../../context/ThemedModes';
 import { Ionicons } from '@expo/vector-icons';
 import { safeRouter } from "../../utils/SafeRouter";
 import { removeUser, getUser, saveUser } from '../../services/storageService';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../firebase";
 import * as ImagePicker from "expo-image-picker";
-import { Modal } from "react-native";
 import { saveUserToFirestore } from "../../services/updateUserProfile";
-import { userService } from "../../services/userService";   // <-- SHTUAR për lokacionin
+import { userService } from "../../services/userService";
+
+const FadePress = ({ onPress, children, style }) => {
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.timing(opacity, {
+      toValue: 0.5,
+      duration: 120,
+      useNativeDriver: true
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 120,
+      useNativeDriver: true
+    }).start();
+  };
+
+  return (
+    <Animated.View style={{ opacity }}>
+      <TouchableOpacity 
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={style}
+      >
+        {children}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+
 
 const MyProfile = () => {
   const { theme, isDarkMode, userPreference, setLightMode, setDarkMode, setSystemMode } = useTheme();
   const themeStyle = styles(theme);
   const [user, setUser] = useState(null);
-
-  //  ----------------------------
-  //  LOAD USER + LOCATION
-  //  ----------------------------
   useEffect(() => {
     const loadUser = async () => {
       const stored = await getUser();
       if (stored) setUser(stored);
 
-      // 🔥 Merr user-in nga Firestore me të dhënat më të reja SI LOKACIONIN
       if (stored?.uid) {
         const freshUser = await userService.getUserById(stored.uid);
 
@@ -58,10 +97,6 @@ const MyProfile = () => {
 
     return () => unsub();
   }, []);
-
-  //  ----------------------------
-  //  LOGOUT
-  //  ----------------------------
   const handleLogout = async () => {
     try {
       await removeUser();
@@ -70,12 +105,16 @@ const MyProfile = () => {
       safeRouter.replace("/");
     }
   };
-
-  //  ----------------------------
-  //  MODAL + CAMERA/GALLERY
-  //  ----------------------------
   const [modalVisible, setModalVisible] = useState(false);
+  const fadeBG = useRef(new Animated.Value(0)).current;
 
+  useEffect(() => {
+    Animated.timing(fadeBG, {
+      toValue: modalVisible ? 1 : 0,
+      duration: 200,
+      useNativeDriver: true
+    }).start();
+  }, [modalVisible]);
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return alert("Duhet leja për galerinë!");
@@ -119,13 +158,16 @@ const MyProfile = () => {
     setModalVisible(false);
   };
 
+
   return (
-    <ThemedView safe style={[themeStyle.container, { backgroundColor: theme.profileBackground }]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 10 }}>
-        
-        {/* -----------------------------------------------------
-            PROFILE HEADER
-        ----------------------------------------------------- */}
+    <ThemedView 
+      safe 
+      style={[themeStyle.container, { backgroundColor: theme.profileBackground }]}
+    >
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 10 }}
+      >
         <View style={themeStyle.profileSection}>
           <TouchableOpacity onPress={() => setModalVisible(true)}>
             {user?.avatar ? (
@@ -152,48 +194,50 @@ const MyProfile = () => {
               {user?.email || "email@domain.com"}
             </ThemedText>
 
-            {/* 🔥 LOKACIONI NGA FIRESTORE */}
             <ThemedText style={[themeStyle.email, { color: theme.text }]}>
               {user?.location?.city || "Lokacioni nuk është gjetur"}
             </ThemedText>
           </View>
         </View>
-
-        {/* -----------------------------------------------------
-            ACCOUNT SECTION
-        ----------------------------------------------------- */}
         <ThemedCard style={[themeStyle.section]}>
+
           <View style={themeStyle.sectionHeader}>
             <UserRound color={theme.profileIcon} size={26} strokeWidth={1.2} />
             <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>Account</ThemedText>
           </View>
 
-          {[
+          {[ 
             { label: "Edit profile", route: "/editprofile" },
             { label: "My Services", route: "/myservices" }
           ].map((item, index) => (
-            <TouchableOpacity key={index} style={themeStyle.row} onPress={() => safeRouter.push(item.route)}>
+            <FadePress 
+              key={index}
+              style={themeStyle.row}
+              onPress={() => safeRouter.push(item.route)}
+            >
               <ThemedText style={themeStyle.rowText}>{item.label}</ThemedText>
               <ChevronRight color={theme.profileIcon} size={22} />
-            </TouchableOpacity>
+            </FadePress>
           ))}
-        </ThemedCard>
 
-        {/* -----------------------------------------------------
-            SETTINGS SECTION
-        ----------------------------------------------------- */}
+        </ThemedCard>
         <ThemedCard style={[themeStyle.section]}>
+
           <View style={themeStyle.sectionHeader}>
             <Settings color={theme.profileIcon} size={26} strokeWidth={1.2} />
             <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>Settings</ThemedText>
           </View>
 
-          <View style={themeStyle.row}>
+          <FadePress style={themeStyle.row}>
             <ThemedText style={themeStyle.rowText}>Appearance</ThemedText>
-          </View>
+          </FadePress>
 
           <View style={themeStyle.modeContainer}>
-            {[{ label: "System", value: null }, { label: "Light", value: "light" }, { label: "Dark", value: "dark" }].map(({ label, value }) => (
+            {[ 
+              { label: "System", value: null }, 
+              { label: "Light", value: "light" }, 
+              { label: "Dark", value: "dark" } 
+            ].map(({ label, value }) => (
               <TouchableOpacity
                 key={label}
                 onPress={() => (value === null ? setSystemMode() : value === "light" ? setLightMode() : setDarkMode())}
@@ -204,12 +248,10 @@ const MyProfile = () => {
                     : {}
                 ]}
               >
-                <ThemedText
-                  style={[
-                    themeStyle.modeButtonText,
-                    { color: userPreference === value || (value === null && userPreference === null) ? "#fff" : theme.text }
-                  ]}
-                >
+                <ThemedText style={[
+                  themeStyle.modeButtonText,
+                  { color: userPreference === value || (value === null && userPreference === null) ? "#fff" : theme.text }
+                ]}>
                   {label}
                 </ThemedText>
               </TouchableOpacity>
@@ -217,31 +259,25 @@ const MyProfile = () => {
           </View>
 
           {["Notifications", "Language and Region"].map((item, index) => (
-            <TouchableOpacity key={index} style={themeStyle.row}>
+            <FadePress key={index} style={themeStyle.row}>
               <ThemedText style={themeStyle.rowText}>{item}</ThemedText>
               <ChevronRight color={theme.profileIcon} size={22} />
-            </TouchableOpacity>
+            </FadePress>
           ))}
-        </ThemedCard>
 
-        {/* -----------------------------------------------------
-            SUPPORT
-        ----------------------------------------------------- */}
+        </ThemedCard>
         <ThemedCard style={[themeStyle.section]}>
           <View style={themeStyle.sectionHeader}>
             <LifeBuoy color={theme.profileIcon} size={26} strokeWidth={1.2} />
             <ThemedText title style={[themeStyle.sectionTitle, { color: theme.profileIcon }]}>Support</ThemedText>
           </View>
 
-          <TouchableOpacity style={themeStyle.row}>
+          <FadePress style={themeStyle.row}>
             <ThemedText style={themeStyle.rowText}>Contact us</ThemedText>
             <ChevronRight color={theme.profileIcon} size={22} />
-          </TouchableOpacity>
+          </FadePress>
         </ThemedCard>
 
-        {/* -----------------------------------------------------
-            LOGIN / LOGOUT
-        ----------------------------------------------------- */}
         {user ? (
           <TouchableOpacity onPress={handleLogout}>
             <ThemedCard style={themeStyle.logoutButton}>
@@ -263,42 +299,57 @@ const MyProfile = () => {
         )}
 
       </ScrollView>
-
-      {/* -----------------------------------------------------
-          MODAL FOR CAMERA / GALLERY
-      ----------------------------------------------------- */}
-      <Modal animationType="slide" transparent visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
-        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <View style={{ backgroundColor: theme.surface, padding: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>
+      <Modal transparent visible={modalVisible} animationType="slide">
+        <Animated.View 
+          style={{
+            flex: 1,
+            justifyContent: "flex-end",
+            backgroundColor: fadeBG.interpolate({
+              inputRange: [0, 1],
+              outputRange: ["rgba(0,0,0,0)", "rgba(0,0,0,0.5)"]
+            })
+          }}
+        >
+          <View style={{ 
+            backgroundColor: theme.surface, 
+            padding: 20, 
+            borderTopLeftRadius: 16, 
+            borderTopRightRadius: 16 
+          }}>
             <TouchableOpacity style={{ padding: 15 }} onPress={openCamera}>
               <ThemedText style={{ fontSize: 16 }}>Take Photo</ThemedText>
             </TouchableOpacity>
+
             <TouchableOpacity style={{ padding: 15 }} onPress={pickImage}>
               <ThemedText style={{ fontSize: 16 }}>Choose From Gallery</ThemedText>
             </TouchableOpacity>
+
             <TouchableOpacity style={{ padding: 15 }} onPress={() => setModalVisible(false)}>
               <ThemedText style={{ fontSize: 16, color: "red" }}>Cancel</ThemedText>
             </TouchableOpacity>
           </View>
-        </View>
+
+        </Animated.View>
       </Modal>
 
+
       <NavBar />
+
     </ThemedView>
   );
 };
 
 export default MyProfile;
-
-
 const styles = (theme) =>
   StyleSheet.create({
+
     container: {
       flex: 1,
       backgroundColor: theme.background,
       paddingTop: 16,
       paddingHorizontal: 24
     },
+
     profileSection: {
       flexDirection: "row",
       alignItems: "center",
@@ -306,24 +357,31 @@ const styles = (theme) =>
       marginHorizontal: 10,
       gap: 14
     },
+
     profileImage: {
       width: 60,
       height: 60
     },
+
     name: {
       fontSize: 18,
       fontWeight: "700"
     },
+
     email: {
       fontSize: 13,
       opacity: 0.8
     },
+
     section: {
       borderWidth: 1,
       borderRadius: 14,
       paddingHorizontal: 10,
-      paddingVertical: 10
+      paddingVertical: 10,
+      marginVertical: 8,
+      backgroundColor: theme.surface
     },
+
     sectionHeader: {
       flexDirection: "row",
       alignItems: "center",
@@ -333,40 +391,50 @@ const styles = (theme) =>
       borderBottomWidth: 1,
       borderBottomColor: theme.border
     },
+
     sectionTitle: {
       fontSize: 16,
       fontWeight: "700"
     },
+
     row: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingVertical: 10
+      paddingVertical: 12
     },
+
     rowText: {
       fontSize: 15
     },
+
     logoutButton: {
       alignItems: "center",
       backgroundColor: theme.surface,
       borderWidth: 1,
-      borderColor: theme.border
+      borderColor: theme.border,
+      marginVertical: 10
     },
+
     logoutRow: {
       flexDirection: "row",
       gap: 8,
-      justifyContent: "center"
+      justifyContent: "center",
+      paddingVertical: 12
     },
+
     logoutText: {
       fontWeight: "600",
       fontSize: 16
     },
+
     modeContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginTop: 8,
       marginBottom: 10
     },
+
     modeButton: {
       flex: 1,
       alignItems: 'center',
@@ -376,14 +444,14 @@ const styles = (theme) =>
       borderColor: theme.border,
       borderRadius: 8
     },
+
     modeButtonActive: {
       backgroundColor: theme.primary,
       borderColor: theme.primary
     },
+
     modeButtonText: {
       fontWeight: '600'
     }
-  });
-
-
+});
 

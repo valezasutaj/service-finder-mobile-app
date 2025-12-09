@@ -1,5 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, TextInput, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+    View,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    FlatList,
+    Image,
+    ActivityIndicator,
+    Animated
+} from 'react-native';
+
 import ThemedView from '../../components/ThemedView';
 import ThemedText from '../../components/ThemedText';
 import ThemedServiceCard from '../../components/ThemedServiceCard';
@@ -13,7 +24,42 @@ import { jobService } from '../../services/jobsService';
 import { getCategoryIcon } from '../../services/imagesMap';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
-import "../../assets/images/categories/default.png"
+import "../../assets/images/categories/default.png";
+
+const FadePress = ({ onPress, children, style }) => {
+    const opacity = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+        Animated.timing(opacity, {
+            toValue: 0.5,
+            duration: 120,
+            useNativeDriver: true
+        }).start();
+    };
+
+    const handlePressOut = () => {
+        Animated.timing(opacity, {
+            toValue: 1,
+            duration: 120,
+            useNativeDriver: true
+        }).start();
+    };
+
+    return (
+        <Animated.View style={{ opacity }}>
+            <TouchableOpacity
+                onPress={onPress}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                style={style}
+            >
+                {children}
+            </TouchableOpacity>
+        </Animated.View>
+    );
+};
+
+
 
 const Browse = () => {
     const { theme } = useTheme();
@@ -37,7 +83,6 @@ const Browse = () => {
                 setJobs(j);
                 setLoading(false);
             };
-
             load();
         }, [])
     );
@@ -59,6 +104,7 @@ const Browse = () => {
         filteredJobs.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
 
+
     if (loading) {
         return (
             <ThemedView safe style={[themeStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -67,9 +113,11 @@ const Browse = () => {
         );
     }
 
+
     return (
         <ThemedView safe style={themeStyles.container}>
             <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+
                 <View style={themeStyles.searchContainer}>
                     <Search size={20} color={theme.mutedText} style={themeStyles.searchIcon} />
                     <TextInput
@@ -81,9 +129,10 @@ const Browse = () => {
                     />
                 </View>
 
+
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={themeStyles.filterScroll}>
                     {categories.map(cat => (
-                        <TouchableOpacity
+                        <FadePress
                             key={cat.id}
                             style={[
                                 themeStyles.categoryChip,
@@ -103,13 +152,14 @@ const Browse = () => {
                             >
                                 {cat.label}
                             </ThemedText>
-                        </TouchableOpacity>
+                        </FadePress>
                     ))}
                 </ScrollView>
 
+
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={themeStyles.filterScroll}>
                     {["None", "Price Low → High", "Price High → Low", "Rating High → Low"].map(option => (
-                        <TouchableOpacity
+                        <FadePress
                             key={option}
                             style={[
                                 themeStyles.filterChip,
@@ -125,9 +175,10 @@ const Browse = () => {
                             >
                                 {option}
                             </ThemedText>
-                        </TouchableOpacity>
+                        </FadePress>
                     ))}
                 </ScrollView>
+
 
                 <ThemedText title style={themeStyles.sectionTitle}>Services</ThemedText>
 
@@ -135,29 +186,27 @@ const Browse = () => {
                     data={filteredJobs}
                     keyExtractor={item => item.id}
                     scrollEnabled={false}
-                    renderItem={({ item }) => {
-
-                        return (
-                            <ThemedServiceCard
-                                id={item.id}
-                                name={item.name}
-                                price={item.price}
-                                discount={item.discount}
-                                rating={item.rating}
-                                image={ item.image ? { uri: item.image } : require('../../assets/images/categories/default.png')}
-                                providerName={item.provider?.fullName}
-                                onPress={() =>
-                                    router.push({
-                                        pathname: `/jobdetails/${item.id}`,
-                                        params: { image: item.image }
-                                    })
-                                }
-                            />
-                        );
-                    }}
+                    renderItem={({ item }) => (
+                        <ThemedServiceCard
+                            id={item.id}
+                            name={item.name}
+                            price={item.price}
+                            discount={item.discount}
+                            rating={item.rating}
+                            image={item.image ? { uri: item.image } : require('../../assets/images/categories/default.png')}
+                            providerName={item.provider?.fullName}
+                            onPress={() =>
+                                router.push({
+                                    pathname: `/jobdetails/${item.id}`,
+                                    params: { image: item.image }
+                                })
+                            }
+                        />
+                    )}
                 />
 
                 <Spacer height={40} />
+
             </ScrollView>
 
             <NavBar />
@@ -166,6 +215,7 @@ const Browse = () => {
 };
 
 export default Browse;
+
 
 const styles = (theme) => StyleSheet.create({
     container: {

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
     View, TextInput, Image, FlatList, TouchableOpacity,
-    KeyboardAvoidingView, StyleSheet, ScrollView
+    KeyboardAvoidingView, StyleSheet, ScrollView, Animated
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -23,6 +23,42 @@ import { categoryService } from "../../services/categoriesService";
 import { getCategoryIcon } from "../../services/imagesMap";
 import LoginRequiredScreen from "../../components/LoginRequiredScreen";
 
+
+
+const FadePress = ({ onPress, children, style }) => {
+    const opacity = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+        Animated.timing(opacity, {
+            toValue: 0.5,
+            duration: 120,
+            useNativeDriver: true
+        }).start();
+    };
+
+    const handlePressOut = () => {
+        Animated.timing(opacity, {
+            toValue: 1,
+            duration: 120,
+            useNativeDriver: true
+        }).start();
+    };
+
+    return (
+        <Animated.View style={{ opacity }}>
+            <TouchableOpacity
+                onPress={onPress}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                style={style}
+            >
+                {children}
+            </TouchableOpacity>
+        </Animated.View>
+    );
+};
+
+
 export default function Post() {
     const { theme } = useTheme();
     const styles = s(theme);
@@ -30,7 +66,7 @@ export default function Post() {
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
     const [discount, setDiscount] = useState("");
-       const [description, setDescription] = useState("");
+    const [description, setDescription] = useState("");
     const [category, setCategory] = useState(null);
     const [categories, setCategories] = useState([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
@@ -69,7 +105,7 @@ export default function Post() {
         }
     };
 
-    
+
     const pickImageFromGallery = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -84,7 +120,7 @@ export default function Post() {
         }
     };
 
-    
+
     const pickImageFromCamera = async () => {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
         if (permission.status !== "granted") {
@@ -139,6 +175,7 @@ export default function Post() {
                     avatar: provider.avatar || `https://placehold.co/100x100?text=${provider.fullName?.[0]?.toUpperCase() || "U"}`
                 }
             });
+
             showModal("Success", "You have successfully posted your service!");
         } catch (err) {
             showModal("Error", "Failed to post job.", true);
@@ -221,7 +258,10 @@ export default function Post() {
                                 data={categories}
                                 keyExtractor={(item) => item.id}
                                 renderItem={({ item }) => (
-                                    <TouchableOpacity onPress={() => setCategory(item)} style={styles.categoryItem}>
+                                    <FadePress
+                                        onPress={() => setCategory(item)}
+                                        style={styles.categoryItem}
+                                    >
                                         <View
                                             style={[
                                                 styles.categoryBox,
@@ -245,14 +285,13 @@ export default function Post() {
                                         >
                                             {item.label}
                                         </ThemedText>
-                                    </TouchableOpacity>
+                                    </FadePress>
                                 )}
                             />
                         )}
 
                         <Spacer height={15} />
 
-                       
                         <ThemedText type="subtitle" style={styles.label}>Add Image</ThemedText>
 
                         <View style={{ flexDirection: "row", gap: 10 }}>
@@ -279,12 +318,14 @@ export default function Post() {
                 </ScrollView>
 
                 <View style={[styles.footer, { backgroundColor: theme.background, borderTopColor: theme.border }]}>
-                    <TouchableOpacity
+
+       
+                    <FadePress
                         onPress={() => safeRouter.back()}
                         style={[styles.cancelButton, { borderColor: theme.primary }]}
                     >
                         <ThemedText style={{ color: theme.primary }}>Cancel</ThemedText>
-                    </TouchableOpacity>
+                    </FadePress>
 
                     <View style={{ flex: 1, backgroundColor: theme.primary, borderRadius: 10, justifyContent: "center" }}>
                         <ThemedButton onPress={handlePost}>
@@ -316,23 +357,23 @@ export default function Post() {
 
 const s = (theme) =>
     StyleSheet.create({
-        container: { 
-            flex: 1, 
+        container: {
+            flex: 1,
             paddingTop: 10,
         },
-        header: { 
+        header: {
             alignItems: "center",
         },
-        headerText: { 
-            fontSize: 22, 
-            fontWeight: "700", 
+        headerText: {
+            fontSize: 22,
+            fontWeight: "700",
             color: theme.text,
         },
-        content: { 
-            paddingHorizontal: 20, 
+        content: {
+            paddingHorizontal: 20,
             paddingTop: 10,
         },
-        label: { 
+        label: {
             marginBottom: 8,
         },
         input: {
@@ -341,9 +382,9 @@ const s = (theme) =>
             borderWidth: 1,
             fontSize: 15,
         },
-        categoryItem: { 
-            alignItems: "center", 
-            marginRight: 16 ,
+        categoryItem: {
+            alignItems: "center",
+            marginRight: 16,
         },
         categoryBox: {
             width: 80,
@@ -352,13 +393,13 @@ const s = (theme) =>
             borderRadius: 12,
             overflow: "hidden",
         },
-        categoryImage: { 
-            width: "100%", 
+        categoryImage: {
+            width: "100%",
             height: "100%",
         },
-        preview: { 
-            width: "100%", 
-            height: 180, 
+        preview: {
+            width: "100%",
+            height: 180,
             borderRadius: 10,
         },
         footer: {
