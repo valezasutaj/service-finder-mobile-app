@@ -1,8 +1,12 @@
-import { auth, db } from '../firebase';
+import { auth, db } from "../firebase";
 import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
-} from 'firebase/auth';
+  signInWithEmailAndPassword,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
+
 import {
   doc,
   setDoc,
@@ -11,27 +15,25 @@ import {
   where,
   getDocs,
   collection,
-  updateDoc
-} from 'firebase/firestore';
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+} from "firebase/firestore";
 
-import { saveUser, getUser } from './storageService';
+import { saveUser, getUser, removeUser } from "./storageService";
 
-
-// ===========================
-// REGISTER USER
-// ===========================
 export const registerUser = async (fullName, username, email, password) => {
   fullName = fullName?.trim();
   username = username?.trim().toLowerCase();
-  email = email?.trim();
+  email = email?.trim().toLowerCase();
   password = password?.trim();
 
   if (!fullName || !username || !email || !password) {
-    throw { customMessage: "Please fill in all required fields." };
+    throw { customMessage: "Please fill in all fields." };
   }
 
   if (password.length < 6) {
-    throw { customMessage: "Password must be at least 6 characters." };
+    throw { customMessage: "Password must be at least 6 characters long." };
   }
 
   try {
@@ -42,13 +44,28 @@ export const registerUser = async (fullName, username, email, password) => {
     const usernameSnap = await getDocs(usernameQuery);
 
     if (!usernameSnap.empty) {
-      throw { customMessage: "This username is already taken." };
+      throw { customMessage: "Username is already taken." };
     }
 
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    const emailQuery = query(
+      collection(db, "users"),
+      where("email", "==", email)
+    );
+    const emailSnap = await getDocs(emailQuery);
+
+    if (!emailSnap.empty) {
+      throw { customMessage: "Email is already registered." };
+    }
+
     const user = userCredential.user;
 
-    const avatar = `https://placehold.co/100x100?text=${fullName[0]?.toUpperCase()}`;
+    const avatar = null;
 
     const userData = {
       uid: user.uid,
@@ -56,43 +73,46 @@ export const registerUser = async (fullName, username, email, password) => {
       username,
       email,
       avatar,
-
-      // 🔥 STRUCTURA E RE
+      phone: "",
+      bio: "",
+      profession: "",
       location: {
         latitude: null,
         longitude: null,
-        city: "Prishtina"
+        city: "Prishtina",
+      },
+
+      privacy: {
+        profileVisibility: true,
+        activityStatus: true,
+        readReceipts: true,
       },
 
       createdAt: Date.now(),
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     };
 
     await setDoc(doc(db, "users", user.uid), userData);
     await saveUser(userData);
 
     return userData;
-
   } catch (error) {
-    let customMessage = "Registration failed.";
+    let message = "Registration failed.";
 
-    if (error.code === "auth/email-already-in-use") customMessage = "This email is already registered.";
-    if (error.code === "auth/invalid-email") customMessage = "Invalid email format.";
-    if (error.code === "auth/weak-password") customMessage = "Password must be at least 6 characters.";
+    if (error.code === "auth/email-already-in-use")
+      message = "Email is already registered.";
+    if (error.code === "auth/invalid-email")
+      message = "Invalid email address.";
+    if (error.code === "auth/weak-password")
+      message = "Password is too weak.";
+    if (error.customMessage) message = error.customMessage;
 
-    if (error.customMessage) customMessage = error.customMessage;
-
-    throw { customMessage };
+    throw { customMessage: message };
   }
 };
 
-
-
-// ===========================
-// LOGIN USER
-// ===========================
 export const loginUser = async (email, password) => {
-  email = email?.trim();
+  email = email?.trim().toLowerCase();
   password = password?.trim();
 
   if (!email || !password) {
@@ -100,109 +120,181 @@ export const loginUser = async (email, password) => {
   }
 
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
     const user = userCredential.user;
 
     const snap = await getDoc(doc(db, "users", user.uid));
-    const userDataFromDB = snap.exists() ? snap.data() : {};
-
-    // 🔥 NËSE user-i i vjetër ka location si string → e konvertojmë
-    let fixedLocation = userDataFromDB.location;
-    if (typeof fixedLocation === "string") {
-      fixedLocation = {
-        latitude: null,
-        longitude: null,
-        city: fixedLocation
-      };
-    }
+    const dbUser = snap.exists() ? snap.data() : {};
 
     const userData = {
       uid: user.uid,
       email: user.email,
-      avatar: userDataFromDB.avatar || `https://placehold.co/100x100?text=${user.email[0]?.toUpperCase()}`,
-      location: fixedLocation || { latitude: null, longitude: null, city: "Prishtina" },
-      fullName: userDataFromDB.fullName || "Unknown User",
-      username: userDataFromDB.username || user.email.split("@")[0].toLowerCase(),
-      createdAt: userDataFromDB.createdAt || Date.now(),
+      fullName: dbUser.fullName || "User",
+      username: dbUser.username || user.email.split("@")[0],
+      avatar:
+        dbUser.avatar ||
+        null,
+      phone: dbUser.phone || "",
+      bio: dbUser.bio || "",
+      profession: dbUser.profession || "",
+      location:
+        typeof dbUser.location === "string"
+          ? { city: dbUser.location, latitude: null, longitude: null }
+          : dbUser.location || {
+            city: "Prishtina",
+            latitude: null,
+            longitude: null,
+          },
+
+      privacy: dbUser.privacy || {
+        profileVisibility: true,
+        activityStatus: true,
+        readReceipts: true,
+      },
+
+      createdAt: dbUser.createdAt || Date.now(),
       updatedAt: Date.now(),
     };
 
     await saveUser(userData);
     return userData;
-
   } catch (error) {
-    let customMessage = "Login failed. Please try again.";
-    if (error.code === "auth/invalid-credential") customMessage = "Invalid email or password.";
-    throw { customMessage };
+    let message = "Login failed.";
+
+    if (error.code === "auth/invalid-credential")
+      message = "Incorrect email or password.";
+    if (error.code === "auth/user-not-found")
+      message = "User not found.";
+    if (error.code === "auth/wrong-password")
+      message = "Incorrect password.";
+
+    throw { customMessage: message };
   }
 };
 
+export const updateUserProfile = async (userId, updates) => {
+  if (!userId) throw { customMessage: "User ID missing." };
 
-
-// ===========================
-// UPDATE USER LOCATION
-// ===========================
-export const updateUserLocation = async (userId, coords) => {
   try {
-    const ref = doc(db, "users", userId);
-
-    await updateDoc(ref, {
-      location: {
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-        city: coords.city
-      },
+    await updateDoc(doc(db, "users", userId), {
+      ...updates,
       updatedAt: Date.now(),
     });
 
-    console.log("📍 Lokacioni u përditësua në Firestore!");
-
-    // Update në AsyncStorage
     const localUser = await getUser();
-    if (localUser) {
-      const updatedLocal = {
-        ...localUser,
-        location: coords
-      };
-      await saveUser(updatedLocal);
+    if (localUser?.uid === userId) {
+      await saveUser({ ...localUser, ...updates, updatedAt: Date.now() });
     }
 
-    return true;
-
-  } catch (error) {
-    console.log("❌ Gabim në updateUserLocation:", error);
-    return false;
+    return { success: true };
+  } catch {
+    throw { customMessage: "Failed to update profile." };
   }
 };
 
+export const updateUserPrivacy = async (userId, privacy) => {
+  if (!userId) throw { customMessage: "User ID missing." };
 
+  try {
+    await updateDoc(doc(db, "users", userId), {
+      privacy,
+      updatedAt: Date.now(),
+    });
 
-// ===========================
-// USER SERVICE
-// ===========================
+    const localUser = await getUser();
+    if (localUser?.uid === userId) {
+      await saveUser({ ...localUser, privacy, updatedAt: Date.now() });
+    }
+
+    return { success: true };
+  } catch {
+    throw { customMessage: "Failed to update privacy settings." };
+  }
+};
+
+export const updateUserPassword = async (currentPassword, newPassword) => {
+  try {
+    const user = auth.currentUser;
+    if (!user) throw new Error();
+
+    const credential = EmailAuthProvider.credential(
+      user.email,
+      currentPassword
+    );
+
+    await reauthenticateWithCredential(user, credential);
+    await updatePassword(user, newPassword);
+
+    return { success: true };
+  } catch (error) {
+    let message = "Failed to update password.";
+
+    if (error.code === "auth/wrong-password")
+      message = "Current password is incorrect.";
+    if (error.code === "auth/weak-password")
+      message = "New password is too weak.";
+    if (error.code === "auth/requires-recent-login")
+      message = "Please login again to change password.";
+
+    throw { customMessage: message };
+  }
+};
+
+export const deleteUserAccount = async (password) => {
+  try {
+    const user = auth.currentUser;
+    if (!user) throw new Error();
+
+    const credential = EmailAuthProvider.credential(user.email, password);
+    await reauthenticateWithCredential(user, credential);
+
+    await deleteDoc(doc(db, "users", user.uid));
+    await user.delete();
+    await removeUser();
+
+    return { success: true };
+  } catch (error) {
+    let message = "Failed to delete account.";
+
+    if (error.code === "auth/wrong-password")
+      message = "Incorrect password.";
+    if (error.code === "auth/requires-recent-login")
+      message = "Please login again to delete account.";
+
+    throw { customMessage: message };
+  }
+};
+
 export const userService = {
   getUserById: async (uid) => {
     try {
-      const ref = doc(db, "users", uid);
-      const snap = await getDoc(ref);
+      const snap = await getDoc(doc(db, "users", uid));
       if (!snap.exists()) return null;
-      return { uid, ...snap.data() };
+
+      const data = snap.data();
+      return {
+        uid,
+        ...data,
+        location:
+          typeof data.location === "string"
+            ? { city: data.location, latitude: null, longitude: null }
+            : data.location,
+      };
     } catch {
       return null;
     }
   },
 
-  getUserServices: async (userId) => {
-    const q = query(
-      collection(db, "jobs"),
-      where("provider.uid", "==", userId)
-    );
-
-    const snap = await getDocs(q);
-
-    return snap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-  },
+  listenUserById: (uid, callback) => {
+    return onSnapshot(doc(db, "users", uid), (snap) => {
+      if (snap.exists()) {
+        callback({ uid: snap.id, ...snap.data() });
+      }
+    });
+  }
 };

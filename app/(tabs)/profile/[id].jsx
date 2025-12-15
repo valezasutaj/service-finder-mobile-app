@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, ActivityIndicator, FlatList } from "react-native";
+import { Modal, View, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, ActivityIndicator, FlatList } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import ThemedView from "../../../components/ThemedView";
 import ThemedText from "../../../components/ThemedText";
@@ -71,12 +71,67 @@ const ProfileScreen = () => {
         );
     }
 
-    if (!user) {
+    const isHidden = user?.privacy?.profileVisibility === false;
+
+
+    if (!user || isHidden) {
         return (
             <ThemedView safe style={styles.container}>
-                <View style={styles.errorContainer}>
-                    <ThemedText>User not found</ThemedText>
-                </View>
+                <Modal transparent animationType="fade" visible>
+                    <View style={{
+                        flex: 1,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        justifyContent: "center",
+                        alignItems: "center"
+                    }}>
+                        <View style={{
+                            backgroundColor: theme.cardBackground,
+                            padding: 24,
+                            borderRadius: 16,
+                            width: "85%",
+                            alignItems: "center"
+                        }}>
+                            <Ionicons
+                                name="eye-off"
+                                size={48}
+                                color={theme.mutedText}
+                                style={{ marginBottom: 12 }}
+                            />
+
+                            <ThemedText style={{
+                                fontSize: 18,
+                                fontWeight: "700",
+                                marginBottom: 8,
+                                textAlign: "center"
+                            }}>
+                                User Not Found
+                            </ThemedText>
+
+                            <ThemedText style={{
+                                fontSize: 14,
+                                color: theme.mutedText,
+                                textAlign: "center",
+                                marginBottom: 20
+                            }}>
+                                This profile is unavailable or has been hidden by the user.
+                            </ThemedText>
+
+                            <TouchableOpacity
+                                onPress={() => safeRouter.back()}
+                                style={{
+                                    backgroundColor: theme.primary,
+                                    paddingVertical: 10,
+                                    paddingHorizontal: 24,
+                                    borderRadius: 10
+                                }}
+                            >
+                                <ThemedText style={{ color: "#fff", fontWeight: "600" }}>
+                                    Go Back
+                                </ThemedText>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
             </ThemedView>
         );
     }
@@ -111,9 +166,10 @@ const ProfileScreen = () => {
                     <View style={styles.locationContainer}>
                         <MapPin size={16} color={theme.mutedText} />
                         <ThemedText style={styles.locationText}>
-                            {user.location || "Prishtina"}
+                            {user.location?.city || "Prishtina"}
                         </ThemedText>
                     </View>
+
 
                     <View style={styles.statsContainer}>
                         <View style={styles.statItem}>
@@ -308,30 +364,30 @@ const getStyles = (theme) =>
             backgroundColor: theme.cardBackground,
         },
 
-        serviceInfo: { 
-            flex: 1 
+        serviceInfo: {
+            flex: 1
         },
 
-        serviceName: { 
-            fontSize: 16, 
-            fontWeight: "500", 
-            color: theme.text 
+        serviceName: {
+            fontSize: 16,
+            fontWeight: "500",
+            color: theme.text
         },
 
-        servicePrice: { 
-            fontSize: 14, color: 
-            theme.primary, fontWeight: "600" 
+        servicePrice: {
+            fontSize: 14, color:
+                theme.primary, fontWeight: "600"
         },
 
-        serviceRating: { 
+        serviceRating: {
             flexDirection: "row",
-            alignItems: "center" 
-            },
+            alignItems: "center"
+        },
 
-        noServicesText: { 
-            textAlign: "center", 
-            color: theme.mutedText, 
-            paddingVertical: 20 
+        noServicesText: {
+            textAlign: "center",
+            color: theme.mutedText,
+            paddingVertical: 20
         },
     });
 

@@ -11,7 +11,6 @@ import { useTheme } from "../../context/ThemedModes";
 import { safeRouter } from "../../utils/SafeRouter";
 import { jobService } from "../../services/jobsService";
 import { getUser } from "../../services/storageService";
-import { getCategoryIcon } from "../../services/imagesMap";
 
 export default function MyServices() {
     const { theme } = useTheme();
@@ -66,8 +65,6 @@ export default function MyServices() {
         else setShowSuccessModal(true);
     };
 
-    const handleLogin = () => safeRouter.push("/login");
-    const handleSignup = () => safeRouter.push("/signup");
 
     const handleDeleteService = async (serviceId) => {
         if (!user) return;

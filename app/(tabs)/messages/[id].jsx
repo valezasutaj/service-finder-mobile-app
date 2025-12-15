@@ -20,7 +20,7 @@ import { messageService } from "../../../services/messagesService";
 import { userService } from "../../../services/userService";
 import { getUser } from "../../../services/storageService";
 import { safeRouter } from "../../../utils/SafeRouter";
-import { ArrowLeft } from "lucide-react-native";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -35,14 +35,92 @@ export default function ChatPage() {
     const [typing, setTyping] = useState(false);
     const [text, setText] = useState("");
     const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+    const [listReady, setListReady] = useState(false);
+    const [otherUserStatus, setOtherUserStatus] = useState(null);
+    const [isMarkingRead, setIsMarkingRead] = useState(false);
 
     const flatListRef = useRef(null);
+    const typingTimeoutRef = useRef(null);
 
-    const chatId = user && receiverId ? [user.uid, receiverId].sort().join("_") : null;
+    const chatId =
+        user && receiverId ? [user.uid, receiverId].sort().join("_") : null;
+
+    const scrollToBottom = useCallback(() => {
+        if (!flatListRef.current) return;
+        requestAnimationFrame(() => {
+            flatListRef.current.scrollToEnd({ animated: true });
+        });
+    }, []);
+
+    const canViewProfile = useMemo(() => {
+        return otherUser?.privacy?.profileVisibility !== false;
+    }, [otherUser]);
+
+    const isOtherUserVisible =
+        !!otherUser && otherUser?.privacy?.profileVisibility !== false;
+
+    const canSeeActivity = useMemo(() => {
+        if (!isOtherUserVisible) return false;
+
+        return (
+            user?.privacy?.activityStatus !== false &&
+            otherUser?.privacy?.activityStatus !== false
+        );
+    }, [user, otherUser, isOtherUserVisible]);
+
+    const canShowReadReceipts = useMemo(() => {
+        return user?.privacy?.readReceipts !== false &&
+            otherUser?.privacy?.readReceipts !== false;
+    }, [user, otherUser]);
+
+    const otherUserName = useMemo(() => {
+        if (!otherUser) return "Loading...";
+        return canViewProfile ? otherUser.fullName : "User Not Found";
+    }, [otherUser, canViewProfile]);
+
+    const otherUserAvatar = useMemo(() => {
+        if (!otherUser) return null;
+        return canViewProfile ? otherUser.avatar : null;
+    }, [otherUser, canViewProfile]);
+
+    const lastChatMessage = useMemo(() => {
+        if (!messages.length) return null;
+        return messages[messages.length - 1];
+    }, [messages]);
+
+
+    const markMessagesAsRead = useCallback(async () => {
+        if (!user || !receiverId || isMarkingRead) return;
+
+        setIsMarkingRead(true);
+        try {
+            if (canShowReadReceipts) {
+                await messageService.markAllAsRead(user.uid, receiverId);
+            } else {
+                const unreadMessages = messages.filter(msg =>
+                    msg.receiverId === user.uid &&
+                    !msg.delivered
+                );
+
+                for (const msg of unreadMessages) {
+                    await messageService.markAsDelivered(msg.id, user.uid);
+                }
+            }
+        } catch (error) {
+            console.error("Error marking messages as read:", error);
+        } finally {
+            setIsMarkingRead(false);
+        }
+    }, [user, receiverId, messages, canShowReadReceipts]);
 
     useFocusEffect(
         useCallback(() => {
+            if (chatId) {
+                messageService.setActiveChat(chatId);
+            }
+
             return () => {
+                messageService.clearActiveChat();
                 if (chatId && user) {
                     messageService.setTyping(chatId, user.uid, false);
                 }
@@ -52,10 +130,8 @@ export default function ChatPage() {
 
     useEffect(() => {
         const sub = AppState.addEventListener("change", (state) => {
-            if (state !== "active") {
-                if (chatId && user) {
-                    messageService.setTyping(chatId, user.uid, false);
-                }
+            if (state !== "active" && chatId && user) {
+                messageService.setTyping(chatId, user.uid, false);
             }
         });
 
@@ -63,8 +139,39 @@ export default function ChatPage() {
     }, [chatId, user]);
 
     useEffect(() => {
-        let unsubMessages = null;
         let unsubTyping = null;
+
+        if (chatId && user) {
+            unsubTyping = messageService.listenTyping(chatId, (data) => {
+                if (data.userId !== user.uid) {
+                    setTyping(data.isTyping);
+                }
+            });
+        }
+
+        return () => {
+            unsubTyping && unsubTyping();
+        };
+    }, [chatId, user]);
+
+    useEffect(() => {
+        let unsubPresence = null;
+
+        if (receiverId && canSeeActivity) {
+            unsubPresence = messageService.listenUserPresence(
+                receiverId,
+                (status) => setOtherUserStatus(status)
+            );
+        } else {
+            setOtherUserStatus(null);
+        }
+
+        return () => unsubPresence && unsubPresence();
+    }, [receiverId, canSeeActivity]);
+
+
+    useEffect(() => {
+        let unsubMessages = null;
 
         const init = async () => {
             const currentUser = await getUser();
@@ -76,22 +183,25 @@ export default function ChatPage() {
 
             setUser(currentUser);
 
-            const other = await userService.getUserById(receiverId);
-            setOtherUser(other);
+            let unsubUser = null;
+
+            unsubUser = userService.listenUserById(receiverId, (freshUser) => {
+                setOtherUser(freshUser);
+            });
 
             unsubMessages = messageService.listenConversation(
                 currentUser.uid,
                 receiverId,
-                (msgs) => setMessages(msgs)
-            );
+                (msgs) => {
+                    setMessages(msgs);
 
-            if (chatId) {
-                unsubTyping = messageService.listenTyping(chatId, (data) => {
-                    if (data.userId !== currentUser.uid) {
-                        setTyping(data.isTyping);
-                    }
-                });
-            }
+                    msgs.forEach(msg => {
+                        if (msg.receiverId === currentUser.uid && !msg.delivered) {
+                            messageService.markAsDelivered(msg.id, currentUser.uid);
+                        }
+                    });
+                }
+            );
 
             setHasCheckedAuth(true);
         };
@@ -100,15 +210,21 @@ export default function ChatPage() {
 
         return () => {
             unsubMessages && unsubMessages();
-            unsubTyping && unsubTyping();
         };
-    }, [receiverId, chatId]);
+    }, [receiverId]);
 
     useEffect(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
+        if (!user || !receiverId) return;
+
+        const unread = messages.some(
+            m => m.receiverId === user.uid && !m.read
+        );
+
+        if (unread) markMessagesAsRead();
     }, [messages]);
 
     const send = async () => {
+        if (!canSendMessages) return;
         if (!text.trim() || !user) return;
 
         await messageService.sendMessage({
@@ -122,39 +238,65 @@ export default function ChatPage() {
         if (chatId) {
             messageService.setTyping(chatId, user.uid, false);
         }
+    };
 
-        setTimeout(() => {
-            flatListRef.current?.scrollToEnd({ animated: true });
-        }, 50);
+    const handleTyping = (v) => {
+        if (!canSendMessages) return;
+
+        setText(v);
+
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        if (chatId && user) {
+            messageService.setTyping(chatId, user.uid, v.trim().length > 0);
+        }
+
+        typingTimeoutRef.current = setTimeout(() => {
+            if (chatId && user) {
+                messageService.setTyping(chatId, user.uid, false);
+            }
+        }, 2000);
     };
 
     const formatTime = (createdAt) => {
-        if (!createdAt || typeof createdAt.toDate !== "function") return "";
+        if (!createdAt?.toDate) return "";
         const d = createdAt.toDate();
         return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     };
 
     const formatDateSeparator = (createdAt) => {
-        if (!createdAt || typeof createdAt.toDate !== "function") {
-            return "";
-        }
+        if (!createdAt?.toDate) return "";
         const d = createdAt.toDate();
-        return d.toLocaleDateString([], {weekday: "short", month: "short", day: "numeric", year: "numeric"});
+        return d.toLocaleDateString([], {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
     };
 
+    const canSendMessages = useMemo(() => {
+        if (!user || !otherUser) return false;
+
+        const myVisible = user?.privacy?.profileVisibility !== false;
+        const otherVisible = otherUser?.privacy?.profileVisibility !== false;
+
+        return myVisible && otherVisible;
+    }, [user, otherUser]);
+
     const buildChatItems = (msgs) => {
-        if (!Array.isArray(msgs)) {
-            return [];
-        }
+        if (!Array.isArray(msgs)) return [];
 
         const items = [];
         let lastDateKey = null;
 
-        const sorted = [...msgs].sort((a, b) => {
-            const aTime = a.createdAt?.toMillis?.() ?? 0;
-            const bTime = b.createdAt?.toMillis?.() ?? 0;
-            return aTime - bTime;
-        });
+        const sorted = [...msgs].sort(
+            (a, b) =>
+                (a.createdAt?.toMillis?.() ?? 0) -
+                (b.createdAt?.toMillis?.() ?? 0)
+        );
 
         sorted.forEach((msg) => {
             const d = msg.createdAt?.toDate?.();
@@ -171,10 +313,42 @@ export default function ChatPage() {
 
             items.push({ ...msg, type: "message" });
         });
+
         return items;
     };
 
-    const chatItems = useMemo(() => buildChatItems(messages), [messages]);
+    const chatItems = useMemo(() => {
+        const items = buildChatItems(messages);
+        if (typing && canSeeActivity) {
+            items.push({ id: "typing", type: "typing" });
+        }
+        return items;
+    }, [messages, typing, canSeeActivity]);
+
+    const renderStatusIndicator = () => {
+        if (!canSeeActivity || !otherUserStatus) return null;
+
+        if (otherUserStatus.isOnline) {
+            return (
+                <View style={s.statusContainer}>
+                    <View style={[s.statusDot, { backgroundColor: "#2ecc71" }]} />
+                    <ThemedText style={s.statusText}>Online</ThemedText>
+                </View>
+            );
+        }
+
+        if (otherUserStatus.lastSeenText) {
+            return (
+                <View style={s.statusContainer}>
+                    <ThemedText style={s.statusText}>
+                        Last seen {otherUserStatus.lastSeenText}
+                    </ThemedText>
+                </View>
+            );
+        }
+
+        return null;
+    };
 
     return (
         <KeyboardAvoidingView
@@ -202,29 +376,31 @@ export default function ChatPage() {
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    onPress={() =>
-                                        safeRouter.push(`/profile/${otherUser.uid}`)
-                                    }
+                                    onPress={() => {
+                                        safeRouter.push(`/profile/${otherUser.uid}`);
+                                    }}
                                 >
                                     <View style={s.headerUser}>
-                                        {otherUser?.avatar ? (
+                                        {otherUserAvatar ? (
                                             <Image
-                                                source={{ uri: otherUser.avatar }}
+                                                source={{ uri: otherUserAvatar }}
                                                 style={s.headerAvatar}
                                             />
+                                        ) : canViewProfile ? (
+                                            <View style={s.headerAvatarPlaceholder}>
+                                                <Ionicons name="person" size={20} color={theme.mutedText} />
+                                            </View>
                                         ) : (
-                                            <Ionicons
-                                                name="person-circle"
-                                                size={40}
-                                                color={theme.text}
-                                                style={{ marginLeft: -10, marginRight: 5 }}
-                                            />
+                                            <View style={s.hiddenAvatar}>
+                                                <EyeOff size={20} color={theme.mutedText} />
+                                            </View>
                                         )}
 
                                         <View style={s.headerText}>
                                             <ThemedText style={s.headerName}>
-                                                {otherUser.fullName}
+                                                {otherUserName}
                                             </ThemedText>
+                                            {renderStatusIndicator()}
                                         </View>
                                     </View>
                                 </TouchableOpacity>
@@ -238,6 +414,13 @@ export default function ChatPage() {
                                 keyExtractor={(item) => item.id}
                                 showsVerticalScrollIndicator={false}
                                 contentContainerStyle={{ paddingVertical: 16 }}
+                                onLayout={() => {
+                                    setListReady(true);
+                                    scrollToBottom();
+                                }}
+                                onContentSizeChange={() => {
+                                    if (listReady) scrollToBottom();
+                                }}
                                 renderItem={({ item }) => {
                                     if (item.type === "date") {
                                         return (
@@ -249,61 +432,107 @@ export default function ChatPage() {
                                         );
                                     }
 
+                                    if (item.type === "typing") {
+                                        return (
+                                            <View style={s.typingWrapper}>
+                                                <View style={s.typingBubble}>
+                                                    <ThemedText style={s.typingText}>
+                                                        {otherUserName} is typing...
+                                                    </ThemedText>
+                                                </View>
+                                            </View>
+                                        );
+                                    }
+
                                     const mine = item.senderId === user.uid;
 
                                     return (
                                         <View
                                             style={[
                                                 s.msgWrapper,
-                                                mine ? s.msgWrapperMe : s.msgWrapperThem,
+                                                mine
+                                                    ? s.msgWrapperMe
+                                                    : s.msgWrapperThem,
                                             ]}
                                         >
-                                            <View style={[s.bubble, mine ? s.me : s.them]}>
+                                            <View
+                                                style={[
+                                                    s.bubble,
+                                                    mine ? s.me : s.them,
+                                                ]}
+                                            >
                                                 <ThemedText style={s.bubbleText}>
                                                     {item.message}
                                                 </ThemedText>
                                             </View>
 
-                                            <ThemedText style={s.timestamp}>
-                                                {formatTime(item.createdAt)}
-                                            </ThemedText>
+                                            <View style={s.messageMeta}>
+                                                <ThemedText style={s.timestamp}>
+                                                    {formatTime(item.createdAt)}
+                                                </ThemedText>
+
+                                                {canShowReadReceipts &&
+                                                    item.read &&
+                                                    item.senderId === user.uid &&
+                                                    lastChatMessage?.id === item.id && (
+                                                        <ThemedText style={s.seenText}>
+                                                            Seen
+                                                        </ThemedText>
+                                                    )}
+
+
+                                                {item.senderId === user.uid &&
+                                                    !item.read &&
+                                                    canShowReadReceipts && (
+                                                        <ThemedText style={s.sentText}>
+                                                            ✔
+                                                        </ThemedText>)}
+                                            </View>
                                         </View>
                                     );
                                 }}
                             />
-
-                            {typing && (
-                                <View style={s.typingWrapper}>
-                                    <View style={s.typingBubble}>
-                                        <ThemedText style={s.typingText}>
-                                            {otherUser.fullName} is typing...
-                                        </ThemedText>
-                                    </View>
-                                </View>
-                            )}
                         </View>
+
+                        {!canSendMessages && (
+                            <View style={{ paddingVertical: 8 }}>
+                                <ThemedText
+                                    style={{
+                                        textAlign: "center",
+                                        fontSize: 13,
+                                        color: theme.mutedText
+                                    }}
+                                >
+                                    Messaging is disabled because one of the profiles is hidden.
+                                </ThemedText>
+                            </View>
+                        )}
+
 
                         <View style={s.inputContainer}>
                             <View style={s.inputRow}>
                                 <TextInput
                                     value={text}
-                                    onChangeText={(v) => {
-                                        setText(v);
-                                        if (chatId) {
-                                            messageService.setTyping(
-                                                chatId,
-                                                user.uid,
-                                                v.trim().length > 0
-                                            );
-                                        }
-                                    }}
-                                    placeholder="Message..."
+                                    onChangeText={handleTyping}
+                                    placeholder={
+                                        canSendMessages
+                                            ? "Message..."
+                                            : ""
+                                    }
+                                    editable={canSendMessages}
                                     placeholderTextColor={theme.mutedText}
                                     style={s.input}
                                     multiline
                                 />
 
-                                <TouchableOpacity onPress={send} style={s.sendBtn}>
+                                <TouchableOpacity
+                                    onPress={send}
+                                    style={[
+                                        s.sendBtn,
+                                        (!text.trim() || !canSendMessages) && s.sendBtnDisabled
+                                    ]}
+                                    disabled={!text.trim() || !canSendMessages}
+                                >
                                     <ThemedText style={s.sendIcon}>➤</ThemedText>
                                 </TouchableOpacity>
                             </View>
@@ -343,19 +572,52 @@ const styles = (theme) =>
             alignItems: "center",
         },
         headerAvatar: {
-            width: 30,
-            height: 30,
-            borderRadius: 22,
+            width: 40,
+            height: 40,
+            borderRadius: 20,
             marginRight: 12,
-            marginLeft: -5,
         },
+        hiddenAvatar: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            marginRight: 12,
+            backgroundColor: theme.cardBackground,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        headerAvatarPlaceholder: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            marginRight: 12,
+            backgroundColor: theme.cardBackground,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+
         headerText: {
-            maxWidth: 180,
+            flex: 1,
         },
         headerName: {
             fontSize: 18,
             fontWeight: "600",
             color: theme.text,
+        },
+        statusContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: 2,
+        },
+        statusDot: {
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            marginRight: 6,
+        },
+        statusText: {
+            fontSize: 12,
+            color: theme.mutedText,
         },
         chatArea: {
             flex: 1,
@@ -401,10 +663,19 @@ const styles = (theme) =>
             fontSize: 16,
             color: theme.text,
         },
+        messageMeta: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginHorizontal: 8,
+            gap: 8,
+        },
         timestamp: {
             fontSize: 12,
             color: theme.mutedText,
-            marginHorizontal: 8,
+        },
+        statusIcon: {
+            fontSize: 12,
+            fontWeight: '600',
         },
         typingWrapper: {
             alignItems: "flex-start",
@@ -422,25 +693,26 @@ const styles = (theme) =>
             fontStyle: "italic",
         },
         inputContainer: {
-            padding: 16,
-            paddingBottom: 5,
+            paddingHorizontal: 16,
+            paddingVertical: 12,
             borderTopWidth: 1,
             borderTopColor: theme.cardBackground,
+            backgroundColor: theme.background,
         },
         inputRow: {
             flexDirection: "row",
             alignItems: "center",
             backgroundColor: theme.cardBackground,
             borderRadius: 24,
-            paddingHorizontal: 12,
-            height: 53,
+            paddingHorizontal: 15,
         },
         input: {
             flex: 1,
             fontSize: 16,
             color: theme.text,
-            height: 26.5,
-            marginLeft: 10,
+            alignContent: 'center',
+            padding: 3,
+            paddingBottom: 7
         },
         sendBtn: {
             width: 35,
@@ -451,9 +723,26 @@ const styles = (theme) =>
             justifyContent: "center",
             marginLeft: 8,
         },
+        sendBtnDisabled: {
+            backgroundColor: theme.mutedText,
+            opacity: 0.5,
+        },
         sendIcon: {
             color: "#fff",
             fontSize: 16,
             fontWeight: "600",
         },
+        seenText: {
+            fontSize: 12,
+            color: "#3498db",
+            fontWeight: "500",
+        },
+
+        sentText: {
+            fontSize: 12,
+            color: "#9aa0a6",
+            fontWeight: "500",
+        },
+
+
     });

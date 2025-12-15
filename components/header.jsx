@@ -8,7 +8,7 @@ import { getUser } from '../services/storageService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
 import { getWeatherByCity } from '../services/WeatherService';
-import { userService } from '../services/userService';   
+import { userService } from '../services/userService';
 
 const FadePress = ({ onPress, children, style }) => {
   const opacity = useRef(new Animated.Value(1)).current;
@@ -72,7 +72,7 @@ const Header = () => {
         setUser(prev => prev ?? {
           fullName: firebaseUser.displayName || "Name Surname",
           email: firebaseUser.email,
-          location: { city: "Prishtina" },  
+          location: { city: "Prishtina" },
           avatar: firebaseUser.photoURL || null,
         });
       }
@@ -121,10 +121,12 @@ const Header = () => {
         {user?.avatar ? (
           <Image
             source={{ uri: user.avatar }}
-            style={{ width: 42, height: 42, borderRadius: 21 }}
+            style={styles.headerAvatar}
           />
         ) : (
-          <Ionicons name="person-circle" size={42} color={isDarkMode ? "#fff" : "#000"} />
+          <View style={styles.headerAvatarPlaceholder}>
+            <Ionicons name="person" size={22} color={theme.mutedText} />
+          </View>
         )}
 
         <View style={styles.userInfo}>
@@ -145,7 +147,7 @@ const Header = () => {
       </FadePress>
 
 
-     
+
       <View style={styles.rightSection}>
 
         <FadePress onPress={() => safeRouter.push('provider/bookings')} style={[styles.iconButton, { backgroundColor: theme.primary }]}>
@@ -179,10 +181,10 @@ const s = (theme) =>
       borderBottomColor: theme.border,
       borderRadius: 16,
     },
-    leftSection: { 
+    leftSection: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 10 
+      gap: 10
     },
     userInfo: { flexDirection: "column" },
     userName: {
@@ -206,10 +208,10 @@ const s = (theme) =>
       opacity: 0.8,
       color: theme.mutedText || theme.text,
     },
-    rightSection: { 
-      flexDirection: "row", 
-      alignItems: "center", 
-      gap: 8 
+    rightSection: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8
     },
     iconButton: {
       width: 36,
@@ -217,5 +219,19 @@ const s = (theme) =>
       borderRadius: 18,
       justifyContent: "center",
       alignItems: "center",
+    },
+    headerAvatar: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+    },
+
+    headerAvatarPlaceholder: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: theme.surface,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });

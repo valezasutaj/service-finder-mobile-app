@@ -5,36 +5,70 @@ import ThemedText from '../ThemedText';
 import { useTheme } from '../../context/ThemedModes';
 import { Ionicons } from '@expo/vector-icons';
 
-const ErrorModal = ({ visible, onClose, title, message }) => {
+const ErrorModal = ({
+    visible,
+    title,
+    message,
+    onClose,
+    showConfirm = false,
+    confirmText = "OK",
+    cancelText = "Cancel",
+    onConfirm,
+}) => {
     const { theme } = useTheme();
     const styles = getStyles(theme);
 
     return (
-        <ThemedModal
-            visible={visible}
-            onClose={onClose}
-            animationType="fade"
-        >
+        <ThemedModal visible={visible} onClose={onClose} animationType="fade">
             <View style={styles.modalContent}>
-                <View style={[styles.modalIcon, { backgroundColor: '#ff444420' }]}>
-                    <Ionicons name="close-circle" size={36} color="#ff4444" />
+                <View style={[styles.modalIcon, { backgroundColor: "#ff444420" }]}>
+                    <Ionicons name="alert-circle" size={36} color="#ff4444" />
                 </View>
-                <ThemedText title style={[styles.modalTitle, { color: theme.text }]}>
+
+                <ThemedText title style={styles.modalTitle}>
                     {title}
                 </ThemedText>
-                <ThemedText style={[styles.modalMessage, { color: theme.mutedText }]}>
+
+                <ThemedText style={styles.modalMessage}>
                     {message}
                 </ThemedText>
-                <TouchableOpacity
-                    style={[styles.modalButton, { backgroundColor: '#ff4444' }]}
-                    onPress={onClose}
-                >
-                    <ThemedText style={styles.modalButtonText}>OK</ThemedText>
-                </TouchableOpacity>
+
+                {showConfirm ? (
+                    <View style={{ flexDirection: "row", gap: 12 }}>
+                        <TouchableOpacity
+                            style={[styles.modalButton, { backgroundColor: theme.surface }]}
+                            onPress={onClose}
+                        >
+                            <ThemedText style={{ color: theme.text }}>
+                                {cancelText}
+                            </ThemedText>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.modalButton, { backgroundColor: "#ff4444" }]}
+                            onPress={() => {
+                                onClose();
+                                onConfirm && onConfirm();
+                            }}
+                        >
+                            <ThemedText style={styles.modalButtonText}>
+                                {confirmText}
+                            </ThemedText>
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    <TouchableOpacity
+                        style={[styles.modalButton, { backgroundColor: "#ff4444" }]}
+                        onPress={onClose}
+                    >
+                        <ThemedText style={styles.modalButtonText}>OK</ThemedText>
+                    </TouchableOpacity>
+                )}
             </View>
         </ThemedModal>
     );
 };
+
 
 const getStyles = (theme) => StyleSheet.create({
     modalContent: {

@@ -19,8 +19,7 @@ import { auth } from "../../firebase";
 import { Alert } from "react-native";
 import { requestAndSaveLocation } from "../../utils/location";
 import { updateUserLocation } from "../../services/userService";
-
-
+import { messageService } from "../../services/messagesService";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -81,6 +80,8 @@ export default function LoginScreen() {
       if (!user?.uid) {
         throw { customMessage: "Unexpected login error." };
       }
+
+      await messageService.setOnlineStatus(user.uid, true)
 
       // 2) Marrim GPS + City
       const coords = await requestAndSaveLocation(user.uid);
