@@ -10,10 +10,6 @@ import { auth } from '../firebase';
 import { getWeatherByCity } from '../services/WeatherService';
 import { userService } from '../services/userService';   
 
-
-// ---------------------------------------------
-// FadePress – efekt fade kur përdoruesi prek elementin
-// ---------------------------------------------
 const FadePress = ({ onPress, children, style }) => {
   const opacity = useRef(new Animated.Value(1)).current;
 
@@ -58,9 +54,6 @@ const Header = () => {
     icon: null,
   });
 
-  // ---------------------------------------------
-  // LOAD USER
-  // ---------------------------------------------
   useEffect(() => {
     const loadUser = async () => {
       const stored = await getUser();
@@ -88,10 +81,6 @@ const Header = () => {
     return () => unsub();
   }, []);
 
-
-  // ---------------------------------------------
-  // LOAD WEATHER
-  // ---------------------------------------------
   useEffect(() => {
     const loadWeather = async () => {
       try {
@@ -159,7 +148,7 @@ const Header = () => {
      
       <View style={styles.rightSection}>
 
-        <FadePress style={[styles.iconButton, { backgroundColor: theme.primary }]}>
+        <FadePress onPress={() => safeRouter.push('provider/bookings')} style={[styles.iconButton, { backgroundColor: theme.primary }]}>
           <Ionicons name="notifications" size={20} color="#fff" />
         </FadePress>
 
@@ -178,11 +167,6 @@ const Header = () => {
 
 export default Header;
 
-
-
-// ---------------------------------------------
-// STYLES
-// ---------------------------------------------
 const s = (theme) =>
   StyleSheet.create({
     headerContainer: {
