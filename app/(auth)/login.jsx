@@ -46,7 +46,7 @@ export default function LoginScreen() {
       signInWithCredential(auth, credential)
         .then((userCredential) => {
           Alert.alert("Success", "Logged in as " + userCredential.user.email);
-          safeRouter.replace("/home");
+          safeRouter.replace("/");
         })
         .catch((err) => {
           Alert.alert("Firebase Error", String(err));
@@ -81,7 +81,8 @@ export default function LoginScreen() {
         throw { customMessage: "Unexpected login error." };
       }
 
-      await messageService.setOnlineStatus(user.uid, true)
+      await messageService.setOnlineStatus(user.uid, true);
+
 
       // 2) Marrim GPS + City
       const coords = await requestAndSaveLocation(user.uid);
@@ -92,7 +93,7 @@ export default function LoginScreen() {
       }
 
       // 4) Navigojmë
-      safeRouter.replace("/home");
+      safeRouter.replace("/");
 
     } catch (error) {
       setCustomError(error.customMessage || "Login failed");
@@ -106,7 +107,7 @@ export default function LoginScreen() {
       <View style={styles.blueBg} />
 
       <TouchableOpacity
-        onPress={() => safeRouter.replace("/")}
+        onPress={() => safeRouter.replace("/home")}
         activeOpacity={0.8}
         style={[styles.backBtn, { top: insets.top + 8 }]}
         disabled={isLoading}

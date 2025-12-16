@@ -10,8 +10,11 @@ import { useTheme } from '../../../context/ThemedModes';
 import ThemedText from '../../../components/ThemedText';
 import ThemedButton from '../../../components/ThemedButton';
 import { X, AlertTriangle } from 'lucide-react-native';
+import { deleteUserAccount } from "../../../services/userService";
+import { safeRouter } from '../../../utils/SafeRouter';
 
-const DeleteAccountModal = ({ visible, onClose, onConfirm }) => {
+
+const DeleteAccountModal = ({ visible, onClose }) => {
   const { theme } = useTheme();
   const styles = getStyles(theme);
 
@@ -20,15 +23,23 @@ const DeleteAccountModal = ({ visible, onClose, onConfirm }) => {
 
   const canDelete = confirmationText.toLowerCase() === 'delete';
 
-  const handleDelete = () => {
-    if (!canDelete) return;
+  const handleDelete = async () => {
+    if (!canDelete || loading) return;
 
-    setLoading(true);
-    setTimeout(() => {
+    try {
+      setLoading(true);
+
+      await deleteUserAccount();
+      safeRouter.replace('/')
+      onClose();
+    } catch (err) {
+      console.error("DELETE ACCOUNT ERROR:", err);
+      alert(err.customMessage || "Failed to delete account");
+    } finally {
       setLoading(false);
-      onConfirm();
-    }, 1500);
+    }
   };
+
 
   return (
     <Modal
@@ -110,16 +121,18 @@ const DeleteAccountModal = ({ visible, onClose, onConfirm }) => {
               </ThemedText>
             </TouchableOpacity>
             <ThemedButton
-              style={[styles.deleteButton, {
-                backgroundColor: canDelete ? '#FF4D4F' : '#CCCCCC'
-              }]}
+              style={[
+                styles.deleteButton,
+                { backgroundColor: canDelete ? "#FF4D4F" : "#CCCCCC" }
+              ]}
               onPress={handleDelete}
               disabled={!canDelete || loading}
             >
               <ThemedText style={styles.deleteButtonText}>
-                {loading ? 'Deleting...' : 'Delete Account'}
+                {loading ? "Deleting..." : "Delete Account"}
               </ThemedText>
             </ThemedButton>
+
           </View>
         </View>
       </View>

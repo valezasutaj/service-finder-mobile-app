@@ -17,7 +17,7 @@ const NavBar = () => {
                 icon={Home}
                 label="Home"
                 active={pathname === '/' || pathname.includes('/home')}
-                onPress={() => safeRouter.push('/home')}
+                onPress={() => safeRouter.push('/')}
                 theme={theme}
             />
             <NavButton

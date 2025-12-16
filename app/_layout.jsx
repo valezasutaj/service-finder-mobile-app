@@ -1,36 +1,54 @@
 import { Slot, Stack, usePathname } from "expo-router";
 import { ThemeProvider } from "../context/ThemedModes";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { AppState } from "react-native";
-import { auth } from "../firebase";
+import { getUser } from "../services/storageService";
 import { messageService } from "../services/messagesService";
 
 export default function RootLayout() {
   const pathname = usePathname();
+  const appState = useRef(AppState.currentState);
+  const currentUserRef = useRef(null);
 
   useEffect(() => {
-    let appStateSub;
+    let appStateListener;
 
-    const user = auth.currentUser;
-    if (!user) return;
+    const initPresence = async () => {
+      const user = await getUser();
+      if (!user) return;
 
-    messageService.setOnlineStatus(user.uid, true);
+      currentUserRef.current = user;
 
-    appStateSub = AppState.addEventListener("change", (state) => {
-      if (!auth.currentUser) return;
+      await messageService.setOnlineStatus(user.uid, true);
 
-      if (state === "active") {
-        messageService.setOnlineStatus(user.uid, true);
-      } else {
-        messageService.setOnlineStatus(user.uid, false);
-      }
-    });
+      appStateListener = AppState.addEventListener("change", async (nextState) => {
+        if (!currentUserRef.current) return;
+
+        if (
+          appState.current.match(/inactive|background/) &&
+          nextState === "active"
+        ) {
+          await messageService.setOnlineStatus(currentUserRef.current.uid, true);
+        }
+
+        if (
+          appState.current === "active" &&
+          nextState.match(/inactive|background/)
+        ) {
+          await messageService.setOnlineStatus(currentUserRef.current.uid, false);
+        }
+
+        appState.current = nextState;
+      });
+    };
+
+    initPresence();
 
     return () => {
-      appStateSub?.remove();
+      if (appStateListener) appStateListener.remove();
 
-      if (auth.currentUser) {
-        messageService.setOnlineStatus(user.uid, false);
+      if (currentUserRef.current) {
+        messageService.setOnlineStatus(currentUserRef.current.uid, false);
       }
     };
   }, []);

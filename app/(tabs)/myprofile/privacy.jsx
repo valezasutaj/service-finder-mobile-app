@@ -12,6 +12,7 @@ import ThemedView from "../../../components/ThemedView";
 import ThemedText from "../../../components/ThemedText";
 import ThemedCard from "../../../components/ThemedCard";
 import { messageService } from "../../../services/messagesService";
+
 import {
   ArrowLeft,
   Shield,
@@ -337,12 +338,8 @@ const PrivacyScreen = () => {
       <DeleteAccountModal
         visible={deleteAccountModal}
         onClose={() => setDeleteAccountModal(false)}
-        onConfirm={() => {
-          setDeleteAccountModal(false);
-          setModalMessage("Account deletion requested");
-          setSuccessModal(true);
-        }}
       />
+
 
       <SuccessModal
         visible={successModal}

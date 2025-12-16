@@ -10,6 +10,8 @@ import { useTheme } from '../../../context/ThemedModes';
 import { safeRouter } from "../../../utils/SafeRouter";
 import { userService } from '../../../services/userService';
 import { Ionicons } from "@expo/vector-icons";
+import { jobService } from "../../../services/jobsService";
+
 
 const ProfileScreen = () => {
     const { theme } = useTheme();
@@ -29,7 +31,7 @@ const ProfileScreen = () => {
                 const userData = await userService.getUserById(userId);
                 setUser(userData);
 
-                const userServices = await userService.getUserServices(userId);
+                const userServices = await jobService.getJobsByUser(userId);
                 setServices(userServices || []);
             } catch (error) {
                 console.error('Error loading user profile:', error);

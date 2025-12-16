@@ -66,9 +66,9 @@ const HomeScreen = () => {
 
                                 <Image
                                     source={
-                                            item.image
-                                                ? { uri: item.image }
-                                                : require('../../assets/images/categories/default.png')
+                                        item.image
+                                            ? { uri: item.image }
+                                            : require('../../assets/images/categories/default.png')
                                     }
                                     style={themeStyles.bannerImage}
                                 />
@@ -129,7 +129,7 @@ const HomeScreen = () => {
                             name={item.name}
                             discount={item.discount}
                             price={item.price}
-                            image={ item.image ? { uri: item.image } : require('../../assets/images/categories/default.png')}
+                            image={item.image ? { uri: item.image } : require('../../assets/images/categories/default.png')}
                             providerName={item.provider?.fullName}
                             onPress={() =>
                                 router.push({

@@ -50,7 +50,7 @@ export default function LoginRequiredScreen({
 
                 <TouchableOpacity
                     style={styles.skipButton}
-                    onPress={() => safeRouter.push("/home")}
+                    onPress={() => safeRouter.push("/")}
                 >
                     <ThemedText style={[styles.skipText, { color: theme.primary }]}>
                         Continue to Home

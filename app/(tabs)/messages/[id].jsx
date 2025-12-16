@@ -699,21 +699,28 @@ const styles = (theme) =>
             borderTopColor: theme.cardBackground,
             backgroundColor: theme.background,
         },
+
         inputRow: {
             flexDirection: "row",
             alignItems: "center",
             backgroundColor: theme.cardBackground,
             borderRadius: 24,
             paddingHorizontal: 15,
+            height: 50,
         },
+
         input: {
             flex: 1,
             fontSize: 16,
             color: theme.text,
-            alignContent: 'center',
-            padding: 3,
-            paddingBottom: 7
+            height: "100%",
+            textAlignVertical: "center",
+            paddingVertical: 0,
+            paddingTop: 15,
+            paddingBottom: 0,
+            includeFontPadding: false,
         },
+
         sendBtn: {
             width: 35,
             height: 35,
@@ -723,6 +730,7 @@ const styles = (theme) =>
             justifyContent: "center",
             marginLeft: 8,
         },
+
         sendBtnDisabled: {
             backgroundColor: theme.mutedText,
             opacity: 0.5,

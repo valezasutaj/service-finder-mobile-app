@@ -63,7 +63,7 @@ export default function RegisterScreen() {
   return (
     <SafeAreaView style={styles.screen}>
       <TouchableOpacity
-        onPress={() => safeRouter.replace("/")}
+        onPress={() => safeRouter.replace("/home")}
         style={[styles.backBtn, { top: insets.top + 8 }]}
         disabled={isLoading}
       >

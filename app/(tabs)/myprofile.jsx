@@ -52,47 +52,29 @@ const MyProfile = () => {
   const [modalMessage, setModalMessage] = useState("");
 
   useEffect(() => {
-    loadUser();
+    let unsubUser;
 
-    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser && !user) {
-        const userData = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email || "",
-          avatar: firebaseUser.photoURL || null
-        };
-        setUser(userData);
-        await saveUser(userData);
-      } else if (!firebaseUser) {
-        setUser(null);
-        await removeUser();
+    const init = async () => {
+      const localUser = await getUser();
+      if (!localUser?.uid) {
+        setLoading(false);
+        return;
       }
-    });
 
-    return () => unsub();
+      unsubUser = userService.listenUserById(localUser.uid, async (freshUser) => {
+        const merged = { ...localUser, ...freshUser };
+        setUser(merged);
+        await saveUser(merged);
+        setLoading(false);
+      });
+    };
+
+    init();
+
+    return () => {
+      if (unsubUser) unsubUser();
+    };
   }, []);
-
-  const loadUser = async () => {
-    setLoading(true);
-    try {
-      const stored = await getUser();
-      if (stored) {
-        setUser(stored);
-        if (stored.uid) {
-          const freshUser = await userService.getUserById(stored.uid);
-          if (freshUser) {
-            const updatedUser = { ...stored, ...freshUser };
-            setUser(updatedUser);
-            await saveUser(updatedUser);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error loading user:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLogout = useCallback(() => {
     setModalMessage("Are you sure you want to logout?");

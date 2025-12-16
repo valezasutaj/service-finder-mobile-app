@@ -22,6 +22,31 @@ import {
 
 import { saveUser, getUser, removeUser } from "./storageService";
 
+export const updateUserLocation = async (userId, locationData) => {
+  try {
+    console.log("Updating location for user:", userId, locationData);
+
+    const userRef = doc(db, "users", userId);
+
+    await updateDoc(userRef, {
+      location: {
+        city: locationData.city,
+        coordinates: {
+          latitude: locationData.latitude,
+          longitude: locationData.longitude
+        }
+      },
+      lastLocationUpdate: new Date().toISOString()
+    });
+
+    console.log("Location updated successfully");
+    return true;
+  } catch (error) {
+    console.error("Error updating location:", error);
+    throw error;
+  }
+};
+
 export const registerUser = async (fullName, username, email, password) => {
   fullName = fullName?.trim();
   username = username?.trim().toLowerCase();
@@ -245,30 +270,34 @@ export const updateUserPassword = async (currentPassword, newPassword) => {
   }
 };
 
-export const deleteUserAccount = async (password) => {
+export const deleteUserAccount = async () => {
   try {
     const user = auth.currentUser;
-    if (!user) throw new Error();
+    if (!user) {
+      throw new Error("No authenticated user");
+    }
 
-    const credential = EmailAuthProvider.credential(user.email, password);
-    await reauthenticateWithCredential(user, credential);
+    const uid = user.uid;
 
-    await deleteDoc(doc(db, "users", user.uid));
+    await deleteDoc(doc(db, "users", uid));
+
     await user.delete();
+
     await removeUser();
 
     return { success: true };
+
   } catch (error) {
     let message = "Failed to delete account.";
 
-    if (error.code === "auth/wrong-password")
-      message = "Incorrect password.";
-    if (error.code === "auth/requires-recent-login")
-      message = "Please login again to delete account.";
+    if (error.code === "auth/requires-recent-login") {
+      message = "Please login again to delete your account.";
+    }
 
     throw { customMessage: message };
   }
 };
+
 
 export const userService = {
   getUserById: async (uid) => {
