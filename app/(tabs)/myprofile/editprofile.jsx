@@ -89,13 +89,22 @@ const EditProfile = () => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
+        quality: 0.4,
+        base64: true,
       });
 
-      if (!result.canceled && result.assets[0]) {
-        const uri = result.assets[0].uri;
-        setAvatar(uri);
+      if (result.canceled || !result.assets?.[0]?.base64) return;
+
+      const base64Avatar = `data:image/jpeg;base64,${result.assets[0].base64}`;
+
+      if (base64Avatar.length > 700_000) {
+        setErrorMessage("Photo is too large. Please choose a smaller image.");
+        setErrorModal(true);
+        return;
       }
+
+      setAvatar(base64Avatar);
+
     } catch (error) {
       console.error('Image picker error:', error);
       setErrorMessage('Failed to pick image from gallery');
@@ -117,13 +126,22 @@ const EditProfile = () => {
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
+        quality: 0.4,
+        base64: true,
       });
 
-      if (!result.canceled && result.assets[0]) {
-        const uri = result.assets[0].uri;
-        setAvatar(uri);
+      if (result.canceled || !result.assets?.[0]?.base64) return;
+
+      const base64Avatar = `data:image/jpeg;base64,${result.assets[0].base64}`;
+
+      if (base64Avatar.length > 700_000) {
+        setErrorMessage("Photo is too large. Please choose a smaller image.");
+        setErrorModal(true);
+        return;
       }
+
+      setAvatar(base64Avatar);
+
     } catch (error) {
       console.error('Camera error:', error);
       setErrorMessage('Failed to take photo');
@@ -132,6 +150,7 @@ const EditProfile = () => {
       setImagePickerModal(false);
     }
   };
+
 
   const validateForm = () => {
     if (!fullName.trim()) {

@@ -83,11 +83,7 @@ export default function ChatPage() {
         return canViewProfile ? otherUser.avatar : null;
     }, [otherUser, canViewProfile]);
 
-    const lastChatMessage = useMemo(() => {
-        if (!messages.length) return null;
-        return messages[messages.length - 1];
-    }, [messages]);
-
+    const lastChatMessage = messages[messages.length - 1];
 
     const markMessagesAsRead = useCallback(async () => {
         if (!user || !receiverId || isMarkingRead) return;
@@ -286,7 +282,7 @@ export default function ChatPage() {
         return myVisible && otherVisible;
     }, [user, otherUser]);
 
-    const buildChatItems = (msgs) => {
+    const buildChatItems = useCallback((msgs) => {
         if (!Array.isArray(msgs)) return [];
 
         const items = [];
@@ -315,15 +311,18 @@ export default function ChatPage() {
         });
 
         return items;
-    };
+    }, [formatDateSeparator]);
+
 
     const chatItems = useMemo(() => {
         const items = buildChatItems(messages);
+
         if (typing && canSeeActivity) {
             items.push({ id: "typing", type: "typing" });
         }
+
         return items;
-    }, [messages, typing, canSeeActivity]);
+    }, [messages, typing, canSeeActivity, buildChatItems]);
 
     const renderStatusIndicator = () => {
         if (!canSeeActivity || !otherUserStatus) return null;

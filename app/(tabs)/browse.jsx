@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import {
     View,
     ScrollView,
@@ -88,21 +88,26 @@ const Browse = () => {
     );
 
 
-    let filteredJobs = jobs.filter(job =>
-        job.name.toLowerCase().includes(searchText.toLowerCase()) &&
-        (
-            selectedCategoryId === "All" ||
-            (job.category && job.category.id === selectedCategoryId)
-        )
-    );
+    const filteredJobs = useMemo(() => {
+        let result = jobs.filter(job =>
+            job.name.toLowerCase().includes(searchText.toLowerCase()) &&
+            (
+                selectedCategoryId === "All" ||
+                job.category?.id === selectedCategoryId
+            )
+        );
 
-    if (selectedSort === 'Price Low → High') {
-        filteredJobs.sort((a, b) => a.price - b.price);
-    } else if (selectedSort === 'Price High → Low') {
-        filteredJobs.sort((a, b) => b.price - a.price);
-    } else if (selectedSort === 'Rating High → Low') {
-        filteredJobs.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    }
+        if (selectedSort === 'Price Low → High') {
+            result = [...result].sort((a, b) => a.price - b.price);
+        } else if (selectedSort === 'Price High → Low') {
+            result = [...result].sort((a, b) => b.price - a.price);
+        } else if (selectedSort === 'Rating High → Low') {
+            result = [...result].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        }
+
+        return result;
+    }, [jobs, searchText, selectedCategoryId, selectedSort]);
+
 
 
     if (loading) {

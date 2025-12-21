@@ -125,8 +125,9 @@ const PrivacyScreen = () => {
         await messageService.setOnlineStatus(storedUser.uid, false);
       }
 
-      await signOut(auth);
       await removeUser();
+
+      await signOut(auth);
 
       safeRouter.replace("/");
     } catch (error) {

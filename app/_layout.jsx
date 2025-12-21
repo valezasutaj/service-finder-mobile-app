@@ -18,24 +18,27 @@ export default function RootLayout() {
       if (!user) return;
 
       currentUserRef.current = user;
-
       await messageService.setOnlineStatus(user.uid, true);
 
       appStateListener = AppState.addEventListener("change", async (nextState) => {
-        if (!currentUserRef.current) return;
+        const freshUser = await getUser();
+        if (!freshUser) {
+          currentUserRef.current = null;
+          return;
+        }
 
         if (
           appState.current.match(/inactive|background/) &&
           nextState === "active"
         ) {
-          await messageService.setOnlineStatus(currentUserRef.current.uid, true);
+          await messageService.setOnlineStatus(freshUser.uid, true);
         }
 
         if (
           appState.current === "active" &&
           nextState.match(/inactive|background/)
         ) {
-          await messageService.setOnlineStatus(currentUserRef.current.uid, false);
+          await messageService.setOnlineStatus(freshUser.uid, false);
         }
 
         appState.current = nextState;
@@ -47,9 +50,11 @@ export default function RootLayout() {
     return () => {
       if (appStateListener) appStateListener.remove();
 
-      if (currentUserRef.current) {
+      if (currentUserRef.current?.uid) {
         messageService.setOnlineStatus(currentUserRef.current.uid, false);
       }
+
+      currentUserRef.current = null;
     };
   }, []);
 
