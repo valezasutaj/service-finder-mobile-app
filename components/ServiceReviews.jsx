@@ -110,7 +110,6 @@ export default function ServiceReviews({ serviceId, providerId }) {
     return reviews.reduce((a, r) => a + (r.rating || 0), 0) / reviews.length;
   }, [reviews]);
 
-  // ============ Create review ============
   const handleSubmitReview = async () => {
     const user = auth.currentUser;
 
@@ -254,7 +253,7 @@ export default function ServiceReviews({ serviceId, providerId }) {
                       key={i}
                       style={{
                         fontSize: 18,
-                        color: i <= rev.rating ? "#FFA41C" : "#ccc", // Amazon orange
+                        color: i <= rev.rating ? "#FFA41C" : "#ccc",
                         marginRight: 2,
                       }}
                     >
@@ -349,7 +348,6 @@ export default function ServiceReviews({ serviceId, providerId }) {
       )}
 
       <Modal transparent visible={editVisible} animationType="none">
-        {/* Dim background */}
         <TouchableWithoutFeedback onPress={closeEdit}>
           <Animated.View
             style={{

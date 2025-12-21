@@ -1,7 +1,6 @@
 import {
   collection,
   doc,
-  getDoc,
   getDocs,
   setDoc,
   deleteDoc,
@@ -12,6 +11,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "../firebase";
+import { notify } from "./notificationsService";
 
 const COLLECTION = "reviews";
 
@@ -26,6 +26,11 @@ export const reviewService = {
       };
 
       await setDoc(doc(db, COLLECTION, docId), reviewDoc);
+
+      await notify({
+        title: "Thank you!",
+        body: "Your review has been submitted successfully.",
+      });
 
       return { id: docId, ...reviewDoc };
     } catch (error) {
@@ -53,6 +58,11 @@ export const reviewService = {
   deleteReview: async (reviewId) => {
     try {
       await deleteDoc(doc(db, COLLECTION, reviewId));
+
+      await notify({
+        title: "Review deleted",
+        body: "Your review has been removed successfully.",
+      });
     } catch (error) {
       console.error("Error deleting review:", error);
       throw error;
