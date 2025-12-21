@@ -45,6 +45,14 @@ const assertNotFinal = (booking) => {
   }
 };
 
+const bookingLabel = (b) =>
+  b.job?.category?.label ? b.job.category.label : "service";
+
+const bookingWhen = (b) =>
+  b.currentOffer
+    ? `${b.currentOffer.date} at ${b.currentOffer.time}`
+    : "the selected time";
+
 export const bookingService = {
   listenToBookings(uid, callback, errorCallback) {
     const q = query(collection(db, "bookings"), where("customerId", "==", uid));
@@ -88,10 +96,13 @@ export const bookingService = {
 
     const ref = await addDoc(collection(db, "bookings"), payload);
 
+    const label = payload.job?.category?.label || "service";
+    const when = `${offer.date} at ${offer.time}`;
+
     await notifyAndSave({
       userId: data.customerId,
-      title: "Booking created",
-      body: "Your booking request was sent successfully.",
+      title: "Booking requested",
+      body: `Your ${label} booking for ${when} was sent.`,
       type: "booking_created",
       relatedId: ref.id,
     });
@@ -99,7 +110,7 @@ export const bookingService = {
     await notifyAndSave({
       userId: providerId,
       title: "New booking request",
-      body: "You have received a new booking request.",
+      body: `You received a ${label} booking request for ${when}.`,
       type: "booking_received",
       relatedId: ref.id,
     });
@@ -135,7 +146,9 @@ export const bookingService = {
     await notifyAndSave({
       userId: b.customerId,
       title: "Booking accepted",
-      body: "Your booking has been accepted.",
+      body: `Your ${bookingLabel(b)} booking for ${bookingWhen(
+        b
+      )} was accepted.`,
       type: "booking_accepted",
       relatedId: bookingId,
     });
@@ -173,7 +186,9 @@ export const bookingService = {
     await notifyAndSave({
       userId: otherUser,
       title: "Booking cancelled",
-      body: "The booking has been cancelled.",
+      body: `The ${bookingLabel(b)} booking for ${bookingWhen(
+        b
+      )} was cancelled.`,
       type: "booking_cancelled",
       relatedId: bookingId,
     });
@@ -181,7 +196,9 @@ export const bookingService = {
     await notifyAndSave({
       userId: uid,
       title: "Booking cancelled",
-      body: "You cancelled the booking.",
+      body: `You cancelled the ${bookingLabel(b)} booking for ${bookingWhen(
+        b
+      )}.`,
       type: "booking_cancelled_self",
       relatedId: bookingId,
     });
@@ -213,11 +230,12 @@ export const bookingService = {
       updatedAt: serverTimestamp(),
     });
 
-    // 🔔 Notify CUSTOMER
     await notifyAndSave({
       userId: b.customerId,
       title: "Booking declined",
-      body: "Your booking request was declined.",
+      body: `Your ${bookingLabel(b)} booking for ${bookingWhen(
+        b
+      )} was declined.`,
       type: "booking_declined",
       relatedId: bookingId,
     });
@@ -263,8 +281,10 @@ export const bookingService = {
 
     await notifyAndSave({
       userId: otherUser,
-      title: "Booking reschedule proposed",
-      body: "A new date/time was proposed for your booking.",
+      title: "Reschedule proposed",
+      body: `A new time (${date} at ${time}) was proposed for your ${bookingLabel(
+        b
+      )} booking.`,
       type: "booking_rescheduled",
       relatedId: bookingId,
     });
