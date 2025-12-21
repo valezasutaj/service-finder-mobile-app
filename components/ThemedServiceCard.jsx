@@ -3,8 +3,9 @@ import { StyleSheet, Image, TouchableOpacity, View } from 'react-native';
 import ThemedCard from './ThemedCard';
 import ThemedText from './ThemedText';
 import ThemedModal from './modals/ThemedModal';
-import { Bookmark, Trash2, X } from 'lucide-react-native';
+import { TrendingUp, Trash2, X } from 'lucide-react-native';
 import { useTheme } from '../context/ThemedModes';
+
 
 const ThemedServiceCard = ({
     id,
@@ -73,7 +74,7 @@ const ThemedServiceCard = ({
 
                         {showBookmark && (
                             <View style={[styles.bookmark, { backgroundColor: theme.primary + '22' }]}>
-                                <Bookmark color={theme.text} size={18} />
+                                <TrendingUp color={theme.text} size={17} />
                             </View>
                         )}
                     </View>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Image, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Modal } from "react-native";
+import { View, Image, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Modal, FlatList } from "react-native";
 import { ArrowLeft, MoreVertical, MessageCircle } from "lucide-react-native";
 import ThemedView from "../../../components/ThemedView";
 import ThemedText from "../../../components/ThemedText";
@@ -8,7 +8,7 @@ import ThemedButton from "../../../components/ThemedButton";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../context/ThemedModes";
 import { jobService } from "../../../services/jobsService";
-import { getCategoryIcon } from "../../../services/imagesMap";
+import { userService } from "../../../services/userService";
 import { safeRouter } from "../../../utils/SafeRouter";
 import ServiceReviews from "../../../components/ServiceReviews";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -18,11 +18,16 @@ import ErrorModal from "../../../components/modals/ErrorModal";
 import ConfirmModal from "../../../components/modals/ConfirmModal";
 import { auth, db } from "../../../firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
+import ThemedServiceCard from '../../../components/ThemedServiceCard';
+
 
 export default function ServiceDetailsScreen() {
   const router = useRouter();
   const { theme } = useTheme();
-  const { id, image } = useLocalSearchParams();
+  const { id } = useLocalSearchParams();
+  const [provider, setProvider] = useState(null);
+  const [loadingServices, setLoadingServices] = useState(false);
+  const [providerServices, setProviderServices] = useState([])
 
   const [activeTab, setActiveTab] = useState("About");
   const [job, setJob] = useState(null);
@@ -62,11 +67,21 @@ export default function ServiceDetailsScreen() {
   }, [id]);
 
   useEffect(() => {
+    if (!job?.provider?.uid) return;
+
+    const unsub = userService.listenUserById(
+      job.provider.uid,
+      (freshUser) => setProvider(freshUser)
+    );
+
+    return () => unsub && unsub();
+  }, [job]);
+
+  useEffect(() => {
     if (!job || !auth.currentUser) {
       setCheckingBooking(false);
       return;
     }
-
     const uid = auth.currentUser.uid;
 
     const q = query(
@@ -103,6 +118,29 @@ export default function ServiceDetailsScreen() {
     });
     return () => unsub();
   }, [job]);
+
+  useEffect(() => {
+    if (activeTab !== "Services") return;
+    if (!job?.provider?.uid) return;
+
+    const loadServices = async () => {
+      setLoadingServices(true);
+      try {
+        const services = await jobService.getJobsByUser(job.provider.uid);
+
+        const filtered = services.filter(s => s.id !== job.id);
+
+        setProviderServices(filtered);
+      } catch (e) {
+        console.error("Failed to load provider services", e);
+      } finally {
+        setLoadingServices(false);
+      }
+    };
+
+    loadServices();
+  }, [activeTab, job]);
+
 
   if (!job) {
     return (
@@ -184,12 +222,48 @@ export default function ServiceDetailsScreen() {
             <ServiceReviews serviceId={job.id} providerId={job.provider?.uid} />
           )}
 
+          {activeTab === "Services" && (
+            <View style={{ marginTop: 10 }}>
+              {loadingServices ? (
+                <ActivityIndicator color={theme.primary} />
+              ) : providerServices.length === 0 ? (
+                <ThemedText style={{ color: theme.mutedText }}>
+                  No other services from this provider.
+                </ThemedText>
+              ) : (
+                <FlatList
+                  data={providerServices}
+                  keyExtractor={(item) => item.id}
+                  scrollEnabled={false}
+                  renderItem={({ item }) => (
+                    <ThemedServiceCard
+                      id={item.id}
+                      name={item.name}
+                      price={item.price}
+                      discount={item.discount}
+                      rating={item.rating}
+                      image={
+                        item.image
+                          ? { uri: item.image }
+                          : require("../../../assets/images/categories/default.png")
+                      }
+                      providerName={item.provider?.fullName}
+                      onPress={() =>
+                        safeRouter.push(`/jobdetails/${item.id}`)
+                      }
+                    />
+                  )}
+                />
+              )}
+            </View>
+          )}
+
           <ThemedCard style={styles.providerCard}>
             <TouchableOpacity
               style={{ flexDirection: "row", alignItems: "center" }}
               onPress={() => safeRouter.push(`/profile/${job.provider.uid}`)}
             >
-              <Image source={{ uri: job.provider?.avatar }} style={styles.providerImage} />
+              <Image source={{ uri: provider?.avatar }} style={styles.providerImage} />
               <View style={{ marginLeft: 10 }}>
                 <ThemedText title style={{ fontSize: 15 }}>{job.provider?.fullName}</ThemedText>
                 <ThemedText>Service Provider</ThemedText>
@@ -212,8 +286,8 @@ export default function ServiceDetailsScreen() {
             backgroundColor: acceptedFuture
               ? "#4CAF50"
               : alreadyBooked
-              ? "#B00020"
-              : undefined,
+                ? "#B00020"
+                : undefined,
             opacity: checkingBooking ? 0.6 : 1,
           }}
           disabled={checkingBooking || acceptedFuture}
@@ -243,10 +317,10 @@ export default function ServiceDetailsScreen() {
             {checkingBooking
               ? "Checking..."
               : acceptedFuture
-              ? "Accepted"
-              : alreadyBooked
-              ? "Cancel Request"
-              : "Book Service Now"}
+                ? "Accepted"
+                : alreadyBooked
+                  ? "Cancel Request"
+                  : "Book Service Now"}
           </ThemedText>
         </ThemedButton>
       </View>
@@ -342,7 +416,7 @@ export default function ServiceDetailsScreen() {
 
                     setSuccessModal({
                       open: true,
-                        title: "Request Sent",
+                      title: "Request Sent",
                       message: "Your booking request has been sent.",
                     });
 
@@ -361,7 +435,7 @@ export default function ServiceDetailsScreen() {
                 <ThemedText style={{ color: "#ffffffff", fontWeight: "700", textAlign: "center" }}>
                   {sending ? "Sending..." : "Send Request"}
                 </ThemedText>
-              </TouchableOpacity> 
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -498,10 +572,10 @@ const getStyles = (theme) =>
       padding: 20,
     },
     bookBox: {
-  backgroundColor: theme.cardBackground,
-  padding: 16,
-  borderRadius: 14,
-},
+      backgroundColor: theme.cardBackground,
+      padding: 16,
+      borderRadius: 14,
+    },
 
     row: {
       flexDirection: "row",
@@ -509,18 +583,18 @@ const getStyles = (theme) =>
       marginTop: 14,
     },
     cancelBtn: {
-  flex: 1,
-  padding: 12,
-  borderRadius: 10,
-  borderWidth: 1,
-  borderColor: theme.border ?? theme.mutedText,
-},
+      flex: 1,
+      padding: 12,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: theme.border ?? theme.mutedText,
+    },
 
-sendBtn: {
-  flex: 1,
-  padding: 12,
-  borderRadius: 10,
-  backgroundColor: theme.primary,
-},
+    sendBtn: {
+      flex: 1,
+      padding: 12,
+      borderRadius: 10,
+      backgroundColor: theme.primary,
+    },
 
   });

@@ -23,6 +23,8 @@ import { safeRouter } from "../../../utils/SafeRouter";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import ErrorModal from "../../../components/modals/ErrorModal";
+
 
 export default function ChatPage() {
     const { id: receiverId } = useLocalSearchParams();
@@ -38,6 +40,10 @@ export default function ChatPage() {
     const [listReady, setListReady] = useState(false);
     const [otherUserStatus, setOtherUserStatus] = useState(null);
     const [isMarkingRead, setIsMarkingRead] = useState(false);
+    const [selfChatError, setSelfChatError] = useState(false);
+
+
+
 
     const flatListRef = useRef(null);
     const typingTimeoutRef = useRef(null);
@@ -173,6 +179,13 @@ export default function ChatPage() {
             const currentUser = await getUser();
 
             if (!currentUser) {
+                setHasCheckedAuth(true);
+                return;
+            }
+
+            if (currentUser.uid === receiverId) {
+                setUser(currentUser);
+                setSelfChatError(true);
                 setHasCheckedAuth(true);
                 return;
             }
@@ -354,6 +367,17 @@ export default function ChatPage() {
             style={{ flex: 1 }}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
+
+            <ErrorModal
+                visible={selfChatError}
+                title="Action not allowed"
+                message="You can’t start a conversation with yourself."
+                onClose={() => {
+                    setSelfChatError(false);
+                    safeRouter.back();
+                }}
+            />
+
             <ThemedView safe style={s.container}>
                 {!user && hasCheckedAuth ? (
                     <LoginRequiredScreen

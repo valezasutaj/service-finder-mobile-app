@@ -22,6 +22,15 @@ export default function Welcome() {
           <TouchableOpacity style={styles.btnSecondary} onPress={() => safeRouter.push('/login')}>
             <Text style={styles.btnSecondaryText}>Log In</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.guestBtn}
+            onPress={() => safeRouter.push('/')}
+          >
+            <Text style={styles.guestBtnText}>
+              Continue as Guest
+            </Text>
+          </TouchableOpacity>
+
         </View>
       </View>
       <Image
@@ -111,4 +120,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
+  guestBtn: {
+    marginTop: 16,
+    paddingVertical: 10,
+  },
+
+  guestBtnText: {
+    color: '#ffffffcc',
+    fontSize: width * 0.04,
+    fontWeight: '500',
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
 });  
