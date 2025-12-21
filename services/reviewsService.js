@@ -11,7 +11,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "../firebase";
-import { notify } from "./notificationsService";
+import { notifyAndSave } from "./notificationsService";
 
 const COLLECTION = "reviews";
 
@@ -27,9 +27,12 @@ export const reviewService = {
 
       await setDoc(doc(db, COLLECTION, docId), reviewDoc);
 
-      await notify({
+      await notifyAndSave({
+        userId: reviewData.customerId,
         title: "Thank you!",
         body: "Your review has been submitted successfully.",
+        type: "review_added",
+        relatedId: reviewData.serviceId,
       });
 
       return { id: docId, ...reviewDoc };
@@ -55,13 +58,16 @@ export const reviewService = {
     }
   },
 
-  deleteReview: async (reviewId) => {
+  deleteReview: async (reviewId, userId) => {
     try {
       await deleteDoc(doc(db, COLLECTION, reviewId));
 
-      await notify({
+      await notifyAndSave({
+        userId,
         title: "Review deleted",
         body: "Your review has been removed successfully.",
+        type: "review_deleted",
+        relatedId: reviewId,
       });
     } catch (error) {
       console.error("Error deleting review:", error);

@@ -11,7 +11,7 @@ import {
   addDoc,
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
-import { notify } from "./notificationsService";
+import { notifyAndSave } from "./notificationsService";
 
 const pad = (n) => String(n).padStart(2, "0");
 
@@ -88,9 +88,20 @@ export const bookingService = {
 
     const ref = await addDoc(collection(db, "bookings"), payload);
 
-    await notify({
-      title: "Booking confirmed",
-      body: "Your booking has been successfully created.",
+    await notifyAndSave({
+      userId: data.customerId,
+      title: "Booking created",
+      body: "Your booking request was sent successfully.",
+      type: "booking_created",
+      relatedId: ref.id,
+    });
+
+    await notifyAndSave({
+      userId: providerId,
+      title: "New booking request",
+      body: "You have received a new booking request.",
+      type: "booking_received",
+      relatedId: ref.id,
     });
 
     return { id: ref.id, ...payload };
@@ -121,9 +132,12 @@ export const bookingService = {
       updatedAt: serverTimestamp(),
     });
 
-    await notify({
+    await notifyAndSave({
+      userId: b.customerId,
       title: "Booking accepted",
-      body: "The booking has been accepted successfully.",
+      body: "Your booking has been accepted.",
+      type: "booking_accepted",
+      relatedId: bookingId,
     });
   },
 
@@ -154,9 +168,22 @@ export const bookingService = {
       updatedAt: serverTimestamp(),
     });
 
-    await notify({
+    const otherUser = uid === b.customerId ? b.providerId : b.customerId;
+
+    await notifyAndSave({
+      userId: otherUser,
       title: "Booking cancelled",
       body: "The booking has been cancelled.",
+      type: "booking_cancelled",
+      relatedId: bookingId,
+    });
+
+    await notifyAndSave({
+      userId: uid,
+      title: "Booking cancelled",
+      body: "You cancelled the booking.",
+      type: "booking_cancelled_self",
+      relatedId: bookingId,
     });
   },
 
@@ -186,9 +213,13 @@ export const bookingService = {
       updatedAt: serverTimestamp(),
     });
 
-    await notify({
+    // 🔔 Notify CUSTOMER
+    await notifyAndSave({
+      userId: b.customerId,
       title: "Booking declined",
-      body: "The booking request has been declined.",
+      body: "Your booking request was declined.",
+      type: "booking_declined",
+      relatedId: bookingId,
     });
   },
 
@@ -226,6 +257,16 @@ export const bookingService = {
       currentOffer: offer,
       offers: arrayUnion({ ...offer, at: nowISO() }),
       updatedAt: serverTimestamp(),
+    });
+
+    const otherUser = uid === b.customerId ? b.providerId : b.customerId;
+
+    await notifyAndSave({
+      userId: otherUser,
+      title: "Booking reschedule proposed",
+      body: "A new date/time was proposed for your booking.",
+      type: "booking_rescheduled",
+      relatedId: bookingId,
     });
   },
 };
