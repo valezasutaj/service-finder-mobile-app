@@ -50,6 +50,10 @@ const MyProfile = () => {
   const [errorModal, setErrorModal] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [logoutModal, setLogoutModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+
 
   useEffect(() => {
     let unsubUser;
@@ -76,10 +80,9 @@ const MyProfile = () => {
     };
   }, []);
 
-  const handleLogout = useCallback(() => {
-    setModalMessage("Are you sure you want to logout?");
-    setErrorModal(true);
-  }, []);
+  const handleLogout = () => {
+    setLogoutModal(true);
+  };
 
   const confirmLogout = useCallback(async () => {
     try {
@@ -127,11 +130,11 @@ const MyProfile = () => {
 
       if (result.canceled) return;
 
-     const base64Avatar = `data:image/jpeg;base64,${result.assets[0].base64}`;
-
+      const base64Avatar = `data:image/jpeg;base64,${result.assets[0].base64}`;
 
       if (base64Avatar.length > 800_000) {
-        alert("Photo is too large. Please choose a smaller image.");
+        setErrorMessage("Photo is too large. Please choose a smaller image.");
+        setErrorModal(true);
         return;
       }
 
@@ -369,14 +372,21 @@ const MyProfile = () => {
       />
 
       <ErrorModal
-        visible={errorModal}
+        visible={logoutModal}
         title="Logout"
-        message={modalMessage}
-        onClose={() => setErrorModal(false)}
+        message="Are you sure you want to logout?"
         showConfirm
         confirmText="Logout"
-        onConfirm={confirmLogout}
         cancelText="Cancel"
+        onConfirm={confirmLogout}
+        onClose={() => setLogoutModal(false)}
+      />
+
+      <ErrorModal
+        visible={errorModal}
+        title="Error"
+        message={errorMessage}
+        onClose={() => setErrorModal(false)}
       />
 
     </ThemedView>

@@ -18,6 +18,7 @@ import { ArrowLeft, Bell } from "lucide-react-native";
 import { bookingService, formatLocalDate, formatLocalTime } from "../../services/bookingsService";
 import { auth } from "../../firebase";
 import { getCategoryIcon } from "../../services/imagesMap";
+import { safeRouter } from "../../utils/SafeRouter";
 
 const parseYMD = (s) => {
   if (!s || typeof s !== "string") return new Date();
@@ -260,7 +261,7 @@ export default function BookingScreen() {
 
         <ThemedText style={styles.headerTitle}>My Booking</ThemedText>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => safeRouter.push('/myprofile/notifications')}>
           <Bell size={22} color={theme.text} />
         </TouchableOpacity>
       </View>

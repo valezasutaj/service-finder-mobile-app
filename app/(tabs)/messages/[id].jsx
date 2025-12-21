@@ -41,9 +41,7 @@ export default function ChatPage() {
     const [otherUserStatus, setOtherUserStatus] = useState(null);
     const [isMarkingRead, setIsMarkingRead] = useState(false);
     const [selfChatError, setSelfChatError] = useState(false);
-
-
-
+    const [userNotFoundError, setUserNotFoundError] = useState(false);
 
     const flatListRef = useRef(null);
     const typingTimeoutRef = useRef(null);
@@ -192,11 +190,15 @@ export default function ChatPage() {
 
             setUser(currentUser);
 
-            let unsubUser = null;
+            const exists = await userService.getUserById(receiverId);
 
-            unsubUser = userService.listenUserById(receiverId, (freshUser) => {
-                setOtherUser(freshUser);
-            });
+            if (!exists) {
+                setUserNotFoundError(true);
+                setHasCheckedAuth(true);
+                return;
+            }
+
+            userService.listenUserById(receiverId, setOtherUser);
 
             unsubMessages = messageService.listenConversation(
                 currentUser.uid,
@@ -214,6 +216,7 @@ export default function ChatPage() {
 
             setHasCheckedAuth(true);
         };
+
 
         init();
 
@@ -361,8 +364,8 @@ export default function ChatPage() {
 
         return null;
     };
-
     return (
+
         <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -378,6 +381,16 @@ export default function ChatPage() {
                 }}
             />
 
+            <ErrorModal
+                visible={userNotFoundError}
+                title="User not found"
+                message="This user does not exist or has been deleted."
+                onClose={() => {
+                    setUserNotFoundError(false);
+                    safeRouter.back();
+                }}
+            />
+
             <ThemedView safe style={s.container}>
                 {!user && hasCheckedAuth ? (
                     <LoginRequiredScreen
@@ -386,8 +399,13 @@ export default function ChatPage() {
                         message="Please login to view your messages."
                     />
                 ) : !otherUser ? (
-                    <View style={{ flex: 1 }} />
+                    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                        <ThemedText style={{ color: theme.mutedText }}>
+                            Loading conversation...
+                        </ThemedText>
+                    </View>
                 ) : (
+
                     <>
                         <View style={s.header}>
                             <View style={s.headerLeft}>
@@ -774,6 +792,4 @@ const styles = (theme) =>
             color: "#9aa0a6",
             fontWeight: "500",
         },
-
-
     });
