@@ -103,37 +103,55 @@ const MyProfile = () => {
     try {
       let result;
 
-      if (source === 'camera') {
+      if (source === "camera") {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
         if (!permission.granted) return;
+
         result = await ImagePicker.launchCameraAsync({
-          quality: 0.8,
           allowsEditing: true,
           aspect: [1, 1],
+          quality: 0.5,
+          base64: true,
         });
       } else {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!permission.granted) return;
+
         result = await ImagePicker.launchImageLibraryAsync({
-          quality: 0.8,
           allowsEditing: true,
           aspect: [1, 1],
+          quality: 0.5,
+          base64: true,
         });
       }
 
-      if (!result.canceled && result.assets[0]) {
-        const uri = result.assets[0].uri;
-        const updatedUser = { ...user, avatar: uri };
+      if (result.canceled) return;
 
-        setUser(updatedUser);
-        await saveUser(updatedUser);
+     const base64Avatar = `data:image/jpeg;base64,${result.assets[0].base64}`;
 
-        if (user?.uid) {
-          await saveUserToFirestore(user.uid, { avatar: uri });
-        }
+
+      if (base64Avatar.length > 800_000) {
+        alert("Photo is too large. Please choose a smaller image.");
+        return;
       }
+
+      const updatedUser = {
+        ...user,
+        avatar: base64Avatar,
+      };
+
+      setUser(updatedUser);
+
+      await saveUser(updatedUser);
+
+      if (user?.uid) {
+        await saveUserToFirestore(user.uid, {
+          avatar: base64Avatar,
+        });
+      }
+
     } catch (error) {
-      console.error('Image error:', error);
+      console.error("Avatar image error:", error);
     } finally {
       setImageModal(false);
     }
