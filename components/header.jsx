@@ -10,7 +10,7 @@ import { auth } from '../firebase';
 import { getWeatherByCity } from '../services/WeatherService';
 import { userService } from '../services/userService';
 
-const FadePress = ({ onPress, children, style }) => {
+const FadePress = ({ onPress, children, style, testID }) => {
   const opacity = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -36,6 +36,7 @@ const FadePress = ({ onPress, children, style }) => {
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         style={style}
+        testID={testID}  // Ja ku vendoset testID
       >
         {children}
       </TouchableOpacity>
@@ -43,9 +44,8 @@ const FadePress = ({ onPress, children, style }) => {
   );
 };
 
-
 const Header = () => {
-  const { theme, isDarkMode } = useTheme();
+  const { theme } = useTheme();
   const styles = s(theme);
 
   const [user, setUser] = useState(null);
@@ -110,11 +110,10 @@ const Header = () => {
     if (user) loadWeather();
   }, [user]);
 
-
   return (
     <View style={[styles.headerContainer, { backgroundColor: theme.uiBackground }]}>
-
       <FadePress
+        testID="profile-btn"
         onPress={() => safeRouter.push('/myprofile')}
         style={styles.leftSection}
       >
@@ -146,23 +145,23 @@ const Header = () => {
         </View>
       </FadePress>
 
-
-
       <View style={styles.rightSection}>
-
-        <FadePress onPress={() => safeRouter.push('provider/bookings')} style={[styles.iconButton, { backgroundColor: theme.primary }]}>
+        <FadePress
+          testID="notifications-btn"
+          onPress={() => safeRouter.push('provider/bookings')}
+          style={[styles.iconButton, { backgroundColor: theme.primary }]}
+        >
           <Ionicons name="notifications" size={20} color="#fff" />
         </FadePress>
 
         <FadePress
+          testID="calendar-btn"
           onPress={() => safeRouter.push('/booking')}
           style={[styles.iconButton, { backgroundColor: theme.primary }]}
         >
           <Ionicons name="calendar" size={20} color="#fff" />
         </FadePress>
-
       </View>
-
     </View>
   );
 };
@@ -225,7 +224,6 @@ const s = (theme) =>
       height: 42,
       borderRadius: 21,
     },
-
     headerAvatarPlaceholder: {
       width: 42,
       height: 42,
