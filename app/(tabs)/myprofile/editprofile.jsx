@@ -97,7 +97,7 @@ const EditProfile = () => {
 
       const base64Avatar = `data:image/jpeg;base64,${result.assets[0].base64}`;
 
-      if (base64Avatar.length > 700_000) {
+      if (base64Avatar.length > 800_000) {
         setErrorMessage("Photo is too large. Please choose a smaller image.");
         setErrorModal(true);
         return;
