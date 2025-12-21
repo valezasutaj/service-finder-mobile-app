@@ -55,6 +55,8 @@ const PrivacyScreen = () => {
   const [errorModal, setErrorModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [errorType, setErrorType] = useState(null);
+
 
   useEffect(() => {
     getUser().then((u) => {
@@ -113,8 +115,10 @@ const PrivacyScreen = () => {
   );
 
   const handleLogout = useCallback(() => {
+    setErrorType("logout");
     setModalMessage("Are you sure you want to logout?");
     setErrorModal(true);
+
   }, []);
 
   const confirmLogout = useCallback(async () => {
@@ -351,14 +355,15 @@ const PrivacyScreen = () => {
 
       <ErrorModal
         visible={errorModal}
-        title="Logout"
         message={modalMessage}
+        title={errorType === "logout" ? "Logout" : "Error"}
+        confirmText={errorType === "logout" ? "Logout" : "OK"}
+        showConfirm={errorType === "logout"}
+        onConfirm={errorType === "logout" ? confirmLogout : undefined}
         onClose={() => setErrorModal(false)}
-        showConfirm
-        confirmText="Logout"
-        onConfirm={confirmLogout}
-        cancelText="Cancel"
       />
+
+
     </ThemedView>
   );
 };

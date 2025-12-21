@@ -5,6 +5,7 @@ import ThemedView from "../../../components/ThemedView";
 import ThemedText from "../../../components/ThemedText";
 import ThemedCard from "../../../components/ThemedCard";
 import ThemedButton from "../../../components/ThemedButton";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../context/ThemedModes";
 import { jobService } from "../../../services/jobsService";
@@ -263,7 +264,17 @@ export default function ServiceDetailsScreen() {
               style={{ flexDirection: "row", alignItems: "center" }}
               onPress={() => safeRouter.push(`/profile/${job.provider.uid}`)}
             >
-              <Image source={{ uri: provider?.avatar }} style={styles.providerImage} />
+              {provider?.avatar ? (
+                <Image
+                  source={{ uri: provider.avatar }}
+                  style={styles.providerImage}
+                />
+              ) : (
+                <View style={styles.providerAvatarPlaceholder}>
+                  <Ionicons name="person" size={30} color={theme.mutedText} style={{ marginHorizontal: 10 }} />
+                </View>
+              )}
+
               <View style={{ marginLeft: 10 }}>
                 <ThemedText title style={{ fontSize: 15 }}>{job.provider?.fullName}</ThemedText>
                 <ThemedText>Service Provider</ThemedText>

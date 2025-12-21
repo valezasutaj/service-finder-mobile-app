@@ -192,8 +192,8 @@ const EditProfile = () => {
         }
       };
 
-      if (avatar && avatar !== user?.avatar) {
-        updates.avatar = avatar;
+      if (avatar !== user?.avatar) {
+        updates.avatar = avatar || null;
       }
 
       const result = await updateUserProfile(user.uid, updates);
@@ -268,15 +268,15 @@ const EditProfile = () => {
             ) : (
               <View style={styles.avatarPlaceholder}>
                 <Ionicons
-                  name="person-circle"
-                  size={100}
+                  name="person"
+                  size={64}
                   color={theme.mutedText}
-                  style={styles.defaultAvatarIcon}
                 />
                 <View style={styles.cameraIcon}>
                   <Camera size={16} color="#fff" />
                 </View>
               </View>
+
             )}
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setImagePickerModal(true)}>
@@ -418,6 +418,22 @@ const EditProfile = () => {
               </ThemedText>
             </TouchableOpacity>
 
+            {avatar && (
+              <TouchableOpacity
+                style={[styles.modalOption, { borderBottomColor: theme.border }]}
+                onPress={() => {
+                  setAvatar("");
+                  setImagePickerModal(false);
+                }}
+              >
+                <Ionicons name="trash-outline" size={24} color="#FF4D4F" />
+                <ThemedText style={[styles.modalOptionText, { color: "#FF4D4F" }]}>
+                  Remove Photo
+                </ThemedText>
+              </TouchableOpacity>
+            )}
+
+
             <TouchableOpacity
               style={[styles.modalOption, { borderBottomColor: theme.border }]}
               onPress={pickImageFromGallery}
@@ -555,11 +571,6 @@ const getStyles = (theme) => StyleSheet.create({
     backgroundColor: theme.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
-  },
-  defaultAvatarIcon: {
-    width: 120,
-    height: 120,
   },
   cameraIcon: {
     position: 'absolute',
