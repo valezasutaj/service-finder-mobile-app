@@ -1,5 +1,17 @@
-import { collection, query, where, onSnapshot, getDoc, updateDoc, doc, serverTimestamp, arrayUnion, addDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  getDoc,
+  updateDoc,
+  doc,
+  serverTimestamp,
+  arrayUnion,
+  addDoc,
+} from "firebase/firestore";
 import { auth, db } from "../firebase";
+import { notify } from "./notificationsService";
 
 const pad = (n) => String(n).padStart(2, "0");
 
@@ -35,11 +47,7 @@ const assertNotFinal = (booking) => {
 
 export const bookingService = {
   listenToBookings(uid, callback, errorCallback) {
-    const q = query(
-      collection(db, "bookings"),
-      where("customerId", "==", uid)
-    );
-
+    const q = query(collection(db, "bookings"), where("customerId", "==", uid));
     return onSnapshot(q, callback, errorCallback);
   },
 
@@ -79,6 +87,12 @@ export const bookingService = {
     };
 
     const ref = await addDoc(collection(db, "bookings"), payload);
+
+    await notify({
+      title: "Booking confirmed",
+      body: "Your booking has been successfully created.",
+    });
+
     return { id: ref.id, ...payload };
   },
 
@@ -90,7 +104,6 @@ export const bookingService = {
 
     const ref = doc(db, "bookings", bookingId);
     const snap = await getDoc(ref);
-
     if (!snap.exists()) throw new Error("Booking not found");
 
     const b = snap.data();
@@ -107,6 +120,11 @@ export const bookingService = {
       acceptedAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+
+    await notify({
+      title: "Booking accepted",
+      body: "The booking has been accepted successfully.",
+    });
   },
 
   async cancelBooking(bookingId) {
@@ -117,7 +135,6 @@ export const bookingService = {
 
     const ref = doc(db, "bookings", bookingId);
     const snap = await getDoc(ref);
-
     if (!snap.exists()) throw new Error("Booking not found");
 
     const b = snap.data();
@@ -136,6 +153,11 @@ export const bookingService = {
       cancelledAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+
+    await notify({
+      title: "Booking cancelled",
+      body: "The booking has been cancelled.",
+    });
   },
 
   async declineBooking(bookingId) {
@@ -146,7 +168,6 @@ export const bookingService = {
 
     const ref = doc(db, "bookings", bookingId);
     const snap = await getDoc(ref);
-
     if (!snap.exists()) throw new Error("Booking not found");
 
     const b = snap.data();
@@ -159,12 +180,15 @@ export const bookingService = {
     await updateDoc(ref, {
       status: "Declined",
       waitingOn: null,
-
       declinedBy: uid,
       declinedRole: role,
       declinedAt: serverTimestamp(),
-
       updatedAt: serverTimestamp(),
+    });
+
+    await notify({
+      title: "Booking declined",
+      body: "The booking request has been declined.",
     });
   },
 
@@ -178,10 +202,9 @@ export const bookingService = {
 
     const ref = doc(db, "bookings", bookingId);
     const snap = await getDoc(ref);
-
     if (!snap.exists()) throw new Error("Booking not found");
-    const b = snap.data();
 
+    const b = snap.data();
     const role = getUserRole(uid, b);
     if (!role) throw new Error("Not allowed");
 
